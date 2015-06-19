@@ -22,12 +22,6 @@ type Float float64
 type GeoPoint struct{ Latitude, Longitude int32 }
 type Text []byte
 
-//type BoolVector []Bool
-//type IntVector []Int
-//type FloatVector []Float
-//type GeoPointVector []GeoPoint
-//type TextVector []Text
-
 const (
 	True  = Bool(3)
 	False = Bool(0)
@@ -1258,7 +1252,6 @@ func (column *GrnColumn) getTextVector(id Int) (interface{}, error) {
 }
 
 // GetValue() gets a value.
-// TODO: GetValue() should use allocated spaces for better performance.
 func (column *GrnColumn) GetValue(id Int) (interface{}, error) {
 	if !column.isVector {
 		switch column.valueType {
