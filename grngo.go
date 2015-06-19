@@ -128,21 +128,21 @@ func NewColumnOptions() *ColumnOptions {
 
 // -- Groonga --
 
-// grnInitCount is a counter for automatically initializing and finalizing
+// initCount is a counter for automatically initializing and finalizing
 // Groonga.
-var grnInitCount = 0
+var initCount = 0
 
-// DisableGrnInitCount() disables grnInitCount.
+// DisableGrnInitCount() disables initCount.
 // This is useful if you want to manyally initialize and finalize Groonga.
-func DisableGrnInitCount() {
-	grnInitCount = -1
+func DisableInitCount() {
+	initCount = -1
 }
 
 // GrnInit() initializes Groonga if needed.
-// grnInitCount is incremented and when it changes from 0 to 1, Groonga is
+// initCount is incremented and when it changes from 0 to 1, Groonga is
 // initialized.
 func GrnInit() error {
-	switch grnInitCount {
+	switch initCount {
 	case -1: // Disabled.
 		return nil
 	case 0:
@@ -150,15 +150,15 @@ func GrnInit() error {
 			return fmt.Errorf("grn_init() failed: rc = %d", rc)
 		}
 	}
-	grnInitCount++
+	initCount++
 	return nil
 }
 
 // GrnFin() finalizes Groonga if needed.
-// grnInitCount is decremented and when it changes from 1 to 0, Groonga is
+// initCount is decremented and when it changes from 1 to 0, Groonga is
 // finalized.
 func GrnFin() error {
-	switch grnInitCount {
+	switch initCount {
 	case -1: // Disabled.
 		return nil
 	case 0:
@@ -168,7 +168,7 @@ func GrnFin() error {
 			return fmt.Errorf("grn_fin() failed: rc = %d", rc)
 		}
 	}
-	grnInitCount--
+	initCount--
 	return nil
 }
 
