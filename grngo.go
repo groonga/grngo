@@ -172,8 +172,8 @@ func Fin() error {
 	return nil
 }
 
-// openGrnCtx() allocates memory for grn_ctx and initializes it.
-func openGrnCtx() (*C.grn_ctx, error) {
+// openCtx() allocates memory for grn_ctx and initializes it.
+func openCtx() (*C.grn_ctx, error) {
 	if err := Init(); err != nil {
 		return nil, err
 	}
@@ -185,8 +185,8 @@ func openGrnCtx() (*C.grn_ctx, error) {
 	return ctx, nil
 }
 
-// closeGrnCtx() finalizes grn_ctx and frees allocated memory.
-func closeGrnCtx(ctx *C.grn_ctx) error {
+// closeCtx() finalizes grn_ctx and frees allocated memory.
+func closeCtx(ctx *C.grn_ctx) error {
 	rc := C.grn_ctx_close(ctx)
 	Fin()
 	if rc != C.GRN_SUCCESS {
@@ -211,7 +211,7 @@ func newGrnDB(ctx *C.grn_ctx, obj *C.grn_obj) *GrnDB {
 // CreateGrnDB() creates a Groonga database and returns a handle to it.
 // A temporary database is created if path is empty.
 func CreateGrnDB(path string) (*GrnDB, error) {
-	ctx, err := openGrnCtx()
+	ctx, err := openCtx()
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func CreateGrnDB(path string) (*GrnDB, error) {
 	}
 	obj := C.grn_db_create(ctx, cPath, nil)
 	if obj == nil {
-		closeGrnCtx(ctx)
+		closeCtx(ctx)
 		errMsg := C.GoString(&ctx.errbuf[0])
 		return nil, fmt.Errorf("grn_db_create() failed: err = %s", errMsg)
 	}
@@ -231,7 +231,7 @@ func CreateGrnDB(path string) (*GrnDB, error) {
 
 // OpenGrnDB() opens an existing Groonga database and returns a handle.
 func OpenGrnDB(path string) (*GrnDB, error) {
-	ctx, err := openGrnCtx()
+	ctx, err := openCtx()
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func OpenGrnDB(path string) (*GrnDB, error) {
 	defer C.free(unsafe.Pointer(cPath))
 	obj := C.grn_db_open(ctx, cPath)
 	if obj == nil {
-		closeGrnCtx(ctx)
+		closeCtx(ctx)
 		errMsg := C.GoString(&ctx.errbuf[0])
 		return nil, fmt.Errorf("grn_db_open() failed: err = %s", errMsg)
 	}
@@ -250,10 +250,10 @@ func OpenGrnDB(path string) (*GrnDB, error) {
 func (db *GrnDB) Close() error {
 	rc := C.grn_obj_close(db.ctx, db.obj)
 	if rc != C.GRN_SUCCESS {
-		closeGrnCtx(db.ctx)
+		closeCtx(db.ctx)
 		return fmt.Errorf("grn_obj_close() failed: rc = %d", rc)
 	}
-	return closeGrnCtx(db.ctx)
+	return closeCtx(db.ctx)
 }
 
 // Send() sends a raw command.
