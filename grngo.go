@@ -200,12 +200,12 @@ func closeCtx(ctx *C.grn_ctx) error {
 type DB struct {
 	ctx    *C.grn_ctx
 	obj    *C.grn_obj
-	tables map[string]*GrnTable
+	tables map[string]*Table
 }
 
 // newDB() creates a new DB object.
 func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
-	return &DB{ctx, obj, make(map[string]*GrnTable)}
+	return &DB{ctx, obj, make(map[string]*Table)}
 }
 
 // CreateDB() creates a Groonga database and returns a handle to it.
@@ -344,7 +344,7 @@ func (db *DB) QueryEx(name string, options map[string]string) (
 }
 
 // CreateTable() creates a table.
-func (db *DB) CreateTable(name string, options *TableOptions) (*GrnTable, error) {
+func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if options == nil {
 		options = NewTableOptions()
 	}
@@ -422,7 +422,7 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*GrnTable, error)
 }
 
 // FindTable() finds a table.
-func (db *DB) FindTable(name string) (*GrnTable, error) {
+func (db *DB) FindTable(name string) (*Table, error) {
 	if table, ok := db.tables[name]; ok {
 		return table, nil
 	}
@@ -460,7 +460,7 @@ func (db *DB) FindTable(name string) (*GrnTable, error) {
 			keyInfo.data_type)
 	}
 	// Find the destination table if the key is table reference.
-	var keyTable *GrnTable
+	var keyTable *Table
 	if keyInfo.ref_table != nil {
 		if keyType == VoidID {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
@@ -501,7 +501,7 @@ func (db *DB) FindTable(name string) (*GrnTable, error) {
 			valueInfo.data_type)
 	}
 	// Find the destination table if the value is table reference.
-	var valueTable *GrnTable
+	var valueTable *Table
 	if valueInfo.ref_table != nil {
 		if valueType == VoidID {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
@@ -517,7 +517,7 @@ func (db *DB) FindTable(name string) (*GrnTable, error) {
 			return nil, err
 		}
 	}
-	table := newGrnTable(db, obj, name, keyType, keyTable, valueType, valueTable)
+	table := newTable(db, obj, name, keyType, keyTable, valueType, valueTable)
 	db.tables[name] = table
 	return table, nil
 }
@@ -550,23 +550,23 @@ func (db *DB) FindColumn(tableName, columnName string) (*GrnColumn, error) {
 	return table.FindColumn(columnName)
 }
 
-// -- GrnTable --
+// -- Table --
 
-type GrnTable struct {
+type Table struct {
 	db         *DB
 	obj        *C.grn_obj
 	name       string
 	keyType    TypeID
-	keyTable   *GrnTable
+	keyTable   *Table
 	valueType  TypeID
-	valueTable *GrnTable
+	valueTable *Table
 	columns    map[string]*GrnColumn
 }
 
-// newGrnTable() creates a new GrnTable object.
-func newGrnTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
-	keyTable *GrnTable, valueType TypeID, valueTable *GrnTable) *GrnTable {
-	var table GrnTable
+// newTable() creates a new Table object.
+func newTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
+	keyTable *Table, valueType TypeID, valueTable *Table) *Table {
+	var table Table
 	table.db = db
 	table.obj = obj
 	table.name = name
@@ -579,7 +579,7 @@ func newGrnTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
 }
 
 // insertVoid() inserts an empty row.
-func (table *GrnTable) insertVoid() (bool, Int, error) {
+func (table *Table) insertVoid() (bool, Int, error) {
 	if table.keyType != VoidID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -591,7 +591,7 @@ func (table *GrnTable) insertVoid() (bool, Int, error) {
 }
 
 // insertBool() inserts a row with Bool key.
-func (table *GrnTable) insertBool(key Bool) (bool, Int, error) {
+func (table *Table) insertBool(key Bool) (bool, Int, error) {
 	if table.keyType != BoolID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -607,7 +607,7 @@ func (table *GrnTable) insertBool(key Bool) (bool, Int, error) {
 }
 
 // insertInt() inserts a row with Int key.
-func (table *GrnTable) insertInt(key Int) (bool, Int, error) {
+func (table *Table) insertInt(key Int) (bool, Int, error) {
 	if table.keyType != IntID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -620,7 +620,7 @@ func (table *GrnTable) insertInt(key Int) (bool, Int, error) {
 }
 
 // insertFloat() inserts a row with Float key.
-func (table *GrnTable) insertFloat(key Float) (bool, Int, error) {
+func (table *Table) insertFloat(key Float) (bool, Int, error) {
 	if table.keyType != FloatID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -633,7 +633,7 @@ func (table *GrnTable) insertFloat(key Float) (bool, Int, error) {
 }
 
 // insertGeoPoint() inserts a row with GeoPoint key.
-func (table *GrnTable) insertGeoPoint(key GeoPoint) (bool, Int, error) {
+func (table *Table) insertGeoPoint(key GeoPoint) (bool, Int, error) {
 	if table.keyType != GeoPointID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -646,7 +646,7 @@ func (table *GrnTable) insertGeoPoint(key GeoPoint) (bool, Int, error) {
 }
 
 // insertText() inserts a row with Text key.
-func (table *GrnTable) insertText(key Text) (bool, Int, error) {
+func (table *Table) insertText(key Text) (bool, Int, error) {
 	if table.keyType != TextID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -665,7 +665,7 @@ func (table *GrnTable) insertText(key Text) (bool, Int, error) {
 // InsertRow() inserts a row.
 // The first return value specifies whether a row is inserted or not.
 // The second return value is the ID of the inserted or found row.
-func (table *GrnTable) InsertRow(key interface{}) (bool, Int, error) {
+func (table *Table) InsertRow(key interface{}) (bool, Int, error) {
 	switch value := key.(type) {
 	case nil:
 		return table.insertVoid()
@@ -686,7 +686,7 @@ func (table *GrnTable) InsertRow(key interface{}) (bool, Int, error) {
 }
 
 // CreateColumn() creates a column.
-func (table *GrnTable) CreateColumn(name string, valueType string,
+func (table *Table) CreateColumn(name string, valueType string,
 	options *ColumnOptions) (*GrnColumn, error) {
 	if options == nil {
 		options = NewColumnOptions()
@@ -753,7 +753,7 @@ func (table *GrnTable) CreateColumn(name string, valueType string,
 }
 
 // findColumn() finds a column.
-func (table *GrnTable) findColumn(name string) (*GrnColumn, error) {
+func (table *Table) findColumn(name string) (*GrnColumn, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
 	}
@@ -767,7 +767,7 @@ func (table *GrnTable) findColumn(name string) (*GrnColumn, error) {
 		return nil, fmt.Errorf("grn_obj_column() failed: table = %+v, name = <%s>", table, name)
 	}
 	var valueType TypeID
-	var valueTable *GrnTable
+	var valueTable *Table
 	var isVector bool
 	switch name {
 	case "_id":
@@ -824,7 +824,7 @@ func (table *GrnTable) findColumn(name string) (*GrnColumn, error) {
 }
 
 // FindColumn() finds a column.
-func (table *GrnTable) FindColumn(name string) (*GrnColumn, error) {
+func (table *Table) FindColumn(name string) (*GrnColumn, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
 	}
@@ -871,17 +871,17 @@ func (table *GrnTable) FindColumn(name string) (*GrnColumn, error) {
 // -- GrnColumn --
 
 type GrnColumn struct {
-	table      *GrnTable
+	table      *Table
 	obj        *C.grn_obj
 	name       string
 	valueType  TypeID
 	isVector   bool
-	valueTable *GrnTable
+	valueTable *Table
 }
 
 // newGrnColumn() creates a new GrnColumn object.
-func newGrnColumn(table *GrnTable, obj *C.grn_obj, name string,
-	valueType TypeID, isVector bool, valueTable *GrnTable) *GrnColumn {
+func newGrnColumn(table *Table, obj *C.grn_obj, name string,
+	valueType TypeID, isVector bool, valueTable *Table) *GrnColumn {
 	var column GrnColumn
 	column.table = table
 	column.obj = obj
