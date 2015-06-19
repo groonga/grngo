@@ -13,7 +13,7 @@ import (
 // createTempDB() creates a database for tests.
 // The database must be removed with removeTempDB().
 func createTempDB(tb testing.TB) (string, string, *DB) {
-	dirPath, err := ioutil.TempDir("", "grn_test")
+	dirPath, err := ioutil.TempDir("", "grngo_test")
 	if err != nil {
 		tb.Fatalf("ioutil.TempDir() failed: %v", err)
 	}
