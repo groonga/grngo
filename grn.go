@@ -1186,34 +1186,3 @@ func (column *GrnColumn) getBools(ids []Int) (interface{}, error) {
 	}
 	return values, nil
 }
-
-func (column *GrnColumn) GetValues(ids []Int) (interface{}, error) {
-	if !column.isVector {
-		switch column.valueType {
-		case BoolID:
-			return column.getBools(ids)
-//		case IntID:
-//			return column.getInts(ids)
-//		case FloatID:
-//			return column.getFloats(ids)
-//		case GeoPointID:
-//			return column.getGeoPoints(ids)
-//		case TextID:
-//			return column.getTexts(ids)
-		}
-	} else {
-//		switch column.valueType {
-//		case BoolID:
-//			return column.getBoolVectors(ids)
-//		case IntID:
-//			return column.getIntVectors(ids)
-//		case FloatID:
-//			return column.getFloatVectors(ids)
-//		case GeoPointID:
-//			return column.getGeoPointVectors(ids)
-//		case TextID:
-//			return column.getTextVectors(ids)
-//		}
-	}
-	return nil, fmt.Errorf("undefined value type: valueType = %d", column.valueType)
-}
