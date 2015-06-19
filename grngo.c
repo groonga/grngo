@@ -467,17 +467,3 @@ grn_bool grngo_column_get_text_vector(grn_ctx *ctx, grn_obj *column,
   GRN_OBJ_FIN(ctx, &value_obj);
   return GRN_TRUE;
 }
-
-grn_bool grngo_column_get_bools(grn_ctx *ctx, grn_obj *column, size_t n,
-                                const int64_t *ids, grn_bool *values) {
-  grn_obj value_obj;
-  GRN_BOOL_INIT(&value_obj, 0);
-  size_t i;
-  for (i = 0; i < n; i++) {
-    GRN_BULK_REWIND(&value_obj);
-    grn_obj_get_value(ctx, column, (grn_id)ids[i], &value_obj);
-    values[i] = GRN_BOOL_VALUE(&value_obj);
-  }
-  GRN_OBJ_FIN(ctx, &value_obj);
-  return GRN_TRUE;
-}

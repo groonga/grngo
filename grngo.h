@@ -142,7 +142,4 @@ grn_bool grngo_column_get_geo_point_vector(grn_ctx *ctx, grn_obj *column,
 grn_bool grngo_column_get_text_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id, grngo_vector *value);
 
-grn_bool grngo_column_get_bools(grn_ctx *ctx, grn_obj *column, size_t n,
-                                const int64_t *ids, grn_bool *values);
-
 #endif  // GRNGO_H
