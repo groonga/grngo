@@ -1,4 +1,4 @@
-package gnx
+package grngo
 
 import (
 	"fmt"
