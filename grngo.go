@@ -533,7 +533,7 @@ func (db *DB) InsertRow(tableName string, key interface{}) (bool, Int, error) {
 
 // CreateColumn() creates a column.
 func (db *DB) CreateColumn(tableName, columnName string, valueType string,
-	options *ColumnOptions) (*GrnColumn, error) {
+	options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
 		return nil, err
@@ -542,7 +542,7 @@ func (db *DB) CreateColumn(tableName, columnName string, valueType string,
 }
 
 // FindColumn() finds a column.
-func (db *DB) FindColumn(tableName, columnName string) (*GrnColumn, error) {
+func (db *DB) FindColumn(tableName, columnName string) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
 		return nil, err
@@ -560,7 +560,7 @@ type Table struct {
 	keyTable   *Table
 	valueType  TypeID
 	valueTable *Table
-	columns    map[string]*GrnColumn
+	columns    map[string]*Column
 }
 
 // newTable() creates a new Table object.
@@ -574,7 +574,7 @@ func newTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
 	table.keyTable = keyTable
 	table.valueType = valueType
 	table.valueTable = valueTable
-	table.columns = make(map[string]*GrnColumn)
+	table.columns = make(map[string]*Column)
 	return &table
 }
 
@@ -687,7 +687,7 @@ func (table *Table) InsertRow(key interface{}) (bool, Int, error) {
 
 // CreateColumn() creates a column.
 func (table *Table) CreateColumn(name string, valueType string,
-	options *ColumnOptions) (*GrnColumn, error) {
+	options *ColumnOptions) (*Column, error) {
 	if options == nil {
 		options = NewColumnOptions()
 	}
@@ -753,7 +753,7 @@ func (table *Table) CreateColumn(name string, valueType string,
 }
 
 // findColumn() finds a column.
-func (table *Table) findColumn(name string) (*GrnColumn, error) {
+func (table *Table) findColumn(name string) (*Column, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
 	}
@@ -818,13 +818,13 @@ func (table *Table) findColumn(name string) (*GrnColumn, error) {
 			}
 		}
 	}
-	column := newGrnColumn(table, obj, name, valueType, isVector, valueTable)
+	column := newColumn(table, obj, name, valueType, isVector, valueTable)
 	table.columns[name] = column
 	return column, nil
 }
 
 // FindColumn() finds a column.
-func (table *Table) FindColumn(name string) (*GrnColumn, error) {
+func (table *Table) FindColumn(name string) (*Column, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
 	}
@@ -863,14 +863,14 @@ func (table *Table) FindColumn(name string) (*GrnColumn, error) {
 	if obj == nil {
 		return nil, fmt.Errorf("grn_obj_column() failed: name = <%s>", name)
 	}
-	column = newGrnColumn(table, obj, name, column.valueType, isVector, valueTable)
+	column = newColumn(table, obj, name, column.valueType, isVector, valueTable)
 	table.columns[name] = column
 	return column, nil
 }
 
-// -- GrnColumn --
+// -- Column --
 
-type GrnColumn struct {
+type Column struct {
 	table      *Table
 	obj        *C.grn_obj
 	name       string
@@ -879,10 +879,10 @@ type GrnColumn struct {
 	valueTable *Table
 }
 
-// newGrnColumn() creates a new GrnColumn object.
-func newGrnColumn(table *Table, obj *C.grn_obj, name string,
-	valueType TypeID, isVector bool, valueTable *Table) *GrnColumn {
-	var column GrnColumn
+// newColumn() creates a new Column object.
+func newColumn(table *Table, obj *C.grn_obj, name string,
+	valueType TypeID, isVector bool, valueTable *Table) *Column {
+	var column Column
 	column.table = table
 	column.obj = obj
 	column.name = name
@@ -893,7 +893,7 @@ func newGrnColumn(table *Table, obj *C.grn_obj, name string,
 }
 
 // setBool() assigns a Bool value.
-func (column *GrnColumn) setBool(id Int, value Bool) error {
+func (column *Column) setBool(id Int, value Bool) error {
 	if (column.valueType != BoolID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -909,7 +909,7 @@ func (column *GrnColumn) setBool(id Int, value Bool) error {
 }
 
 // setInt() assigns an Int value.
-func (column *GrnColumn) setInt(id Int, value Int) error {
+func (column *Column) setInt(id Int, value Int) error {
 	if (column.valueType != IntID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -922,7 +922,7 @@ func (column *GrnColumn) setInt(id Int, value Int) error {
 }
 
 // setFloat() assigns a Float value.
-func (column *GrnColumn) setFloat(id Int, value Float) error {
+func (column *Column) setFloat(id Int, value Float) error {
 	if (column.valueType != FloatID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -935,7 +935,7 @@ func (column *GrnColumn) setFloat(id Int, value Float) error {
 }
 
 // setGeoPoint() assigns a GeoPoint value.
-func (column *GrnColumn) setGeoPoint(id Int, value GeoPoint) error {
+func (column *Column) setGeoPoint(id Int, value GeoPoint) error {
 	if (column.valueType != GeoPointID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -948,7 +948,7 @@ func (column *GrnColumn) setGeoPoint(id Int, value GeoPoint) error {
 }
 
 // setText() assigns a Text value.
-func (column *GrnColumn) setText(id Int, value Text) error {
+func (column *Column) setText(id Int, value Text) error {
 	if (column.valueType != TextID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -965,7 +965,7 @@ func (column *GrnColumn) setText(id Int, value Text) error {
 }
 
 // setBoolVector() assigns a Bool vector.
-func (column *GrnColumn) setBoolVector(id Int, value []Bool) error {
+func (column *Column) setBoolVector(id Int, value []Bool) error {
 	grnValue := make([]C.grn_bool, len(value))
 	for i, v := range value {
 		if v == True {
@@ -985,7 +985,7 @@ func (column *GrnColumn) setBoolVector(id Int, value []Bool) error {
 }
 
 // setIntVector() assigns an Int vector.
-func (column *GrnColumn) setIntVector(id Int, value []Int) error {
+func (column *Column) setIntVector(id Int, value []Int) error {
 	var grnVector C.grn_cgo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -999,7 +999,7 @@ func (column *GrnColumn) setIntVector(id Int, value []Int) error {
 }
 
 // setFloatVector() assigns a Float vector.
-func (column *GrnColumn) setFloatVector(id Int, value []Float) error {
+func (column *Column) setFloatVector(id Int, value []Float) error {
 	var grnVector C.grn_cgo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -1013,7 +1013,7 @@ func (column *GrnColumn) setFloatVector(id Int, value []Float) error {
 }
 
 // setGeoPointVector() assigns a GeoPoint vector.
-func (column *GrnColumn) setGeoPointVector(id Int, value []GeoPoint) error {
+func (column *Column) setGeoPointVector(id Int, value []GeoPoint) error {
 	var grnVector C.grn_cgo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -1027,7 +1027,7 @@ func (column *GrnColumn) setGeoPointVector(id Int, value []GeoPoint) error {
 }
 
 // setTextVector() assigns a Text vector.
-func (column *GrnColumn) setTextVector(id Int, value []Text) error {
+func (column *Column) setTextVector(id Int, value []Text) error {
 	grnValue := make([]C.grn_cgo_text, len(value))
 	for i, v := range value {
 		if len(v) != 0 {
@@ -1048,7 +1048,7 @@ func (column *GrnColumn) setTextVector(id Int, value []Text) error {
 }
 
 // SetValue() assigns a value.
-func (column *GrnColumn) SetValue(id Int, value interface{}) error {
+func (column *Column) SetValue(id Int, value interface{}) error {
 	switch v := value.(type) {
 	case Bool:
 		return column.setBool(id, v)
@@ -1077,7 +1077,7 @@ func (column *GrnColumn) SetValue(id Int, value interface{}) error {
 }
 
 // getBool() gets a Bool value.
-func (column *GrnColumn) getBool(id Int) (interface{}, error) {
+func (column *Column) getBool(id Int) (interface{}, error) {
 	var grnValue C.grn_bool
 	if ok := C.grn_cgo_column_get_bool(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1091,7 +1091,7 @@ func (column *GrnColumn) getBool(id Int) (interface{}, error) {
 }
 
 // getInt() gets an Int value.
-func (column *GrnColumn) getInt(id Int) (interface{}, error) {
+func (column *Column) getInt(id Int) (interface{}, error) {
 	var grnValue C.int64_t
 	if ok := C.grn_cgo_column_get_int(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1101,7 +1101,7 @@ func (column *GrnColumn) getInt(id Int) (interface{}, error) {
 }
 
 // getFloat() gets a Float value.
-func (column *GrnColumn) getFloat(id Int) (interface{}, error) {
+func (column *Column) getFloat(id Int) (interface{}, error) {
 	var grnValue C.double
 	if ok := C.grn_cgo_column_get_float(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1111,7 +1111,7 @@ func (column *GrnColumn) getFloat(id Int) (interface{}, error) {
 }
 
 // getGeoPoint() gets a GeoPoint value.
-func (column *GrnColumn) getGeoPoint(id Int) (interface{}, error) {
+func (column *Column) getGeoPoint(id Int) (interface{}, error) {
 	var grnValue C.grn_geo_point
 	if ok := C.grn_cgo_column_get_geo_point(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1121,7 +1121,7 @@ func (column *GrnColumn) getGeoPoint(id Int) (interface{}, error) {
 }
 
 // getText() gets a Text value.
-func (column *GrnColumn) getText(id Int) (interface{}, error) {
+func (column *Column) getText(id Int) (interface{}, error) {
 	var grnValue C.grn_cgo_text
 	if ok := C.grn_cgo_column_get_text(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1140,7 +1140,7 @@ func (column *GrnColumn) getText(id Int) (interface{}, error) {
 }
 
 // getBoolVector() gets a BoolVector.
-func (column *GrnColumn) getBoolVector(id Int) (interface{}, error) {
+func (column *Column) getBoolVector(id Int) (interface{}, error) {
 	var grnVector C.grn_cgo_vector
 	if ok := C.grn_cgo_column_get_bool_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
@@ -1165,7 +1165,7 @@ func (column *GrnColumn) getBoolVector(id Int) (interface{}, error) {
 }
 
 // getIntVector() gets a IntVector.
-func (column *GrnColumn) getIntVector(id Int) (interface{}, error) {
+func (column *Column) getIntVector(id Int) (interface{}, error) {
 	var grnValue C.grn_cgo_vector
 	if ok := C.grn_cgo_column_get_int_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1184,7 +1184,7 @@ func (column *GrnColumn) getIntVector(id Int) (interface{}, error) {
 }
 
 // getFloatVector() gets a FloatVector.
-func (column *GrnColumn) getFloatVector(id Int) (interface{}, error) {
+func (column *Column) getFloatVector(id Int) (interface{}, error) {
 	var grnValue C.grn_cgo_vector
 	if ok := C.grn_cgo_column_get_float_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1203,7 +1203,7 @@ func (column *GrnColumn) getFloatVector(id Int) (interface{}, error) {
 }
 
 // getGeoPointVector() gets a GeoPointVector.
-func (column *GrnColumn) getGeoPointVector(id Int) (interface{}, error) {
+func (column *Column) getGeoPointVector(id Int) (interface{}, error) {
 	var grnValue C.grn_cgo_vector
 	if ok := C.grn_cgo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1222,7 +1222,7 @@ func (column *GrnColumn) getGeoPointVector(id Int) (interface{}, error) {
 }
 
 // getTextVector() gets a TextVector.
-func (column *GrnColumn) getTextVector(id Int) (interface{}, error) {
+func (column *Column) getTextVector(id Int) (interface{}, error) {
 	var grnVector C.grn_cgo_vector
 	if ok := C.grn_cgo_column_get_text_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
@@ -1252,7 +1252,7 @@ func (column *GrnColumn) getTextVector(id Int) (interface{}, error) {
 }
 
 // GetValue() gets a value.
-func (column *GrnColumn) GetValue(id Int) (interface{}, error) {
+func (column *Column) GetValue(id Int) (interface{}, error) {
 	if !column.isVector {
 		switch column.valueType {
 		case BoolID:

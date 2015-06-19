@@ -51,13 +51,13 @@ func createTempTable(tb testing.TB, name string, options *TableOptions) (
 	return dirPath, dbPath, db, table
 }
 
-// createTempGrnColumn() creates a database, a table, and a column for tests.
-// createTempGrnColumn() uses createTempDB() to create a database, so the
+// createTempColumn() creates a database, a table, and a column for tests.
+// createTempColumn() uses createTempDB() to create a database, so the
 // database must be removed with removeTempDB().
-func createTempGrnColumn(tb testing.TB, tableName string,
+func createTempColumn(tb testing.TB, tableName string,
 	tableOptions *TableOptions, columnName string, valueType string,
 	columnOptions *ColumnOptions) (
-	string, string, *DB, *Table, *GrnColumn) {
+	string, string, *DB, *Table, *Column) {
 	dirPath, dbPath, db, table := createTempTable(tb, tableName, tableOptions)
 	column, err := table.CreateColumn(columnName, valueType, columnOptions)
 	if err != nil {
@@ -287,7 +287,7 @@ func TestTableInsertRowWithTextKey(t *testing.T) {
 
 func testTableCreateScalarColumn(t *testing.T, valueType string) {
 	dirPath, _, db, table, _ :=
-		createTempGrnColumn(t, "Table", nil, "Value", valueType, nil)
+		createTempColumn(t, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("_id"); err != nil {
@@ -306,7 +306,7 @@ func testTableCreateVectorColumn(t *testing.T, valueType string) {
 	options := NewColumnOptions()
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, _ :=
-		createTempGrnColumn(t, "Table", nil, "Value", valueType, options)
+		createTempColumn(t, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("_id"); err != nil {
@@ -326,7 +326,7 @@ func testTableCreateScalarRefColumn(t *testing.T, keyType string) {
 	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, table, _ :=
-		createTempGrnColumn(t, "Table", options, "Value", "Table", nil)
+		createTempColumn(t, "Table", options, "Value", "Table", nil)
 	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("Value"); err != nil {
@@ -353,7 +353,7 @@ func testTableCreateVectorRefColumn(t *testing.T, keyType string) {
 	columnOptions := NewColumnOptions()
 	columnOptions.ColumnType = VectorColumn
 	dirPath, _, db, table, _ :=
-		createTempGrnColumn(t, "Table", tableOptions, "Value", "Table", columnOptions)
+		createTempColumn(t, "Table", tableOptions, "Value", "Table", columnOptions)
 	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("Value"); err != nil {
@@ -530,9 +530,9 @@ func generateRandomVectorValue(valueType string) interface{} {
 	}
 }
 
-func testGrnColumnSetValueForScalar(t *testing.T, valueType string) {
+func testColumnSetValueForScalar(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(t, "Table", nil, "Value", valueType, nil)
+		createTempColumn(t, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
@@ -541,7 +541,7 @@ func testGrnColumnSetValueForScalar(t *testing.T, valueType string) {
 			t.Fatalf("Table.InsertRow() failed: %v", err)
 		}
 		if err := column.SetValue(id, generateRandomValue(valueType)); err != nil {
-			t.Fatalf("GrnColumn.SetValue() failed: %v", err)
+			t.Fatalf("Column.SetValue() failed: %v", err)
 		}
 	}
 
@@ -549,11 +549,11 @@ func testGrnColumnSetValueForScalar(t *testing.T, valueType string) {
 	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
 }
 
-func testGrnColumnSetValueForVector(t *testing.T, valueType string) {
+func testColumnSetValueForVector(t *testing.T, valueType string) {
 	options := NewColumnOptions()
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(t, "Table", nil, "Value", valueType, options)
+		createTempColumn(t, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
@@ -562,7 +562,7 @@ func testGrnColumnSetValueForVector(t *testing.T, valueType string) {
 			t.Fatalf("Table.InsertRow() failed: %v", err)
 		}
 		if err := column.SetValue(id, generateRandomVectorValue(valueType)); err != nil {
-			t.Fatalf("GrnColumn.SetValue() failed: %v", err)
+			t.Fatalf("Column.SetValue() failed: %v", err)
 		}
 	}
 
@@ -570,49 +570,49 @@ func testGrnColumnSetValueForVector(t *testing.T, valueType string) {
 	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
 }
 
-func TestGrnColumnSetValueForBool(t *testing.T) {
-	testGrnColumnSetValueForScalar(t, "Bool")
+func TestColumnSetValueForBool(t *testing.T) {
+	testColumnSetValueForScalar(t, "Bool")
 }
 
-func TestGrnColumnSetValueForInt(t *testing.T) {
-	testGrnColumnSetValueForScalar(t, "Int")
+func TestColumnSetValueForInt(t *testing.T) {
+	testColumnSetValueForScalar(t, "Int")
 }
 
-func TestGrnColumnSetValueForFloat(t *testing.T) {
-	testGrnColumnSetValueForScalar(t, "Float")
+func TestColumnSetValueForFloat(t *testing.T) {
+	testColumnSetValueForScalar(t, "Float")
 }
 
-func TestGrnColumnSetValueForGeoPoint(t *testing.T) {
-	testGrnColumnSetValueForScalar(t, "GeoPoint")
+func TestColumnSetValueForGeoPoint(t *testing.T) {
+	testColumnSetValueForScalar(t, "GeoPoint")
 }
 
-func TestGrnColumnSetValueForText(t *testing.T) {
-	testGrnColumnSetValueForScalar(t, "Text")
+func TestColumnSetValueForText(t *testing.T) {
+	testColumnSetValueForScalar(t, "Text")
 }
 
-func TestGrnColumnSetValueForBoolVector(t *testing.T) {
-	testGrnColumnSetValueForVector(t, "Bool")
+func TestColumnSetValueForBoolVector(t *testing.T) {
+	testColumnSetValueForVector(t, "Bool")
 }
 
-func TestGrnColumnSetValueForIntVector(t *testing.T) {
-	testGrnColumnSetValueForVector(t, "Int")
+func TestColumnSetValueForIntVector(t *testing.T) {
+	testColumnSetValueForVector(t, "Int")
 }
 
-func TestGrnColumnSetValueForFloatVector(t *testing.T) {
-	testGrnColumnSetValueForVector(t, "Float")
+func TestColumnSetValueForFloatVector(t *testing.T) {
+	testColumnSetValueForVector(t, "Float")
 }
 
-func TestGrnColumnSetValueForGeoPointVector(t *testing.T) {
-	testGrnColumnSetValueForVector(t, "GeoPoint")
+func TestColumnSetValueForGeoPointVector(t *testing.T) {
+	testColumnSetValueForVector(t, "GeoPoint")
 }
 
-func TestGrnColumnSetValueForTextVector(t *testing.T) {
-	testGrnColumnSetValueForVector(t, "Text")
+func TestColumnSetValueForTextVector(t *testing.T) {
+	testColumnSetValueForVector(t, "Text")
 }
 
-func testGrnColumnGetValueForScalar(t *testing.T, valueType string) {
+func testColumnGetValueForScalar(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(t, "Table", nil, "Value", valueType, nil)
+		createTempColumn(t, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
@@ -622,22 +622,22 @@ func testGrnColumnGetValueForScalar(t *testing.T, valueType string) {
 		}
 		value := generateRandomValue(valueType)
 		if err := column.SetValue(id, value); err != nil {
-			t.Fatalf("GrnColumn.SetValue() failed: %v", err)
+			t.Fatalf("Column.SetValue() failed: %v", err)
 		}
 		if storedValue, err := column.GetValue(id); err != nil {
-			t.Fatalf("GrnColumn.GetValue() failed: %v", err)
+			t.Fatalf("Column.GetValue() failed: %v", err)
 		} else if !reflect.DeepEqual(value, storedValue) {
-			t.Fatalf("GrnColumn.GetValue() failed: value = %v, storedValue = %v",
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
 				value, storedValue)
 		}
 	}
 }
 
-func testGrnColumnGetValueForVector(t *testing.T, valueType string) {
+func testColumnGetValueForVector(t *testing.T, valueType string) {
 	options := NewColumnOptions()
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(t, "Table", nil, "Value", valueType, options)
+		createTempColumn(t, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
@@ -647,12 +647,12 @@ func testGrnColumnGetValueForVector(t *testing.T, valueType string) {
 		}
 		value := generateRandomVectorValue(valueType)
 		if err := column.SetValue(id, value); err != nil {
-			t.Fatalf("GrnColumn.SetValue() failed: %v", err)
+			t.Fatalf("Column.SetValue() failed: %v", err)
 		}
 		if storedValue, err := column.GetValue(id); err != nil {
-			t.Fatalf("GrnColumn.GetValue() failed: %v", err)
+			t.Fatalf("Column.GetValue() failed: %v", err)
 		} else if !reflect.DeepEqual(value, storedValue) {
-			t.Fatalf("GrnColumn.GetValue() failed: value = %v, storedValue = %v",
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
 				value, storedValue)
 		}
 	}
@@ -661,49 +661,49 @@ func testGrnColumnGetValueForVector(t *testing.T, valueType string) {
 	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
 }
 
-func TestGrnColumnGetValueForBool(t *testing.T) {
-	testGrnColumnGetValueForScalar(t, "Bool")
+func TestColumnGetValueForBool(t *testing.T) {
+	testColumnGetValueForScalar(t, "Bool")
 }
 
-func TestGrnColumnGetValueForInt(t *testing.T) {
-	testGrnColumnGetValueForScalar(t, "Int")
+func TestColumnGetValueForInt(t *testing.T) {
+	testColumnGetValueForScalar(t, "Int")
 }
 
-func TestGrnColumnGetValueForFloat(t *testing.T) {
-	testGrnColumnGetValueForScalar(t, "Float")
+func TestColumnGetValueForFloat(t *testing.T) {
+	testColumnGetValueForScalar(t, "Float")
 }
 
-func TestGrnColumnGetValueForGeoPoint(t *testing.T) {
-	testGrnColumnGetValueForScalar(t, "GeoPoint")
+func TestColumnGetValueForGeoPoint(t *testing.T) {
+	testColumnGetValueForScalar(t, "GeoPoint")
 }
 
-func TestGrnColumnGetValueForText(t *testing.T) {
-	testGrnColumnGetValueForScalar(t, "Text")
+func TestColumnGetValueForText(t *testing.T) {
+	testColumnGetValueForScalar(t, "Text")
 }
 
-func TestGrnColumnGetValueForBoolVector(t *testing.T) {
-	testGrnColumnGetValueForVector(t, "Bool")
+func TestColumnGetValueForBoolVector(t *testing.T) {
+	testColumnGetValueForVector(t, "Bool")
 }
 
-func TestGrnColumnGetValueForIntVector(t *testing.T) {
-	testGrnColumnGetValueForVector(t, "Int")
+func TestColumnGetValueForIntVector(t *testing.T) {
+	testColumnGetValueForVector(t, "Int")
 }
 
-func TestGrnColumnGetValueForFloatVector(t *testing.T) {
-	testGrnColumnGetValueForVector(t, "Float")
+func TestColumnGetValueForFloatVector(t *testing.T) {
+	testColumnGetValueForVector(t, "Float")
 }
 
-func TestGrnColumnGetValueForGeoPointVector(t *testing.T) {
-	testGrnColumnGetValueForVector(t, "GeoPoint")
+func TestColumnGetValueForGeoPointVector(t *testing.T) {
+	testColumnGetValueForVector(t, "GeoPoint")
 }
 
-func TestGrnColumnGetValueForTextVector(t *testing.T) {
-	testGrnColumnGetValueForVector(t, "Text")
+func TestColumnGetValueForTextVector(t *testing.T) {
+	testColumnGetValueForVector(t, "Text")
 }
 
 var numTestRows = 100000
 
-func benchmarkGrnColumnSetValueForScalar(b *testing.B, valueType string) {
+func benchmarkColumnSetValueForScalar(b *testing.B, valueType string) {
 	b.StopTimer()
 	dirPath, _, db, table :=
 		createTempTable(b, "Table", nil)
@@ -735,7 +735,7 @@ func benchmarkGrnColumnSetValueForScalar(b *testing.B, valueType string) {
 	}
 }
 
-func benchmarkGrnColumnSetValueForVector(b *testing.B, valueType string) {
+func benchmarkColumnSetValueForVector(b *testing.B, valueType string) {
 	b.StopTimer()
 	dirPath, _, db, table :=
 		createTempTable(b, "Table", nil)
@@ -769,49 +769,49 @@ func benchmarkGrnColumnSetValueForVector(b *testing.B, valueType string) {
 	}
 }
 
-func BenchmarkGrnColumnSetValueForBool(b *testing.B) {
-	benchmarkGrnColumnSetValueForScalar(b, "Bool")
+func BenchmarkColumnSetValueForBool(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "Bool")
 }
 
-func BenchmarkGrnColumnSetValueForInt(b *testing.B) {
-	benchmarkGrnColumnSetValueForScalar(b, "Int")
+func BenchmarkColumnSetValueForInt(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "Int")
 }
 
-func BenchmarkGrnColumnSetValueForFloat(b *testing.B) {
-	benchmarkGrnColumnSetValueForScalar(b, "Float")
+func BenchmarkColumnSetValueForFloat(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "Float")
 }
 
-func BenchmarkGrnColumnSetValueForGeoPoint(b *testing.B) {
-	benchmarkGrnColumnSetValueForScalar(b, "GeoPoint")
+func BenchmarkColumnSetValueForGeoPoint(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "GeoPoint")
 }
 
-func BenchmarkGrnColumnSetValueForText(b *testing.B) {
-	benchmarkGrnColumnSetValueForScalar(b, "Text")
+func BenchmarkColumnSetValueForText(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "Text")
 }
 
-func BenchmarkGrnColumnSetValueForBoolVector(b *testing.B) {
-	benchmarkGrnColumnSetValueForVector(b, "Bool")
+func BenchmarkColumnSetValueForBoolVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "Bool")
 }
 
-func BenchmarkGrnColumnSetValueForIntVector(b *testing.B) {
-	benchmarkGrnColumnSetValueForVector(b, "Int")
+func BenchmarkColumnSetValueForIntVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "Int")
 }
 
-func BenchmarkGrnColumnSetValueForFloatVector(b *testing.B) {
-	benchmarkGrnColumnSetValueForVector(b, "Float")
+func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "Float")
 }
 
-func BenchmarkGrnColumnSetValueForGeoPointVector(b *testing.B) {
-	benchmarkGrnColumnSetValueForVector(b, "GeoPoint")
+func BenchmarkColumnSetValueForGeoPointVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "GeoPoint")
 }
 
-func BenchmarkGrnColumnSetValueForTextVector(b *testing.B) {
-	benchmarkGrnColumnSetValueForVector(b, "Text")
+func BenchmarkColumnSetValueForTextVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "Text")
 }
 
-func benchmarkGrnColumnGetValueForScalar(b *testing.B, valueType string) {
+func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(b, "Table", nil, "Value", valueType, nil)
+		createTempColumn(b, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
@@ -835,11 +835,11 @@ func benchmarkGrnColumnGetValueForScalar(b *testing.B, valueType string) {
 	}
 }
 
-func benchmarkGrnColumnGetValueForVector(b *testing.B, valueType string) {
+func benchmarkColumnGetValueForVector(b *testing.B, valueType string) {
 	options := NewColumnOptions()
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(b, "Table", nil, "Value", valueType, options)
+		createTempColumn(b, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
@@ -863,49 +863,49 @@ func benchmarkGrnColumnGetValueForVector(b *testing.B, valueType string) {
 	}
 }
 
-func BenchmarkGrnColumnGetValueForBool(b *testing.B) {
-	benchmarkGrnColumnGetValueForScalar(b, "Bool")
+func BenchmarkColumnGetValueForBool(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "Bool")
 }
 
-func BenchmarkGrnColumnGetValueForInt(b *testing.B) {
-	benchmarkGrnColumnGetValueForScalar(b, "Int")
+func BenchmarkColumnGetValueForInt(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "Int")
 }
 
-func BenchmarkGrnColumnGetValueForFloat(b *testing.B) {
-	benchmarkGrnColumnGetValueForScalar(b, "Float")
+func BenchmarkColumnGetValueForFloat(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "Float")
 }
 
-func BenchmarkGrnColumnGetValueForGeoPoint(b *testing.B) {
-	benchmarkGrnColumnGetValueForScalar(b, "GeoPoint")
+func BenchmarkColumnGetValueForGeoPoint(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "GeoPoint")
 }
 
-func BenchmarkGrnColumnGetValueForText(b *testing.B) {
-	benchmarkGrnColumnGetValueForScalar(b, "Text")
+func BenchmarkColumnGetValueForText(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "Text")
 }
 
-func BenchmarkGrnColumnGetValueForBoolVector(b *testing.B) {
-	benchmarkGrnColumnGetValueForVector(b, "Bool")
+func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "Bool")
 }
 
-func BenchmarkGrnColumnGetValueForIntVector(b *testing.B) {
-	benchmarkGrnColumnGetValueForVector(b, "Int")
+func BenchmarkColumnGetValueForIntVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "Int")
 }
 
-func BenchmarkGrnColumnGetValueForFloatVector(b *testing.B) {
-	benchmarkGrnColumnGetValueForVector(b, "Float")
+func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "Float")
 }
 
-func BenchmarkGrnColumnGetValueForGeoPointVector(b *testing.B) {
-	benchmarkGrnColumnGetValueForVector(b, "GeoPoint")
+func BenchmarkColumnGetValueForGeoPointVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "GeoPoint")
 }
 
-func BenchmarkGrnColumnGetValueForTextVector(b *testing.B) {
-	benchmarkGrnColumnGetValueForVector(b, "Text")
+func BenchmarkColumnGetValueForTextVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "Text")
 }
 
 func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(b, "Table", nil, "Value", valueType, nil)
+		createTempColumn(b, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
@@ -932,7 +932,7 @@ func benchmarkDBSelectForVector(b *testing.B, valueType string) {
 	options := NewColumnOptions()
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
-		createTempGrnColumn(b, "Table", nil, "Value", valueType, options)
+		createTempColumn(b, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
