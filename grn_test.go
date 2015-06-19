@@ -952,7 +952,7 @@ func benchmarkGrnDBSelectForVector(b *testing.B, valueType string) {
 		if err != nil {
 			b.Fatalf("DB.Query() failed: %s", err)
 		}
-		if len(bytes) < numTestRows * 5 {
+		if len(bytes) < numTestRows*5 {
 			b.Fatalf("DB.Query() failed: %s", err)
 		}
 	}

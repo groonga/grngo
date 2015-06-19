@@ -27,7 +27,7 @@ const (
 	False = Bool(0)
 )
 
-func NullInt() Int           { return Int(math.MinInt64) }
+func NullInt() Int { return Int(math.MinInt64) }
 
 type TypeID int
 
@@ -248,11 +248,11 @@ func OpenGrnDB(path string) (*GrnDB, error) {
 
 // Close() closes a handle.
 func (db *GrnDB) Close() error {
-  rc := C.grn_obj_close(db.ctx, db.obj)
-  if rc != C.GRN_SUCCESS {
-    closeGrnCtx(db.ctx)
-    return fmt.Errorf("grn_obj_close() failed: rc = %d", rc)
-  }
+	rc := C.grn_obj_close(db.ctx, db.obj)
+	if rc != C.GRN_SUCCESS {
+		closeGrnCtx(db.ctx)
+		return fmt.Errorf("grn_obj_close() failed: rc = %d", rc)
+	}
 	return closeGrnCtx(db.ctx)
 }
 
