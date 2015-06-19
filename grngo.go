@@ -2,7 +2,7 @@ package grngo
 
 /*
 #cgo pkg-config: groonga
-#include "grn_cgo.h"
+#include "grngo_cgo.h"
 */
 import "C"
 

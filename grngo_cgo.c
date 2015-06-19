@@ -1,4 +1,4 @@
-#include "grn_cgo.h"
+#include "grngo_cgo.h"
 
 #include <string.h>
 
