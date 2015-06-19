@@ -2,7 +2,7 @@ package grngo
 
 /*
 #cgo pkg-config: groonga
-#include "grngo_cgo.h"
+#include "grngo.h"
 */
 import "C"
 
@@ -431,13 +431,13 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	if len(nameBytes) != 0 {
 		cName = (*C.char)(unsafe.Pointer(&nameBytes[0]))
 	}
-	obj := C.grn_cgo_find_table(db.ctx, cName, C.int(len(nameBytes)))
+	obj := C.grngo_find_table(db.ctx, cName, C.int(len(nameBytes)))
 	if obj == nil {
 		return nil, fmt.Errorf("table not found: name = <%s>", name)
 	}
-	var keyInfo C.grn_cgo_type_info
-	if ok := C.grn_cgo_table_get_key_info(db.ctx, obj, &keyInfo); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_table_get_key_info() failed: name = <%s>",
+	var keyInfo C.grngo_type_info
+	if ok := C.grngo_table_get_key_info(db.ctx, obj, &keyInfo); ok != C.GRN_TRUE {
+		return nil, fmt.Errorf("grngo_table_get_key_info() failed: name = <%s>",
 			name)
 	}
 	// Check the key type.
@@ -465,9 +465,9 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if keyType == VoidID {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
 		}
-		cKeyTableName := C.grn_cgo_table_get_name(db.ctx, keyInfo.ref_table)
+		cKeyTableName := C.grngo_table_get_name(db.ctx, keyInfo.ref_table)
 		if cKeyTableName == nil {
-			return nil, fmt.Errorf("grn_cgo_table_get_name() failed")
+			return nil, fmt.Errorf("grngo_table_get_name() failed")
 		}
 		defer C.free(unsafe.Pointer(cKeyTableName))
 		var err error
@@ -476,9 +476,9 @@ func (db *DB) FindTable(name string) (*Table, error) {
 			return nil, err
 		}
 	}
-	var valueInfo C.grn_cgo_type_info
-	if ok := C.grn_cgo_table_get_value_info(db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_table_get_value_info() failed: name = <%s>",
+	var valueInfo C.grngo_type_info
+	if ok := C.grngo_table_get_value_info(db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {
+		return nil, fmt.Errorf("grngo_table_get_value_info() failed: name = <%s>",
 			name)
 	}
 	// Check the value type.
@@ -506,9 +506,9 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if valueType == VoidID {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
 		}
-		cValueTableName := C.grn_cgo_table_get_name(db.ctx, valueInfo.ref_table)
+		cValueTableName := C.grngo_table_get_name(db.ctx, valueInfo.ref_table)
 		if cValueTableName == nil {
-			return nil, fmt.Errorf("grn_cgo_table_get_name() failed")
+			return nil, fmt.Errorf("grngo_table_get_name() failed")
 		}
 		defer C.free(unsafe.Pointer(cValueTableName))
 		var err error
@@ -583,9 +583,9 @@ func (table *Table) insertVoid() (bool, Int, error) {
 	if table.keyType != VoidID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
-	rowInfo := C.grn_cgo_table_insert_void(table.db.ctx, table.obj)
+	rowInfo := C.grngo_table_insert_void(table.db.ctx, table.obj)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullInt(), fmt.Errorf("grn_cgo_table_insert_void() failed")
+		return false, NullInt(), fmt.Errorf("grngo_table_insert_void() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, Int(rowInfo.id), nil
 }
@@ -599,9 +599,9 @@ func (table *Table) insertBool(key Bool) (bool, Int, error) {
 	if key == True {
 		grnKey = C.grn_bool(C.GRN_TRUE)
 	}
-	rowInfo := C.grn_cgo_table_insert_bool(table.db.ctx, table.obj, grnKey)
+	rowInfo := C.grngo_table_insert_bool(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullInt(), fmt.Errorf("grn_cgo_table_insert_bool() failed")
+		return false, NullInt(), fmt.Errorf("grngo_table_insert_bool() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, Int(rowInfo.id), nil
 }
@@ -612,9 +612,9 @@ func (table *Table) insertInt(key Int) (bool, Int, error) {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
 	grnKey := C.int64_t(key)
-	rowInfo := C.grn_cgo_table_insert_int(table.db.ctx, table.obj, grnKey)
+	rowInfo := C.grngo_table_insert_int(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullInt(), fmt.Errorf("grn_cgo_table_insert_int() failed")
+		return false, NullInt(), fmt.Errorf("grngo_table_insert_int() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, Int(rowInfo.id), nil
 }
@@ -625,9 +625,9 @@ func (table *Table) insertFloat(key Float) (bool, Int, error) {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
 	grnKey := C.double(key)
-	rowInfo := C.grn_cgo_table_insert_float(table.db.ctx, table.obj, grnKey)
+	rowInfo := C.grngo_table_insert_float(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullInt(), fmt.Errorf("grn_cgo_table_insert_float() failed")
+		return false, NullInt(), fmt.Errorf("grngo_table_insert_float() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, Int(rowInfo.id), nil
 }
@@ -638,9 +638,9 @@ func (table *Table) insertGeoPoint(key GeoPoint) (bool, Int, error) {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
 	grnKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
-	rowInfo := C.grn_cgo_table_insert_geo_point(table.db.ctx, table.obj, grnKey)
+	rowInfo := C.grngo_table_insert_geo_point(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullInt(), fmt.Errorf("grn_cgo_table_insert_geo_point() failed")
+		return false, NullInt(), fmt.Errorf("grngo_table_insert_geo_point() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, Int(rowInfo.id), nil
 }
@@ -650,14 +650,14 @@ func (table *Table) insertText(key Text) (bool, Int, error) {
 	if table.keyType != TextID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
-	var grnKey C.grn_cgo_text
+	var grnKey C.grngo_text
 	if len(key) != 0 {
 		grnKey.ptr = (*C.char)(unsafe.Pointer(&key[0]))
 		grnKey.size = C.size_t(len(key))
 	}
-	rowInfo := C.grn_cgo_table_insert_text(table.db.ctx, table.obj, &grnKey)
+	rowInfo := C.grngo_table_insert_text(table.db.ctx, table.obj, &grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullInt(), fmt.Errorf("grn_cgo_table_insert_text() failed")
+		return false, NullInt(), fmt.Errorf("grngo_table_insert_text() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, Int(rowInfo.id), nil
 }
@@ -779,9 +779,9 @@ func (table *Table) findColumn(name string) (*Column, error) {
 		valueType = table.valueType
 		valueTable = table.valueTable
 	default:
-		var valueInfo C.grn_cgo_type_info
-		if ok := C.grn_cgo_column_get_value_info(table.db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {
-			return nil, fmt.Errorf("grn_cgo_column_get_value_info() failed: name = <%s>",
+		var valueInfo C.grngo_type_info
+		if ok := C.grngo_column_get_value_info(table.db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {
+			return nil, fmt.Errorf("grngo_column_get_value_info() failed: name = <%s>",
 				name)
 		}
 		// Check the value type.
@@ -806,9 +806,9 @@ func (table *Table) findColumn(name string) (*Column, error) {
 			if valueType == VoidID {
 				return nil, fmt.Errorf("reference to void: name = <%s>", name)
 			}
-			cValueTableName := C.grn_cgo_table_get_name(table.db.ctx, valueInfo.ref_table)
+			cValueTableName := C.grngo_table_get_name(table.db.ctx, valueInfo.ref_table)
 			if cValueTableName == nil {
-				return nil, fmt.Errorf("grn_cgo_table_get_name() failed")
+				return nil, fmt.Errorf("grngo_table_get_name() failed")
 			}
 			defer C.free(unsafe.Pointer(cValueTableName))
 			var err error
@@ -901,9 +901,9 @@ func (column *Column) setBool(id Int, value Bool) error {
 	if value == True {
 		grnValue = C.GRN_TRUE
 	}
-	if ok := C.grn_cgo_column_set_bool(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_bool(column.table.db.ctx, column.obj,
 		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_bool() failed")
+		return fmt.Errorf("grngo_column_set_bool() failed")
 	}
 	return nil
 }
@@ -914,9 +914,9 @@ func (column *Column) setInt(id Int, value Int) error {
 		return fmt.Errorf("value type conflict")
 	}
 	grnValue := C.int64_t(value)
-	if ok := C.grn_cgo_column_set_int(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_int(column.table.db.ctx, column.obj,
 		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_int() failed")
+		return fmt.Errorf("grngo_column_set_int() failed")
 	}
 	return nil
 }
@@ -927,9 +927,9 @@ func (column *Column) setFloat(id Int, value Float) error {
 		return fmt.Errorf("value type conflict")
 	}
 	grnValue := C.double(value)
-	if ok := C.grn_cgo_column_set_float(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_float(column.table.db.ctx, column.obj,
 		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_float() failed")
+		return fmt.Errorf("grngo_column_set_float() failed")
 	}
 	return nil
 }
@@ -940,9 +940,9 @@ func (column *Column) setGeoPoint(id Int, value GeoPoint) error {
 		return fmt.Errorf("value type conflict")
 	}
 	grnValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
-	if ok := C.grn_cgo_column_set_geo_point(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_geo_point(column.table.db.ctx, column.obj,
 		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_geo_point() failed")
+		return fmt.Errorf("grngo_column_set_geo_point() failed")
 	}
 	return nil
 }
@@ -952,14 +952,14 @@ func (column *Column) setText(id Int, value Text) error {
 	if (column.valueType != TextID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
-	var grnValue C.grn_cgo_text
+	var grnValue C.grngo_text
 	if len(value) != 0 {
 		grnValue.ptr = (*C.char)(unsafe.Pointer(&value[0]))
 		grnValue.size = C.size_t(len(value))
 	}
-	if ok := C.grn_cgo_column_set_text(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_text(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_text() failed")
+		return fmt.Errorf("grngo_column_set_text() failed")
 	}
 	return nil
 }
@@ -972,77 +972,77 @@ func (column *Column) setBoolVector(id Int, value []Bool) error {
 			grnValue[i] = C.GRN_TRUE
 		}
 	}
-	var grnVector C.grn_cgo_vector
+	var grnVector C.grngo_vector
 	if len(grnValue) != 0 {
 		grnVector.ptr = unsafe.Pointer(&grnValue[0])
 		grnVector.size = C.size_t(len(grnValue))
 	}
-	if ok := C.grn_cgo_column_set_bool_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_bool_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_bool_vector() failed")
+		return fmt.Errorf("grngo_column_set_bool_vector() failed")
 	}
 	return nil
 }
 
 // setIntVector() assigns an Int vector.
 func (column *Column) setIntVector(id Int, value []Int) error {
-	var grnVector C.grn_cgo_vector
+	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
 		grnVector.size = C.size_t(len(value))
 	}
-	if ok := C.grn_cgo_column_set_int_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_int_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_int_vector() failed")
+		return fmt.Errorf("grngo_column_set_int_vector() failed")
 	}
 	return nil
 }
 
 // setFloatVector() assigns a Float vector.
 func (column *Column) setFloatVector(id Int, value []Float) error {
-	var grnVector C.grn_cgo_vector
+	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
 		grnVector.size = C.size_t(len(value))
 	}
-	if ok := C.grn_cgo_column_set_float_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_set_float_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_float_vector() failed")
+		return fmt.Errorf("grngo_column_set_float_vector() failed")
 	}
 	return nil
 }
 
 // setGeoPointVector() assigns a GeoPoint vector.
 func (column *Column) setGeoPointVector(id Int, value []GeoPoint) error {
-	var grnVector C.grn_cgo_vector
+	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
 		grnVector.size = C.size_t(len(value))
 	}
-	if ok := C.grn_cgo_column_set_geo_point_vector(column.table.db.ctx,
+	if ok := C.grngo_column_set_geo_point_vector(column.table.db.ctx,
 		column.obj, C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_geo_point_vector() failed")
+		return fmt.Errorf("grngo_column_set_geo_point_vector() failed")
 	}
 	return nil
 }
 
 // setTextVector() assigns a Text vector.
 func (column *Column) setTextVector(id Int, value []Text) error {
-	grnValue := make([]C.grn_cgo_text, len(value))
+	grnValue := make([]C.grngo_text, len(value))
 	for i, v := range value {
 		if len(v) != 0 {
 			grnValue[i].ptr = (*C.char)(unsafe.Pointer(&v[0]))
 			grnValue[i].size = C.size_t(len(v))
 		}
 	}
-	var grnVector C.grn_cgo_vector
+	var grnVector C.grngo_vector
 	if len(grnValue) != 0 {
 		grnVector.ptr = unsafe.Pointer(&grnValue[0])
 		grnVector.size = C.size_t(len(grnValue))
 	}
-	if ok := C.grn_cgo_column_set_text_vector(column.table.db.ctx,
+	if ok := C.grngo_column_set_text_vector(column.table.db.ctx,
 		column.obj, C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grn_cgo_column_set_text_vector() failed")
+		return fmt.Errorf("grngo_column_set_text_vector() failed")
 	}
 	return nil
 }
@@ -1079,9 +1079,9 @@ func (column *Column) SetValue(id Int, value interface{}) error {
 // getBool() gets a Bool value.
 func (column *Column) getBool(id Int) (interface{}, error) {
 	var grnValue C.grn_bool
-	if ok := C.grn_cgo_column_get_bool(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_bool(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_bool() failed")
+		return nil, fmt.Errorf("grngo_column_get_bool() failed")
 	}
 	if grnValue == C.GRN_TRUE {
 		return True, nil
@@ -1093,9 +1093,9 @@ func (column *Column) getBool(id Int) (interface{}, error) {
 // getInt() gets an Int value.
 func (column *Column) getInt(id Int) (interface{}, error) {
 	var grnValue C.int64_t
-	if ok := C.grn_cgo_column_get_int(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_int(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_int() failed")
+		return nil, fmt.Errorf("grngo_column_get_int() failed")
 	}
 	return Int(grnValue), nil
 }
@@ -1103,9 +1103,9 @@ func (column *Column) getInt(id Int) (interface{}, error) {
 // getFloat() gets a Float value.
 func (column *Column) getFloat(id Int) (interface{}, error) {
 	var grnValue C.double
-	if ok := C.grn_cgo_column_get_float(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_float(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_float() failed")
+		return nil, fmt.Errorf("grngo_column_get_float() failed")
 	}
 	return Float(grnValue), nil
 }
@@ -1113,47 +1113,47 @@ func (column *Column) getFloat(id Int) (interface{}, error) {
 // getGeoPoint() gets a GeoPoint value.
 func (column *Column) getGeoPoint(id Int) (interface{}, error) {
 	var grnValue C.grn_geo_point
-	if ok := C.grn_cgo_column_get_geo_point(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_geo_point(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_geo_point() failed")
+		return nil, fmt.Errorf("grngo_column_get_geo_point() failed")
 	}
 	return GeoPoint{int32(grnValue.latitude), int32(grnValue.longitude)}, nil
 }
 
 // getText() gets a Text value.
 func (column *Column) getText(id Int) (interface{}, error) {
-	var grnValue C.grn_cgo_text
-	if ok := C.grn_cgo_column_get_text(column.table.db.ctx, column.obj,
+	var grnValue C.grngo_text
+	if ok := C.grngo_column_get_text(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_text() failed")
+		return nil, fmt.Errorf("grngo_column_get_text() failed")
 	}
 	if grnValue.size == 0 {
 		return make(Text, 0), nil
 	}
 	value := make(Text, int(grnValue.size))
 	grnValue.ptr = (*C.char)(unsafe.Pointer(&value[0]))
-	if ok := C.grn_cgo_column_get_text(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_text(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_text() failed")
+		return nil, fmt.Errorf("grngo_column_get_text() failed")
 	}
 	return value, nil
 }
 
 // getBoolVector() gets a BoolVector.
 func (column *Column) getBoolVector(id Int) (interface{}, error) {
-	var grnVector C.grn_cgo_vector
-	if ok := C.grn_cgo_column_get_bool_vector(column.table.db.ctx, column.obj,
+	var grnVector C.grngo_vector
+	if ok := C.grngo_column_get_bool_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_bool_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_bool_vector() failed")
 	}
 	if grnVector.size == 0 {
 		return make([]Bool, 0), nil
 	}
 	grnValue := make([]C.grn_bool, int(grnVector.size))
 	grnVector.ptr = unsafe.Pointer(&grnValue[0])
-	if ok := C.grn_cgo_column_get_bool_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_bool_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_bool_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_bool_vector() failed")
 	}
 	value := make([]Bool, int(grnVector.size))
 	for i, v := range grnValue {
@@ -1166,76 +1166,76 @@ func (column *Column) getBoolVector(id Int) (interface{}, error) {
 
 // getIntVector() gets a IntVector.
 func (column *Column) getIntVector(id Int) (interface{}, error) {
-	var grnValue C.grn_cgo_vector
-	if ok := C.grn_cgo_column_get_int_vector(column.table.db.ctx, column.obj,
+	var grnValue C.grngo_vector
+	if ok := C.grngo_column_get_int_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_int_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_int_vector() failed")
 	}
 	if grnValue.size == 0 {
 		return make([]Int, 0), nil
 	}
 	value := make([]Int, int(grnValue.size))
 	grnValue.ptr = unsafe.Pointer(&value[0])
-	if ok := C.grn_cgo_column_get_int_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_int_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_int_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_int_vector() failed")
 	}
 	return value, nil
 }
 
 // getFloatVector() gets a FloatVector.
 func (column *Column) getFloatVector(id Int) (interface{}, error) {
-	var grnValue C.grn_cgo_vector
-	if ok := C.grn_cgo_column_get_float_vector(column.table.db.ctx, column.obj,
+	var grnValue C.grngo_vector
+	if ok := C.grngo_column_get_float_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_float_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_float_vector() failed")
 	}
 	if grnValue.size == 0 {
 		return make([]Float, 0), nil
 	}
 	value := make([]Float, int(grnValue.size))
 	grnValue.ptr = unsafe.Pointer(&value[0])
-	if ok := C.grn_cgo_column_get_float_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_float_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_float_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_float_vector() failed")
 	}
 	return value, nil
 }
 
 // getGeoPointVector() gets a GeoPointVector.
 func (column *Column) getGeoPointVector(id Int) (interface{}, error) {
-	var grnValue C.grn_cgo_vector
-	if ok := C.grn_cgo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
+	var grnValue C.grngo_vector
+	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_geo_point_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_geo_point_vector() failed")
 	}
 	if grnValue.size == 0 {
 		return make([]GeoPoint, 0), nil
 	}
 	value := make([]GeoPoint, int(grnValue.size))
 	grnValue.ptr = unsafe.Pointer(&value[0])
-	if ok := C.grn_cgo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_geo_point_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_geo_point_vector() failed")
 	}
 	return value, nil
 }
 
 // getTextVector() gets a TextVector.
 func (column *Column) getTextVector(id Int) (interface{}, error) {
-	var grnVector C.grn_cgo_vector
-	if ok := C.grn_cgo_column_get_text_vector(column.table.db.ctx, column.obj,
+	var grnVector C.grngo_vector
+	if ok := C.grngo_column_get_text_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_text_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_text_vector() failed")
 	}
 	if grnVector.size == 0 {
 		return make([]Text, 0), nil
 	}
-	grnValues := make([]C.grn_cgo_text, int(grnVector.size))
+	grnValues := make([]C.grngo_text, int(grnVector.size))
 	grnVector.ptr = unsafe.Pointer(&grnValues[0])
-	if ok := C.grn_cgo_column_get_text_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_text_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_text_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_text_vector() failed")
 	}
 	value := make([]Text, int(grnVector.size))
 	for i, grnValue := range grnValues {
@@ -1244,9 +1244,9 @@ func (column *Column) getTextVector(id Int) (interface{}, error) {
 			grnValues[i].ptr = (*C.char)(unsafe.Pointer(&value[i][0]))
 		}
 	}
-	if ok := C.grn_cgo_column_get_text_vector(column.table.db.ctx, column.obj,
+	if ok := C.grngo_column_get_text_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grn_cgo_column_get_text_vector() failed")
+		return nil, fmt.Errorf("grngo_column_get_text_vector() failed")
 	}
 	return value, nil
 }
