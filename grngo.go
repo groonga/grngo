@@ -132,16 +132,16 @@ func NewColumnOptions() *ColumnOptions {
 // Groonga.
 var initCount = 0
 
-// DisableGrnInitCount() disables initCount.
+// DisableInitCount() disables initCount.
 // This is useful if you want to manyally initialize and finalize Groonga.
 func DisableInitCount() {
 	initCount = -1
 }
 
-// GrnInit() initializes Groonga if needed.
+// Init() initializes Groonga if needed.
 // initCount is incremented and when it changes from 0 to 1, Groonga is
 // initialized.
-func GrnInit() error {
+func Init() error {
 	switch initCount {
 	case -1: // Disabled.
 		return nil
@@ -154,10 +154,10 @@ func GrnInit() error {
 	return nil
 }
 
-// GrnFin() finalizes Groonga if needed.
+// Fin() finalizes Groonga if needed.
 // initCount is decremented and when it changes from 1 to 0, Groonga is
 // finalized.
-func GrnFin() error {
+func Fin() error {
 	switch initCount {
 	case -1: // Disabled.
 		return nil
@@ -174,12 +174,12 @@ func GrnFin() error {
 
 // openGrnCtx() allocates memory for grn_ctx and initializes it.
 func openGrnCtx() (*C.grn_ctx, error) {
-	if err := GrnInit(); err != nil {
+	if err := Init(); err != nil {
 		return nil, err
 	}
 	ctx := C.grn_ctx_open(0)
 	if ctx == nil {
-		GrnFin()
+		Fin()
 		return nil, fmt.Errorf("grn_ctx_open() failed")
 	}
 	return ctx, nil
@@ -188,7 +188,7 @@ func openGrnCtx() (*C.grn_ctx, error) {
 // closeGrnCtx() finalizes grn_ctx and frees allocated memory.
 func closeGrnCtx(ctx *C.grn_ctx) error {
 	rc := C.grn_ctx_close(ctx)
-	GrnFin()
+	Fin()
 	if rc != C.GRN_SUCCESS {
 		return fmt.Errorf("grn_ctx_close() failed: rc = %d", rc)
 	}
