@@ -195,22 +195,22 @@ func closeCtx(ctx *C.grn_ctx) error {
 	return nil
 }
 
-// -- GrnDB --
+// -- DB --
 
-type GrnDB struct {
+type DB struct {
 	ctx    *C.grn_ctx
 	obj    *C.grn_obj
 	tables map[string]*GrnTable
 }
 
-// newGrnDB() creates a new GrnDB object.
-func newGrnDB(ctx *C.grn_ctx, obj *C.grn_obj) *GrnDB {
-	return &GrnDB{ctx, obj, make(map[string]*GrnTable)}
+// newDB() creates a new DB object.
+func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
+	return &DB{ctx, obj, make(map[string]*GrnTable)}
 }
 
-// CreateGrnDB() creates a Groonga database and returns a handle to it.
+// CreateDB() creates a Groonga database and returns a handle to it.
 // A temporary database is created if path is empty.
-func CreateGrnDB(path string) (*GrnDB, error) {
+func CreateDB(path string) (*DB, error) {
 	ctx, err := openCtx()
 	if err != nil {
 		return nil, err
@@ -226,11 +226,11 @@ func CreateGrnDB(path string) (*GrnDB, error) {
 		errMsg := C.GoString(&ctx.errbuf[0])
 		return nil, fmt.Errorf("grn_db_create() failed: err = %s", errMsg)
 	}
-	return newGrnDB(ctx, obj), nil
+	return newDB(ctx, obj), nil
 }
 
-// OpenGrnDB() opens an existing Groonga database and returns a handle.
-func OpenGrnDB(path string) (*GrnDB, error) {
+// OpenDB() opens an existing Groonga database and returns a handle.
+func OpenDB(path string) (*DB, error) {
 	ctx, err := openCtx()
 	if err != nil {
 		return nil, err
@@ -243,11 +243,11 @@ func OpenGrnDB(path string) (*GrnDB, error) {
 		errMsg := C.GoString(&ctx.errbuf[0])
 		return nil, fmt.Errorf("grn_db_open() failed: err = %s", errMsg)
 	}
-	return newGrnDB(ctx, obj), nil
+	return newDB(ctx, obj), nil
 }
 
 // Close() closes a handle.
-func (db *GrnDB) Close() error {
+func (db *DB) Close() error {
 	rc := C.grn_obj_close(db.ctx, db.obj)
 	if rc != C.GRN_SUCCESS {
 		closeCtx(db.ctx)
@@ -258,7 +258,7 @@ func (db *GrnDB) Close() error {
 
 // Send() sends a raw command.
 // The given command must be well-formed.
-func (db *GrnDB) Send(command string) error {
+func (db *DB) Send(command string) error {
 	commandBytes := []byte(command)
 	var cCommand *C.char
 	if len(commandBytes) != 0 {
@@ -278,7 +278,7 @@ func (db *GrnDB) Send(command string) error {
 }
 
 // SendEx() sends a command with separated options.
-func (db *GrnDB) SendEx(name string, options map[string]string) error {
+func (db *DB) SendEx(name string, options map[string]string) error {
 	if name == "" {
 		return fmt.Errorf("invalid command: name = <%s>", name)
 	}
@@ -305,7 +305,7 @@ func (db *GrnDB) SendEx(name string, options map[string]string) error {
 }
 
 // Recv() receives the result of commands sent by Send().
-func (db *GrnDB) Recv() ([]byte, error) {
+func (db *DB) Recv() ([]byte, error) {
 	var resultBuffer *C.char
 	var resultLength C.uint
 	var flags C.int
@@ -325,7 +325,7 @@ func (db *GrnDB) Recv() ([]byte, error) {
 }
 
 // Query() sends a raw command and receive the result.
-func (db *GrnDB) Query(command string) ([]byte, error) {
+func (db *DB) Query(command string) ([]byte, error) {
 	if err := db.Send(command); err != nil {
 		result, _ := db.Recv()
 		return result, err
@@ -334,7 +334,7 @@ func (db *GrnDB) Query(command string) ([]byte, error) {
 }
 
 // QueryEx() sends a command with separated options and receives the result.
-func (db *GrnDB) QueryEx(name string, options map[string]string) (
+func (db *DB) QueryEx(name string, options map[string]string) (
 	[]byte, error) {
 	if err := db.SendEx(name, options); err != nil {
 		result, _ := db.Recv()
@@ -344,7 +344,7 @@ func (db *GrnDB) QueryEx(name string, options map[string]string) (
 }
 
 // CreateTable() creates a table.
-func (db *GrnDB) CreateTable(name string, options *TableOptions) (*GrnTable, error) {
+func (db *DB) CreateTable(name string, options *TableOptions) (*GrnTable, error) {
 	if options == nil {
 		options = NewTableOptions()
 	}
@@ -422,7 +422,7 @@ func (db *GrnDB) CreateTable(name string, options *TableOptions) (*GrnTable, err
 }
 
 // FindTable() finds a table.
-func (db *GrnDB) FindTable(name string) (*GrnTable, error) {
+func (db *DB) FindTable(name string) (*GrnTable, error) {
 	if table, ok := db.tables[name]; ok {
 		return table, nil
 	}
@@ -523,7 +523,7 @@ func (db *GrnDB) FindTable(name string) (*GrnTable, error) {
 }
 
 // InsertRow() inserts a row.
-func (db *GrnDB) InsertRow(tableName string, key interface{}) (bool, Int, error) {
+func (db *DB) InsertRow(tableName string, key interface{}) (bool, Int, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
 		return false, NullInt(), err
@@ -532,7 +532,7 @@ func (db *GrnDB) InsertRow(tableName string, key interface{}) (bool, Int, error)
 }
 
 // CreateColumn() creates a column.
-func (db *GrnDB) CreateColumn(tableName, columnName string, valueType string,
+func (db *DB) CreateColumn(tableName, columnName string, valueType string,
 	options *ColumnOptions) (*GrnColumn, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
@@ -542,7 +542,7 @@ func (db *GrnDB) CreateColumn(tableName, columnName string, valueType string,
 }
 
 // FindColumn() finds a column.
-func (db *GrnDB) FindColumn(tableName, columnName string) (*GrnColumn, error) {
+func (db *DB) FindColumn(tableName, columnName string) (*GrnColumn, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
 		return nil, err
@@ -553,7 +553,7 @@ func (db *GrnDB) FindColumn(tableName, columnName string) (*GrnColumn, error) {
 // -- GrnTable --
 
 type GrnTable struct {
-	db         *GrnDB
+	db         *DB
 	obj        *C.grn_obj
 	name       string
 	keyType    TypeID
@@ -564,7 +564,7 @@ type GrnTable struct {
 }
 
 // newGrnTable() creates a new GrnTable object.
-func newGrnTable(db *GrnDB, obj *C.grn_obj, name string, keyType TypeID,
+func newGrnTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
 	keyTable *GrnTable, valueType TypeID, valueTable *GrnTable) *GrnTable {
 	var table GrnTable
 	table.db = db

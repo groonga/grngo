@@ -10,27 +10,27 @@ import (
 	"testing"
 )
 
-// createTempGrnDB() creates a database for tests.
-// The database must be removed with removeTempGrnDB().
-func createTempGrnDB(tb testing.TB) (string, string, *GrnDB) {
+// createTempDB() creates a database for tests.
+// The database must be removed with removeTempDB().
+func createTempDB(tb testing.TB) (string, string, *DB) {
 	dirPath, err := ioutil.TempDir("", "grn_test")
 	if err != nil {
 		tb.Fatalf("ioutil.TempDir() failed: %v", err)
 	}
 	dbPath := dirPath + "/db"
-	db, err := CreateGrnDB(dbPath)
+	db, err := CreateDB(dbPath)
 	if err != nil {
 		os.RemoveAll(dirPath)
-		tb.Fatalf("CreateGrnDB() failed: %v", err)
+		tb.Fatalf("CreateDB() failed: %v", err)
 	}
 	return dirPath, dbPath, db
 }
 
-// removeTempGrnDB() removes a database created with createTempGrnDB().
-func removeTempGrnDB(tb testing.TB, dirPath string, db *GrnDB) {
+// removeTempDB() removes a database created with createTempDB().
+func removeTempDB(tb testing.TB, dirPath string, db *DB) {
 	if err := db.Close(); err != nil {
 		os.RemoveAll(dirPath)
-		tb.Fatalf("GrnDB.Close() failed: %v", err)
+		tb.Fatalf("DB.Close() failed: %v", err)
 	}
 	if err := os.RemoveAll(dirPath); err != nil {
 		tb.Fatalf("os.RemoveAll() failed: %v", err)
@@ -38,176 +38,176 @@ func removeTempGrnDB(tb testing.TB, dirPath string, db *GrnDB) {
 }
 
 // createTempGrnTable() creates a database and a table for tests.
-// createTempGrnTable() uses createTempGrnDB() to create a database, so the
-// database must be removed with removeTempGrnDB().
+// createTempGrnTable() uses createTempDB() to create a database, so the
+// database must be removed with removeTempDB().
 func createTempGrnTable(tb testing.TB, name string, options *TableOptions) (
-	string, string, *GrnDB, *GrnTable) {
-	dirPath, dbPath, db := createTempGrnDB(tb)
+	string, string, *DB, *GrnTable) {
+	dirPath, dbPath, db := createTempDB(tb)
 	table, err := db.CreateTable(name, options)
 	if err != nil {
-		removeTempGrnDB(tb, dirPath, db)
-		tb.Fatalf("GrnDB.CreateTable() failed: %v", err)
+		removeTempDB(tb, dirPath, db)
+		tb.Fatalf("DB.CreateTable() failed: %v", err)
 	}
 	return dirPath, dbPath, db, table
 }
 
 // createTempGrnColumn() creates a database, a table, and a column for tests.
-// createTempGrnColumn() uses createTempGrnDB() to create a database, so the
-// database must be removed with removeTempGrnDB().
+// createTempGrnColumn() uses createTempDB() to create a database, so the
+// database must be removed with removeTempDB().
 func createTempGrnColumn(tb testing.TB, tableName string,
 	tableOptions *TableOptions, columnName string, valueType string,
 	columnOptions *ColumnOptions) (
-	string, string, *GrnDB, *GrnTable, *GrnColumn) {
+	string, string, *DB, *GrnTable, *GrnColumn) {
 	dirPath, dbPath, db, table := createTempGrnTable(tb, tableName, tableOptions)
 	column, err := table.CreateColumn(columnName, valueType, columnOptions)
 	if err != nil {
-		removeTempGrnDB(tb, dirPath, db)
-		tb.Fatalf("GrnDB.CreateTable() failed: %v", err)
+		removeTempDB(tb, dirPath, db)
+		tb.Fatalf("DB.CreateTable() failed: %v", err)
 	}
 	return dirPath, dbPath, db, table, column
 }
 
-func TestCreateGrnDB(t *testing.T) {
-	dirPath, _, db := createTempGrnDB(t)
-	removeTempGrnDB(t, dirPath, db)
+func TestCreateDB(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	removeTempDB(t, dirPath, db)
 }
 
-func TestOpenGrnDB(t *testing.T) {
-	dirPath, dbPath, db := createTempGrnDB(t)
-	db2, err := OpenGrnDB(dbPath)
+func TestOpenDB(t *testing.T) {
+	dirPath, dbPath, db := createTempDB(t)
+	db2, err := OpenDB(dbPath)
 	if err != nil {
-		t.Fatalf("OpenGrnDB() failed: %v", err)
+		t.Fatalf("OpenDB() failed: %v", err)
 	}
 	db2.Close()
-	removeTempGrnDB(t, dirPath, db)
+	removeTempDB(t, dirPath, db)
 }
 
-func testGrnDBCreateTableWithKey(t *testing.T, keyType string) {
+func testDBCreateTableWithKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
 	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempGrnTable(t, "Table", options)
-	removeTempGrnDB(t, dirPath, db)
+	removeTempDB(t, dirPath, db)
 }
 
-func testGrnDBCreateTableWithValue(t *testing.T, valueType string) {
+func testDBCreateTableWithValue(t *testing.T, valueType string) {
 	options := NewTableOptions()
 	options.TableType = PatTable
 	options.ValueType = valueType
 	dirPath, _, db, _ := createTempGrnTable(t, "Table", options)
-	removeTempGrnDB(t, dirPath, db)
+	removeTempDB(t, dirPath, db)
 }
 
-func testGrnDBCreateTableWithRefKey(t *testing.T, keyType string) {
+func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
 	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempGrnTable(t, "To", options)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	options = NewTableOptions()
 	options.TableType = PatTable
 	options.KeyType = "To"
 	_, err := db.CreateTable("From", options)
 	if err != nil {
-		t.Fatalf("GrnDB.CreateTable() failed: %v", err)
+		t.Fatalf("DB.CreateTable() failed: %v", err)
 	}
 }
 
-func testGrnDBCreateTableWithRefValue(t *testing.T, keyType string) {
+func testDBCreateTableWithRefValue(t *testing.T, keyType string) {
 	options := NewTableOptions()
 	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempGrnTable(t, "To", options)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	options = NewTableOptions()
 	options.ValueType = ""
 	_, err := db.CreateTable("From", options)
 	if err != nil {
-		t.Fatalf("GrnDB.CreateTable() failed: %v", err)
+		t.Fatalf("DB.CreateTable() failed: %v", err)
 	}
 }
 
-func TestGrnDBCreateTableWithoutKeyValue(t *testing.T) {
+func TestDBCreateTableWithoutKeyValue(t *testing.T) {
 	dirPath, _, db, _ := createTempGrnTable(t, "Table", nil)
-	removeTempGrnDB(t, dirPath, db)
+	removeTempDB(t, dirPath, db)
 }
 
-func TestGrnDBCreateTableWithBoolKey(t *testing.T) {
-	testGrnDBCreateTableWithKey(t, "Bool")
+func TestDBCreateTableWithBoolKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "Bool")
 }
 
-func TestGrnDBCreateTableWithIntKey(t *testing.T) {
-	testGrnDBCreateTableWithKey(t, "Int")
+func TestDBCreateTableWithIntKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "Int")
 }
 
-func TestGrnDBCreateTableWithFloatKey(t *testing.T) {
-	testGrnDBCreateTableWithKey(t, "Float")
+func TestDBCreateTableWithFloatKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "Float")
 }
 
-func TestGrnDBCreateTableWithGeoPointKey(t *testing.T) {
-	testGrnDBCreateTableWithKey(t, "GeoPoint")
+func TestDBCreateTableWithGeoPointKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "GeoPoint")
 }
 
-func TestGrnDBCreateTableWithTextKey(t *testing.T) {
-	testGrnDBCreateTableWithKey(t, "Text")
+func TestDBCreateTableWithTextKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "Text")
 }
 
-func TestGrnDBCreateTableWithBoolValue(t *testing.T) {
-	testGrnDBCreateTableWithValue(t, "Bool")
+func TestDBCreateTableWithBoolValue(t *testing.T) {
+	testDBCreateTableWithValue(t, "Bool")
 }
 
-func TestGrnDBCreateTableWithIntValue(t *testing.T) {
-	testGrnDBCreateTableWithValue(t, "Int")
+func TestDBCreateTableWithIntValue(t *testing.T) {
+	testDBCreateTableWithValue(t, "Int")
 }
 
-func TestGrnDBCreateTableWithFloatValue(t *testing.T) {
-	testGrnDBCreateTableWithValue(t, "Float")
+func TestDBCreateTableWithFloatValue(t *testing.T) {
+	testDBCreateTableWithValue(t, "Float")
 }
 
-func TestGrnDBCreateTableWithGeoPointValue(t *testing.T) {
-	testGrnDBCreateTableWithValue(t, "GeoPoint")
+func TestDBCreateTableWithGeoPointValue(t *testing.T) {
+	testDBCreateTableWithValue(t, "GeoPoint")
 }
 
-func TestGrnDBCreateTableWithBoolRefKey(t *testing.T) {
-	testGrnDBCreateTableWithRefKey(t, "Bool")
+func TestDBCreateTableWithBoolRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Bool")
 }
 
-func TestGrnDBCreateTableWithIntRefKey(t *testing.T) {
-	testGrnDBCreateTableWithRefKey(t, "Int")
+func TestDBCreateTableWithIntRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Int")
 }
 
-func TestGrnDBCreateTableWithFloatRefKey(t *testing.T) {
-	testGrnDBCreateTableWithRefKey(t, "Float")
+func TestDBCreateTableWithFloatRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Float")
 }
 
-func TestGrnDBCreateTableWithGeoPointRefKey(t *testing.T) {
-	testGrnDBCreateTableWithRefKey(t, "GeoPoint")
+func TestDBCreateTableWithGeoPointRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "GeoPoint")
 }
 
-func TestGrnDBCreateTableWithTextRefKey(t *testing.T) {
-	testGrnDBCreateTableWithRefKey(t, "Text")
+func TestDBCreateTableWithTextRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Text")
 }
 
-func TestGrnDBCreateTableWithBoolRefValue(t *testing.T) {
-	testGrnDBCreateTableWithRefValue(t, "Bool")
+func TestDBCreateTableWithBoolRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Bool")
 }
 
-func TestGrnDBCreateTableWithIntRefValue(t *testing.T) {
-	testGrnDBCreateTableWithRefValue(t, "Int")
+func TestDBCreateTableWithIntRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Int")
 }
 
-func TestGrnDBCreateTableWithFloatRefValue(t *testing.T) {
-	testGrnDBCreateTableWithRefValue(t, "Float")
+func TestDBCreateTableWithFloatRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Float")
 }
 
-func TestGrnDBCreateTableWithGeoPointRefValue(t *testing.T) {
-	testGrnDBCreateTableWithRefValue(t, "GeoPoint")
+func TestDBCreateTableWithGeoPointRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "GeoPoint")
 }
 
-func TestGrnDBCreateTableWithTextRefValue(t *testing.T) {
-	testGrnDBCreateTableWithRefValue(t, "Text")
+func TestDBCreateTableWithTextRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Text")
 }
 
 func generateRandomKey(keyType string) interface{} {
@@ -246,7 +246,7 @@ func testGrnTableInsertRow(t *testing.T, keyType string) {
 	}
 	options.KeyType = keyType
 	dirPath, _, db, table := createTempGrnTable(t, "Table", options)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	count := 0
 	for i := 0; i < 100; i++ {
@@ -288,7 +288,7 @@ func TestGrnTableInsertRowWithTextKey(t *testing.T) {
 func testGrnTableCreateScalarColumn(t *testing.T, valueType string) {
 	dirPath, _, db, table, _ :=
 		createTempGrnColumn(t, "Table", nil, "Value", valueType, nil)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("_id"); err != nil {
 		t.Fatalf("Table.FindColumn() failed: %v", err)
@@ -307,7 +307,7 @@ func testGrnTableCreateVectorColumn(t *testing.T, valueType string) {
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, _ :=
 		createTempGrnColumn(t, "Table", nil, "Value", valueType, options)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("_id"); err != nil {
 		t.Fatalf("Table.FindColumn() failed: %v", err)
@@ -327,7 +327,7 @@ func testGrnTableCreateScalarRefColumn(t *testing.T, keyType string) {
 	options.KeyType = keyType
 	dirPath, _, db, table, _ :=
 		createTempGrnColumn(t, "Table", options, "Value", "Table", nil)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("Value"); err != nil {
 		t.Fatalf("Table.FindColumn() failed: %v", err)
@@ -354,7 +354,7 @@ func testGrnTableCreateVectorRefColumn(t *testing.T, keyType string) {
 	columnOptions.ColumnType = VectorColumn
 	dirPath, _, db, table, _ :=
 		createTempGrnColumn(t, "Table", tableOptions, "Value", "Table", columnOptions)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("Value"); err != nil {
 		t.Fatalf("Table.FindColumn() failed: %v", err)
@@ -533,7 +533,7 @@ func generateRandomVectorValue(valueType string) interface{} {
 func testGrnColumnSetValueForScalar(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(t, "Table", nil, "Value", valueType, nil)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
 		_, id, err := table.InsertRow(nil)
@@ -554,7 +554,7 @@ func testGrnColumnSetValueForVector(t *testing.T, valueType string) {
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(t, "Table", nil, "Value", valueType, options)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
 		_, id, err := table.InsertRow(nil)
@@ -613,7 +613,7 @@ func TestGrnColumnSetValueForTextVector(t *testing.T) {
 func testGrnColumnGetValueForScalar(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(t, "Table", nil, "Value", valueType, nil)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
 		_, id, err := table.InsertRow(nil)
@@ -638,7 +638,7 @@ func testGrnColumnGetValueForVector(t *testing.T, valueType string) {
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(t, "Table", nil, "Value", valueType, options)
-	defer removeTempGrnDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
 		_, id, err := table.InsertRow(nil)
@@ -707,7 +707,7 @@ func benchmarkGrnColumnSetValueForScalar(b *testing.B, valueType string) {
 	b.StopTimer()
 	dirPath, _, db, table :=
 		createTempGrnTable(b, "Table", nil)
-	defer removeTempGrnDB(b, dirPath, db)
+	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	values := make([]interface{}, numTestRows)
 	for i, _ := range ids {
@@ -739,7 +739,7 @@ func benchmarkGrnColumnSetValueForVector(b *testing.B, valueType string) {
 	b.StopTimer()
 	dirPath, _, db, table :=
 		createTempGrnTable(b, "Table", nil)
-	defer removeTempGrnDB(b, dirPath, db)
+	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	values := make([]interface{}, numTestRows)
 	for i, _ := range ids {
@@ -812,7 +812,7 @@ func BenchmarkGrnColumnSetValueForTextVector(b *testing.B) {
 func benchmarkGrnColumnGetValueForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(b, "Table", nil, "Value", valueType, nil)
-	defer removeTempGrnDB(b, dirPath, db)
+	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
@@ -840,7 +840,7 @@ func benchmarkGrnColumnGetValueForVector(b *testing.B, valueType string) {
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(b, "Table", nil, "Value", valueType, options)
-	defer removeTempGrnDB(b, dirPath, db)
+	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
@@ -903,10 +903,10 @@ func BenchmarkGrnColumnGetValueForTextVector(b *testing.B) {
 	benchmarkGrnColumnGetValueForVector(b, "Text")
 }
 
-func benchmarkGrnDBSelectForScalar(b *testing.B, valueType string) {
+func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(b, "Table", nil, "Value", valueType, nil)
-	defer removeTempGrnDB(b, dirPath, db)
+	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
@@ -928,12 +928,12 @@ func benchmarkGrnDBSelectForScalar(b *testing.B, valueType string) {
 	}
 }
 
-func benchmarkGrnDBSelectForVector(b *testing.B, valueType string) {
+func benchmarkDBSelectForVector(b *testing.B, valueType string) {
 	options := NewColumnOptions()
 	options.ColumnType = VectorColumn
 	dirPath, _, db, table, column :=
 		createTempGrnColumn(b, "Table", nil, "Value", valueType, options)
-	defer removeTempGrnDB(b, dirPath, db)
+	defer removeTempDB(b, dirPath, db)
 	ids := make([]Int, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
@@ -958,42 +958,42 @@ func benchmarkGrnDBSelectForVector(b *testing.B, valueType string) {
 	}
 }
 
-func BenchmarkGrnDBSelectForBool(b *testing.B) {
-	benchmarkGrnDBSelectForScalar(b, "Bool")
+func BenchmarkDBSelectForBool(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "Bool")
 }
 
-func BenchmarkGrnDBSelectForInt(b *testing.B) {
-	benchmarkGrnDBSelectForScalar(b, "Int")
+func BenchmarkDBSelectForInt(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "Int")
 }
 
-func BenchmarkGrnDBSelectForFloat(b *testing.B) {
-	benchmarkGrnDBSelectForScalar(b, "Float")
+func BenchmarkDBSelectForFloat(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "Float")
 }
 
-func BenchmarkGrnDBSelectForGeoPoint(b *testing.B) {
-	benchmarkGrnDBSelectForScalar(b, "GeoPoint")
+func BenchmarkDBSelectForGeoPoint(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "GeoPoint")
 }
 
-func BenchmarkGrnDBSelectForText(b *testing.B) {
-	benchmarkGrnDBSelectForScalar(b, "Text")
+func BenchmarkDBSelectForText(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "Text")
 }
 
-func BenchmarkGrnDBSelectForBoolVector(b *testing.B) {
-	benchmarkGrnDBSelectForVector(b, "Bool")
+func BenchmarkDBSelectForBoolVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "Bool")
 }
 
-func BenchmarkGrnDBSelectForIntVector(b *testing.B) {
-	benchmarkGrnDBSelectForVector(b, "Int")
+func BenchmarkDBSelectForIntVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "Int")
 }
 
-func BenchmarkGrnDBSelectForFloatVector(b *testing.B) {
-	benchmarkGrnDBSelectForVector(b, "Float")
+func BenchmarkDBSelectForFloatVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "Float")
 }
 
-func BenchmarkGrnDBSelectForGeoPointVector(b *testing.B) {
-	benchmarkGrnDBSelectForVector(b, "GeoPoint")
+func BenchmarkDBSelectForGeoPointVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "GeoPoint")
 }
 
-func BenchmarkGrnDBSelectForTextVector(b *testing.B) {
-	benchmarkGrnDBSelectForVector(b, "Text")
+func BenchmarkDBSelectForTextVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "Text")
 }
