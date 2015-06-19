@@ -33,11 +33,7 @@ const (
 	False = Bool(0)
 )
 
-func NullBool() Bool         { return Bool(1) }
 func NullInt() Int           { return Int(math.MinInt64) }
-func NullFloat() Float       { return Float(math.NaN()) }
-func NullGeoPoint() GeoPoint { return GeoPoint{math.MinInt32, math.MinInt32} }
-func NullText() Text         { return nil }
 
 type TypeID int
 
