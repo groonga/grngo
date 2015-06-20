@@ -229,7 +229,7 @@ func generateRandomKey(keyType string) interface{} {
 		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
 		return GeoPoint{int32(latitude), int32(longitude)}
 	case "Text":
-		return Text(strconv.Itoa(rand.Int()))
+		return []byte(strconv.Itoa(rand.Int()))
 	default:
 		return nil
 	}
@@ -468,7 +468,7 @@ func generateRandomValue(valueType string) interface{} {
 		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
 		return GeoPoint{int32(latitude), int32(longitude)}
 	case "Text":
-		return Text(strconv.Itoa(rand.Int()))
+		return []byte(strconv.Itoa(rand.Int()))
 	default:
 		return nil
 	}
@@ -510,9 +510,9 @@ func generateRandomVectorValue(valueType string) interface{} {
 		}
 		return value
 	case "Text":
-		value := make([]Text, size)
+		value := make([][]byte, size)
 		for i := 0; i < size; i++ {
-			value[i] = Text(strconv.Itoa(rand.Int()))
+			value[i] = []byte(strconv.Itoa(rand.Int()))
 		}
 		return value
 	default:

@@ -18,7 +18,6 @@ import (
 
 type Int int64
 type GeoPoint struct{ Latitude, Longitude int32 }
-type Text []byte
 
 func NullInt() Int { return Int(math.MinInt64) }
 
@@ -639,7 +638,7 @@ func (table *Table) insertGeoPoint(key GeoPoint) (bool, Int, error) {
 }
 
 // insertText() inserts a row with Text key.
-func (table *Table) insertText(key Text) (bool, Int, error) {
+func (table *Table) insertText(key []byte) (bool, Int, error) {
 	if table.keyType != TextID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -670,7 +669,7 @@ func (table *Table) InsertRow(key interface{}) (bool, Int, error) {
 		return table.insertFloat(value)
 	case GeoPoint:
 		return table.insertGeoPoint(value)
-	case Text:
+	case []byte:
 		return table.insertText(value)
 	default:
 		return false, NullInt(), fmt.Errorf(
@@ -941,7 +940,7 @@ func (column *Column) setGeoPoint(id Int, value GeoPoint) error {
 }
 
 // setText() assigns a Text value.
-func (column *Column) setText(id Int, value Text) error {
+func (column *Column) setText(id Int, value []byte) error {
 	if (column.valueType != TextID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -1020,7 +1019,7 @@ func (column *Column) setGeoPointVector(id Int, value []GeoPoint) error {
 }
 
 // setTextVector() assigns a Text vector.
-func (column *Column) setTextVector(id Int, value []Text) error {
+func (column *Column) setTextVector(id Int, value [][]byte) error {
 	grnValue := make([]C.grngo_text, len(value))
 	for i, v := range value {
 		if len(v) != 0 {
@@ -1051,7 +1050,7 @@ func (column *Column) SetValue(id Int, value interface{}) error {
 		return column.setFloat(id, v)
 	case GeoPoint:
 		return column.setGeoPoint(id, v)
-	case Text:
+	case []byte:
 		return column.setText(id, v)
 	case []bool:
 		return column.setBoolVector(id, v)
@@ -1061,7 +1060,7 @@ func (column *Column) SetValue(id Int, value interface{}) error {
 		return column.setFloatVector(id, v)
 	case []GeoPoint:
 		return column.setGeoPointVector(id, v)
-	case []Text:
+	case [][]byte:
 		return column.setTextVector(id, v)
 	default:
 		return fmt.Errorf("unsupported value type: name = <%s>",
@@ -1117,9 +1116,9 @@ func (column *Column) getText(id Int) (interface{}, error) {
 		return nil, fmt.Errorf("grngo_column_get_text() failed")
 	}
 	if grnValue.size == 0 {
-		return make(Text, 0), nil
+		return make([]byte, 0), nil
 	}
-	value := make(Text, int(grnValue.size))
+	value := make([]byte, int(grnValue.size))
 	grnValue.ptr = (*C.char)(unsafe.Pointer(&value[0]))
 	if ok := C.grngo_column_get_text(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
@@ -1216,7 +1215,7 @@ func (column *Column) getTextVector(id Int) (interface{}, error) {
 		return nil, fmt.Errorf("grngo_column_get_text_vector() failed")
 	}
 	if grnVector.size == 0 {
-		return make([]Text, 0), nil
+		return make([][]byte, 0), nil
 	}
 	grnValues := make([]C.grngo_text, int(grnVector.size))
 	grnVector.ptr = unsafe.Pointer(&grnValues[0])
@@ -1224,10 +1223,10 @@ func (column *Column) getTextVector(id Int) (interface{}, error) {
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_text_vector() failed")
 	}
-	value := make([]Text, int(grnVector.size))
+	value := make([][]byte, int(grnVector.size))
 	for i, grnValue := range grnValues {
 		if grnValue.size != 0 {
-			value[i] = make(Text, int(grnValue.size))
+			value[i] = make([]byte, int(grnValue.size))
 			grnValues[i].ptr = (*C.char)(unsafe.Pointer(&value[i][0]))
 		}
 	}
