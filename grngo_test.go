@@ -213,11 +213,7 @@ func TestDBCreateTableWithTextRefValue(t *testing.T) {
 func generateRandomKey(keyType string) interface{} {
 	switch keyType {
 	case "Bool":
-		if (rand.Int() & 1) == 1 {
-			return True
-		} else {
-			return False
-		}
+	  return (rand.Int() & 1) == 1
 	case "Int":
 		return Int(rand.Int63())
 	case "Float":
@@ -456,11 +452,7 @@ func TestTableCreateColumnForRefToTextVector(t *testing.T) {
 func generateRandomValue(valueType string) interface{} {
 	switch valueType {
 	case "Bool":
-		if (rand.Int() & 1) == 1 {
-			return True
-		} else {
-			return False
-		}
+		return (rand.Int() & 1) == 1
 	case "Int":
 		return Int(rand.Int63())
 	case "Float":
@@ -486,11 +478,9 @@ func generateRandomVectorValue(valueType string) interface{} {
 	size := rand.Int() % 10
 	switch valueType {
 	case "Bool":
-		value := make([]Bool, size)
+		value := make([]bool, size)
 		for i := 0; i < size; i++ {
-			if (rand.Int() & 1) == 1 {
-				value[i] = True
-			}
+			value[i] = (rand.Int() & 1) == 1
 		}
 		return value
 	case "Int":

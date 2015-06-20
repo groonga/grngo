@@ -16,16 +16,10 @@ import (
 
 // -- Data types --
 
-type Bool uint8
 type Int int64
 type Float float64
 type GeoPoint struct{ Latitude, Longitude int32 }
 type Text []byte
-
-const (
-	True  = Bool(3)
-	False = Bool(0)
-)
 
 func NullInt() Int { return Int(math.MinInt64) }
 
@@ -591,12 +585,12 @@ func (table *Table) insertVoid() (bool, Int, error) {
 }
 
 // insertBool() inserts a row with Bool key.
-func (table *Table) insertBool(key Bool) (bool, Int, error) {
+func (table *Table) insertBool(key bool) (bool, Int, error) {
 	if table.keyType != BoolID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
 	grnKey := C.grn_bool(C.GRN_FALSE)
-	if key == True {
+	if key {
 		grnKey = C.grn_bool(C.GRN_TRUE)
 	}
 	rowInfo := C.grngo_table_insert_bool(table.db.ctx, table.obj, grnKey)
@@ -669,7 +663,7 @@ func (table *Table) InsertRow(key interface{}) (bool, Int, error) {
 	switch value := key.(type) {
 	case nil:
 		return table.insertVoid()
-	case Bool:
+	case bool:
 		return table.insertBool(value)
 	case Int:
 		return table.insertInt(value)
@@ -893,12 +887,12 @@ func newColumn(table *Table, obj *C.grn_obj, name string,
 }
 
 // setBool() assigns a Bool value.
-func (column *Column) setBool(id Int, value Bool) error {
+func (column *Column) setBool(id Int, value bool) error {
 	if (column.valueType != BoolID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
 	var grnValue C.grn_bool = C.GRN_FALSE
-	if value == True {
+	if value {
 		grnValue = C.GRN_TRUE
 	}
 	if ok := C.grngo_column_set_bool(column.table.db.ctx, column.obj,
@@ -965,10 +959,10 @@ func (column *Column) setText(id Int, value Text) error {
 }
 
 // setBoolVector() assigns a Bool vector.
-func (column *Column) setBoolVector(id Int, value []Bool) error {
+func (column *Column) setBoolVector(id Int, value []bool) error {
 	grnValue := make([]C.grn_bool, len(value))
 	for i, v := range value {
-		if v == True {
+		if v {
 			grnValue[i] = C.GRN_TRUE
 		}
 	}
@@ -1050,7 +1044,7 @@ func (column *Column) setTextVector(id Int, value []Text) error {
 // SetValue() assigns a value.
 func (column *Column) SetValue(id Int, value interface{}) error {
 	switch v := value.(type) {
-	case Bool:
+	case bool:
 		return column.setBool(id, v)
 	case Int:
 		return column.setInt(id, v)
@@ -1060,7 +1054,7 @@ func (column *Column) SetValue(id Int, value interface{}) error {
 		return column.setGeoPoint(id, v)
 	case Text:
 		return column.setText(id, v)
-	case []Bool:
+	case []bool:
 		return column.setBoolVector(id, v)
 	case []Int:
 		return column.setIntVector(id, v)
@@ -1083,11 +1077,7 @@ func (column *Column) getBool(id Int) (interface{}, error) {
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_bool() failed")
 	}
-	if grnValue == C.GRN_TRUE {
-		return True, nil
-	} else {
-		return False, nil
-	}
+	return grnValue == C.GRN_TRUE, nil
 }
 
 // getInt() gets an Int value.
@@ -1147,7 +1137,7 @@ func (column *Column) getBoolVector(id Int) (interface{}, error) {
 		return nil, fmt.Errorf("grngo_column_get_bool_vector() failed")
 	}
 	if grnVector.size == 0 {
-		return make([]Bool, 0), nil
+		return make([]bool, 0), nil
 	}
 	grnValue := make([]C.grn_bool, int(grnVector.size))
 	grnVector.ptr = unsafe.Pointer(&grnValue[0])
@@ -1155,11 +1145,9 @@ func (column *Column) getBoolVector(id Int) (interface{}, error) {
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_bool_vector() failed")
 	}
-	value := make([]Bool, int(grnVector.size))
+	value := make([]bool, int(grnVector.size))
 	for i, v := range grnValue {
-		if v == C.GRN_TRUE {
-			value[i] = True
-		}
+		value[i] = (v == C.GRN_TRUE)
 	}
 	return value, nil
 }
