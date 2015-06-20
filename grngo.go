@@ -17,7 +17,6 @@ import (
 // -- Data types --
 
 type Int int64
-type Float float64
 type GeoPoint struct{ Latitude, Longitude int32 }
 type Text []byte
 
@@ -614,7 +613,7 @@ func (table *Table) insertInt(key Int) (bool, Int, error) {
 }
 
 // insertFloat() inserts a row with Float key.
-func (table *Table) insertFloat(key Float) (bool, Int, error) {
+func (table *Table) insertFloat(key float64) (bool, Int, error) {
 	if table.keyType != FloatID {
 		return false, NullInt(), fmt.Errorf("key type conflict")
 	}
@@ -667,7 +666,7 @@ func (table *Table) InsertRow(key interface{}) (bool, Int, error) {
 		return table.insertBool(value)
 	case Int:
 		return table.insertInt(value)
-	case Float:
+	case float64:
 		return table.insertFloat(value)
 	case GeoPoint:
 		return table.insertGeoPoint(value)
@@ -916,7 +915,7 @@ func (column *Column) setInt(id Int, value Int) error {
 }
 
 // setFloat() assigns a Float value.
-func (column *Column) setFloat(id Int, value Float) error {
+func (column *Column) setFloat(id Int, value float64) error {
 	if (column.valueType != FloatID) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
@@ -993,7 +992,7 @@ func (column *Column) setIntVector(id Int, value []Int) error {
 }
 
 // setFloatVector() assigns a Float vector.
-func (column *Column) setFloatVector(id Int, value []Float) error {
+func (column *Column) setFloatVector(id Int, value []float64) error {
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -1048,7 +1047,7 @@ func (column *Column) SetValue(id Int, value interface{}) error {
 		return column.setBool(id, v)
 	case Int:
 		return column.setInt(id, v)
-	case Float:
+	case float64:
 		return column.setFloat(id, v)
 	case GeoPoint:
 		return column.setGeoPoint(id, v)
@@ -1058,7 +1057,7 @@ func (column *Column) SetValue(id Int, value interface{}) error {
 		return column.setBoolVector(id, v)
 	case []Int:
 		return column.setIntVector(id, v)
-	case []Float:
+	case []float64:
 		return column.setFloatVector(id, v)
 	case []GeoPoint:
 		return column.setGeoPointVector(id, v)
@@ -1097,7 +1096,7 @@ func (column *Column) getFloat(id Int) (interface{}, error) {
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_float() failed")
 	}
-	return Float(grnValue), nil
+	return float64(grnValue), nil
 }
 
 // getGeoPoint() gets a GeoPoint value.
@@ -1179,9 +1178,9 @@ func (column *Column) getFloatVector(id Int) (interface{}, error) {
 		return nil, fmt.Errorf("grngo_column_get_float_vector() failed")
 	}
 	if grnValue.size == 0 {
-		return make([]Float, 0), nil
+		return make([]float64, 0), nil
 	}
-	value := make([]Float, int(grnValue.size))
+	value := make([]float64, int(grnValue.size))
 	grnValue.ptr = unsafe.Pointer(&value[0])
 	if ok := C.grngo_column_get_float_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {

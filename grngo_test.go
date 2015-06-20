@@ -217,7 +217,7 @@ func generateRandomKey(keyType string) interface{} {
 	case "Int":
 		return Int(rand.Int63())
 	case "Float":
-		return Float(rand.Float64())
+		return rand.Float64()
 	case "GeoPoint":
 		const (
 			MinLatitude  = 73531000
@@ -456,7 +456,7 @@ func generateRandomValue(valueType string) interface{} {
 	case "Int":
 		return Int(rand.Int63())
 	case "Float":
-		return Float(rand.Float64())
+		return rand.Float64()
 	case "GeoPoint":
 		const (
 			MinLatitude  = 73531000
@@ -490,9 +490,9 @@ func generateRandomVectorValue(valueType string) interface{} {
 		}
 		return value
 	case "Float":
-		value := make([]Float, size)
+		value := make([]float64, size)
 		for i := 0; i < size; i++ {
-			value[i] = Float(rand.Float64())
+			value[i] = rand.Float64()
 		}
 		return value
 	case "GeoPoint":
