@@ -23,39 +23,72 @@ import (
 // - Float: float64
 // - Time: TODO
 // - WGS84/TokyoGeoPoint: GeoPoint
-// - Text: []byte
+// - (Short/Long)Text: []byte
 
 type GeoPoint struct{ Latitude, Longitude int32 }
 
 const NilID = uint32(C.GRN_ID_NIL)
 
-type TypeID int
+type DataType int
 
 const (
-	VoidID = TypeID(iota)
-	BoolID
-	IntID
-	FloatID
-	GeoPointID
-	TextID
+	Void          = DataType(C.GRN_DB_VOID)
+	Bool          = DataType(C.GRN_DB_BOOL)
+	Int8          = DataType(C.GRN_DB_INT8)
+	Int16         = DataType(C.GRN_DB_INT16)
+	Int32         = DataType(C.GRN_DB_INT32)
+	Int64         = DataType(C.GRN_DB_INT64)
+	UInt8         = DataType(C.GRN_DB_UINT8)
+	UInt16        = DataType(C.GRN_DB_UINT16)
+	UInt32        = DataType(C.GRN_DB_UINT32)
+	UInt64        = DataType(C.GRN_DB_UINT64)
+	Float         = DataType(C.GRN_DB_FLOAT)
+	Time          = DataType(C.GRN_DB_TIME)
+	ShortText     = DataType(C.GRN_DB_SHORT_TEXT)
+	Text          = DataType(C.GRN_DB_TEXT)
+	LongText      = DataType(C.GRN_DB_LONG_TEXT)
+	TokyoGeoPoint = DataType(C.GRN_DB_TOKYO_GEO_POINT)
+	WGS84GeoPoint = DataType(C.GRN_DB_WGS84_GEO_POINT)
 )
 
-func (id TypeID) String() string {
-	switch id {
-	case VoidID:
+func (dataType DataType) String() string {
+	switch dataType {
+	case Void:
 		return "Void"
-	case BoolID:
+	case Bool:
 		return "Bool"
-	case IntID:
-		return "Int"
-	case FloatID:
+	case Int8:
+		return "Int8"
+	case Int16:
+		return "Int16"
+	case Int32:
+		return "Int32"
+	case Int64:
+		return "Int64"
+	case UInt8:
+		return "UInt8"
+	case UInt16:
+		return "UInt16"
+	case UInt32:
+		return "UInt32"
+	case UInt64:
+		return "UInt64"
+	case Float:
 		return "Float"
-	case GeoPointID:
-		return "GeoPoint"
-	case TextID:
+	case Time:
+		return "Time"
+	case ShortText:
+		return "ShortText"
+	case Text:
 		return "Text"
+	case LongText:
+		return "LongText"
+	case TokyoGeoPoint:
+		return "TokyoGeoPoint"
+	case WGS84GeoPoint:
+		return "WGS84GeoPoint"
 	default:
-		return fmt.Sprintf("TypeID(%d)", id)
+		return fmt.Sprintf("DataType(%d)", dataType)
 	}
 }
 
@@ -367,16 +400,10 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	}
 	if options.KeyType != "" {
 		switch options.KeyType {
-		case "Bool":
-			optionsMap["key_type"] = "Bool"
-		case "Int":
-			optionsMap["key_type"] = "Int64"
-		case "Float":
-			optionsMap["key_type"] = "Float"
-		case "GeoPoint":
-			optionsMap["key_type"] = "WGS84GeoPoint"
-		case "Text":
-			optionsMap["key_type"] = "ShortText"
+		case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
+			"UInt32", "UInt64", "Float", "Time", "ShortText", "TokyoGeoPoint",
+			"WGS84GeoPoint":
+			optionsMap["key_type"] = options.KeyType
 		default:
 			if _, err := db.FindTable(options.KeyType); err != nil {
 				return nil, fmt.Errorf("unsupported key type: options = %+v", options)
@@ -386,14 +413,9 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	}
 	if options.ValueType != "" {
 		switch options.ValueType {
-		case "Bool":
-			optionsMap["value_type"] = "Bool"
-		case "Int":
-			optionsMap["value_type"] = "Int64"
-		case "Float":
-			optionsMap["value_type"] = "Float"
-		case "GeoPoint":
-			optionsMap["value_type"] = "WGS84GeoPoint"
+		case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
+			"UInt32", "UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint":
+			optionsMap["value_type"] = options.ValueType
 		default:
 			if _, err := db.FindTable(options.ValueType); err != nil {
 				return nil, fmt.Errorf("unsupported value type: options = %+v",
@@ -441,28 +463,11 @@ func (db *DB) FindTable(name string) (*Table, error) {
 			name)
 	}
 	// Check the key type.
-	var keyType TypeID
-	switch keyInfo.data_type {
-	case C.GRN_DB_VOID:
-		keyType = VoidID
-	case C.GRN_DB_BOOL:
-		keyType = BoolID
-	case C.GRN_DB_INT64:
-		keyType = IntID
-	case C.GRN_DB_FLOAT:
-		keyType = FloatID
-	case C.GRN_DB_WGS84_GEO_POINT:
-		keyType = GeoPointID
-	case C.GRN_DB_SHORT_TEXT:
-		keyType = TextID
-	default:
-		return nil, fmt.Errorf("unsupported key type: data_type = %d",
-			keyInfo.data_type)
-	}
+	keyType := DataType(keyInfo.data_type)
 	// Find the destination table if the key is table reference.
 	var keyTable *Table
 	if keyInfo.ref_table != nil {
-		if keyType == VoidID {
+		if keyType == Void {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
 		}
 		cKeyTableName := C.grngo_table_get_name(db.ctx, keyInfo.ref_table)
@@ -482,28 +487,11 @@ func (db *DB) FindTable(name string) (*Table, error) {
 			name)
 	}
 	// Check the value type.
-	var valueType TypeID
-	switch valueInfo.data_type {
-	case C.GRN_DB_VOID:
-		valueType = VoidID
-	case C.GRN_DB_BOOL:
-		valueType = BoolID
-	case C.GRN_DB_INT64:
-		valueType = IntID
-	case C.GRN_DB_FLOAT:
-		valueType = FloatID
-	case C.GRN_DB_WGS84_GEO_POINT:
-		valueType = GeoPointID
-	case C.GRN_DB_SHORT_TEXT:
-		valueType = TextID
-	default:
-		return nil, fmt.Errorf("unsupported value type: data_type = %d",
-			valueInfo.data_type)
-	}
+	valueType := DataType(valueInfo.data_type)
 	// Find the destination table if the value is table reference.
 	var valueTable *Table
 	if valueInfo.ref_table != nil {
-		if valueType == VoidID {
+		if valueType == Void {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
 		}
 		cValueTableName := C.grngo_table_get_name(db.ctx, valueInfo.ref_table)
@@ -556,16 +544,16 @@ type Table struct {
 	db         *DB
 	obj        *C.grn_obj
 	name       string
-	keyType    TypeID
+	keyType    DataType
 	keyTable   *Table
-	valueType  TypeID
+	valueType  DataType
 	valueTable *Table
 	columns    map[string]*Column
 }
 
 // newTable() creates a new Table object.
-func newTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
-	keyTable *Table, valueType TypeID, valueTable *Table) *Table {
+func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType,
+	keyTable *Table, valueType DataType, valueTable *Table) *Table {
 	var table Table
 	table.db = db
 	table.obj = obj
@@ -580,7 +568,7 @@ func newTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
 
 // insertVoid() inserts an empty row.
 func (table *Table) insertVoid() (bool, uint32, error) {
-	if table.keyType != VoidID {
+	if table.keyType != Void {
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	rowInfo := C.grngo_table_insert_void(table.db.ctx, table.obj)
@@ -592,7 +580,7 @@ func (table *Table) insertVoid() (bool, uint32, error) {
 
 // insertBool() inserts a row with Bool key.
 func (table *Table) insertBool(key bool) (bool, uint32, error) {
-	if table.keyType != BoolID {
+	if table.keyType != Bool {
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.grn_bool(C.GRN_FALSE)
@@ -608,7 +596,9 @@ func (table *Table) insertBool(key bool) (bool, uint32, error) {
 
 // insertInt() inserts a row with Int key.
 func (table *Table) insertInt(key int64) (bool, uint32, error) {
-	if table.keyType != IntID {
+	switch table.keyType {
+	case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64:
+	default:
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.int64_t(key)
@@ -621,7 +611,7 @@ func (table *Table) insertInt(key int64) (bool, uint32, error) {
 
 // insertFloat() inserts a row with Float key.
 func (table *Table) insertFloat(key float64) (bool, uint32, error) {
-	if table.keyType != FloatID {
+	if table.keyType != Float {
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.double(key)
@@ -634,7 +624,9 @@ func (table *Table) insertFloat(key float64) (bool, uint32, error) {
 
 // insertGeoPoint() inserts a row with GeoPoint key.
 func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
-	if table.keyType != GeoPointID {
+	switch table.keyType {
+	case TokyoGeoPoint, WGS84GeoPoint:
+	default:
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
@@ -647,7 +639,7 @@ func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
 
 // insertText() inserts a row with Text key.
 func (table *Table) insertText(key []byte) (bool, uint32, error) {
-	if table.keyType != TextID {
+	if table.keyType != ShortText {
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	var grnKey C.grngo_text
@@ -695,16 +687,10 @@ func (table *Table) CreateColumn(name string, valueType string,
 	optionsMap["table"] = table.name
 	optionsMap["name"] = name
 	switch valueType {
-	case "Bool":
-		optionsMap["type"] = "Bool"
-	case "Int":
-		optionsMap["type"] = "Int64"
-	case "Float":
-		optionsMap["type"] = "Float"
-	case "GeoPoint":
-		optionsMap["type"] = "WGS84GeoPoint"
-	case "Text":
-		optionsMap["type"] = "LongText"
+	case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
+		"UInt32", "UInt64", "Float", "Time", "ShortText", "Text", "LongText",
+		"TokyoGeoPoint", "WGS84GeoPoint":
+		optionsMap["type"] = valueType
 	default:
 		if _, err := table.db.FindTable(valueType); err != nil {
 			return nil, fmt.Errorf("unsupported value type: valueType = %s", valueType)
@@ -766,12 +752,12 @@ func (table *Table) findColumn(name string) (*Column, error) {
 	if obj == nil {
 		return nil, fmt.Errorf("grn_obj_column() failed: table = %+v, name = <%s>", table, name)
 	}
-	var valueType TypeID
+	var valueType DataType
 	var valueTable *Table
 	var isVector bool
 	switch name {
 	case "_id":
-		valueType = IntID
+		valueType = UInt32
 	case "_key":
 		valueType = table.keyType
 		valueTable = table.keyTable
@@ -785,25 +771,11 @@ func (table *Table) findColumn(name string) (*Column, error) {
 				name)
 		}
 		// Check the value type.
-		switch valueInfo.data_type {
-		case C.GRN_DB_BOOL:
-			valueType = BoolID
-		case C.GRN_DB_INT64:
-			valueType = IntID
-		case C.GRN_DB_FLOAT:
-			valueType = FloatID
-		case C.GRN_DB_WGS84_GEO_POINT:
-			valueType = GeoPointID
-		case C.GRN_DB_SHORT_TEXT, C.GRN_DB_LONG_TEXT:
-			valueType = TextID
-		default:
-			return nil, fmt.Errorf("unsupported value type: data_type = %d",
-				valueInfo.data_type)
-		}
+		valueType = DataType(valueInfo.data_type)
 		isVector = valueInfo.dimension > 0
 		// Find the destination table if the value is table reference.
 		if valueInfo.ref_table != nil {
-			if valueType == VoidID {
+			if valueType == Void {
 				return nil, fmt.Errorf("reference to void: name = <%s>", name)
 			}
 			cValueTableName := C.grngo_table_get_name(table.db.ctx, valueInfo.ref_table)
@@ -874,14 +846,14 @@ type Column struct {
 	table      *Table
 	obj        *C.grn_obj
 	name       string
-	valueType  TypeID
+	valueType  DataType
 	isVector   bool
 	valueTable *Table
 }
 
 // newColumn() creates a new Column object.
 func newColumn(table *Table, obj *C.grn_obj, name string,
-	valueType TypeID, isVector bool, valueTable *Table) *Column {
+	valueType DataType, isVector bool, valueTable *Table) *Column {
 	var column Column
 	column.table = table
 	column.obj = obj
@@ -894,7 +866,7 @@ func newColumn(table *Table, obj *C.grn_obj, name string,
 
 // setBool() assigns a Bool value.
 func (column *Column) setBool(id uint32, value bool) error {
-	if (column.valueType != BoolID) || column.isVector {
+	if (column.valueType != Bool) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
 	var grnValue C.grn_bool = C.GRN_FALSE
@@ -910,7 +882,12 @@ func (column *Column) setBool(id uint32, value bool) error {
 
 // setInt() assigns an Int value.
 func (column *Column) setInt(id uint32, value int64) error {
-	if (column.valueType != IntID) || column.isVector {
+	switch column.valueType {
+	case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64:
+	default:
+		return fmt.Errorf("value type conflict")
+	}
+	if column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
 	grnValue := C.int64_t(value)
@@ -923,7 +900,7 @@ func (column *Column) setInt(id uint32, value int64) error {
 
 // setFloat() assigns a Float value.
 func (column *Column) setFloat(id uint32, value float64) error {
-	if (column.valueType != FloatID) || column.isVector {
+	if (column.valueType != Float) || column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
 	grnValue := C.double(value)
@@ -936,7 +913,12 @@ func (column *Column) setFloat(id uint32, value float64) error {
 
 // setGeoPoint() assigns a GeoPoint value.
 func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
-	if (column.valueType != GeoPointID) || column.isVector {
+	switch column.valueType {
+	case TokyoGeoPoint, WGS84GeoPoint:
+	default:
+		return fmt.Errorf("value type conflict")
+	}
+	if column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
 	grnValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
@@ -949,7 +931,12 @@ func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
 
 // setText() assigns a Text value.
 func (column *Column) setText(id uint32, value []byte) error {
-	if (column.valueType != TextID) || column.isVector {
+	switch column.valueType {
+	case ShortText, Text, LongText:
+	default:
+		return fmt.Errorf("value type conflict")
+	}
+	if column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
 	var grnValue C.grngo_text
@@ -1249,29 +1236,29 @@ func (column *Column) getTextVector(id uint32) (interface{}, error) {
 func (column *Column) GetValue(id uint32) (interface{}, error) {
 	if !column.isVector {
 		switch column.valueType {
-		case BoolID:
+		case Bool:
 			return column.getBool(id)
-		case IntID:
+		case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64:
 			return column.getInt(id)
-		case FloatID:
+		case Float:
 			return column.getFloat(id)
-		case GeoPointID:
-			return column.getGeoPoint(id)
-		case TextID:
+		case ShortText, Text, LongText:
 			return column.getText(id)
+		case TokyoGeoPoint, WGS84GeoPoint:
+			return column.getGeoPoint(id)
 		}
 	} else {
 		switch column.valueType {
-		case BoolID:
+		case Bool:
 			return column.getBoolVector(id)
-		case IntID:
+		case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64:
 			return column.getIntVector(id)
-		case FloatID:
+		case Float:
 			return column.getFloatVector(id)
-		case GeoPointID:
-			return column.getGeoPointVector(id)
-		case TextID:
+		case ShortText, Text, LongText:
 			return column.getTextVector(id)
+		case TokyoGeoPoint, WGS84GeoPoint:
+			return column.getGeoPointVector(id)
 		}
 	}
 	return nil, fmt.Errorf("undefined value type: valueType = %d", column.valueType)

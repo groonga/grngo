@@ -22,7 +22,7 @@ typedef struct {
 grn_obj *grngo_find_table(grn_ctx *ctx, const char *name, int name_len);
 
 typedef struct {
-  grn_id  data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
+  grn_builtin_type  data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
                       // If the type is table reference, the key type of the
                       // referenced table is stored.
   int     dimension;  // Vector depth, 0 means the type is scalar.

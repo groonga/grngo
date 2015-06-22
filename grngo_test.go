@@ -139,7 +139,7 @@ func TestDBCreateTableWithBoolKey(t *testing.T) {
 }
 
 func TestDBCreateTableWithIntKey(t *testing.T) {
-	testDBCreateTableWithKey(t, "Int")
+	testDBCreateTableWithKey(t, "Int64")
 }
 
 func TestDBCreateTableWithFloatKey(t *testing.T) {
@@ -147,11 +147,11 @@ func TestDBCreateTableWithFloatKey(t *testing.T) {
 }
 
 func TestDBCreateTableWithGeoPointKey(t *testing.T) {
-	testDBCreateTableWithKey(t, "GeoPoint")
+	testDBCreateTableWithKey(t, "WGS84GeoPoint")
 }
 
 func TestDBCreateTableWithTextKey(t *testing.T) {
-	testDBCreateTableWithKey(t, "Text")
+	testDBCreateTableWithKey(t, "ShortText")
 }
 
 func TestDBCreateTableWithBoolValue(t *testing.T) {
@@ -159,7 +159,7 @@ func TestDBCreateTableWithBoolValue(t *testing.T) {
 }
 
 func TestDBCreateTableWithIntValue(t *testing.T) {
-	testDBCreateTableWithValue(t, "Int")
+	testDBCreateTableWithValue(t, "Int64")
 }
 
 func TestDBCreateTableWithFloatValue(t *testing.T) {
@@ -167,7 +167,7 @@ func TestDBCreateTableWithFloatValue(t *testing.T) {
 }
 
 func TestDBCreateTableWithGeoPointValue(t *testing.T) {
-	testDBCreateTableWithValue(t, "GeoPoint")
+	testDBCreateTableWithValue(t, "WGS84GeoPoint")
 }
 
 func TestDBCreateTableWithBoolRefKey(t *testing.T) {
@@ -175,7 +175,7 @@ func TestDBCreateTableWithBoolRefKey(t *testing.T) {
 }
 
 func TestDBCreateTableWithIntRefKey(t *testing.T) {
-	testDBCreateTableWithRefKey(t, "Int")
+	testDBCreateTableWithRefKey(t, "Int64")
 }
 
 func TestDBCreateTableWithFloatRefKey(t *testing.T) {
@@ -183,11 +183,11 @@ func TestDBCreateTableWithFloatRefKey(t *testing.T) {
 }
 
 func TestDBCreateTableWithGeoPointRefKey(t *testing.T) {
-	testDBCreateTableWithRefKey(t, "GeoPoint")
+	testDBCreateTableWithRefKey(t, "WGS84GeoPoint")
 }
 
 func TestDBCreateTableWithTextRefKey(t *testing.T) {
-	testDBCreateTableWithRefKey(t, "Text")
+	testDBCreateTableWithRefKey(t, "ShortText")
 }
 
 func TestDBCreateTableWithBoolRefValue(t *testing.T) {
@@ -195,7 +195,7 @@ func TestDBCreateTableWithBoolRefValue(t *testing.T) {
 }
 
 func TestDBCreateTableWithIntRefValue(t *testing.T) {
-	testDBCreateTableWithRefValue(t, "Int")
+	testDBCreateTableWithRefValue(t, "Int64")
 }
 
 func TestDBCreateTableWithFloatRefValue(t *testing.T) {
@@ -203,22 +203,22 @@ func TestDBCreateTableWithFloatRefValue(t *testing.T) {
 }
 
 func TestDBCreateTableWithGeoPointRefValue(t *testing.T) {
-	testDBCreateTableWithRefValue(t, "GeoPoint")
+	testDBCreateTableWithRefValue(t, "WGS84GeoPoint")
 }
 
 func TestDBCreateTableWithTextRefValue(t *testing.T) {
-	testDBCreateTableWithRefValue(t, "Text")
+	testDBCreateTableWithRefValue(t, "ShortText")
 }
 
 func generateRandomKey(keyType string) interface{} {
 	switch keyType {
 	case "Bool":
 	  return (rand.Int() & 1) == 1
-	case "Int":
+	case "Int64":
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
-	case "GeoPoint":
+	case "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
 			MaxLatitude  = 164006000
@@ -228,7 +228,7 @@ func generateRandomKey(keyType string) interface{} {
 		latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
 		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
 		return GeoPoint{int32(latitude), int32(longitude)}
-	case "Text":
+	case "ShortText":
 		return []byte(strconv.Itoa(rand.Int()))
 	default:
 		return nil
@@ -266,7 +266,7 @@ func TestTableInsertRowWithBoolKey(t *testing.T) {
 }
 
 func TestTableInsertRowWithIntKey(t *testing.T) {
-	testTableInsertRow(t, "Int")
+	testTableInsertRow(t, "Int64")
 }
 
 func TestTableInsertRowWithFloatKey(t *testing.T) {
@@ -274,11 +274,11 @@ func TestTableInsertRowWithFloatKey(t *testing.T) {
 }
 
 func TestTableInsertRowWithGeoPointKey(t *testing.T) {
-	testTableInsertRow(t, "GeoPoint")
+	testTableInsertRow(t, "WGS84GeoPoint")
 }
 
 func TestTableInsertRowWithTextKey(t *testing.T) {
-	testTableInsertRow(t, "Text")
+	testTableInsertRow(t, "ShortText")
 }
 
 func testTableCreateScalarColumn(t *testing.T, valueType string) {
@@ -374,7 +374,7 @@ func TestTableCreateColumnForBool(t *testing.T) {
 }
 
 func TestTableCreateColumnForInt(t *testing.T) {
-	testTableCreateScalarColumn(t, "Int")
+	testTableCreateScalarColumn(t, "Int64")
 }
 
 func TestTableCreateColumnForFloat(t *testing.T) {
@@ -382,11 +382,11 @@ func TestTableCreateColumnForFloat(t *testing.T) {
 }
 
 func TestTableCreateColumnForGeoPoint(t *testing.T) {
-	testTableCreateScalarColumn(t, "GeoPoint")
+	testTableCreateScalarColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForText(t *testing.T) {
-	testTableCreateScalarColumn(t, "Text")
+	testTableCreateScalarColumn(t, "ShortText")
 }
 
 func TestTableCreateColumnForBoolVector(t *testing.T) {
@@ -394,7 +394,7 @@ func TestTableCreateColumnForBoolVector(t *testing.T) {
 }
 
 func TestTableCreateColumnForIntVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Int")
+	testTableCreateVectorColumn(t, "Int64")
 }
 
 func TestTableCreateColumnForFloatVector(t *testing.T) {
@@ -402,11 +402,11 @@ func TestTableCreateColumnForFloatVector(t *testing.T) {
 }
 
 func TestTableCreateColumnForGeoPointVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "GeoPoint")
+	testTableCreateVectorColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForTextVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Text")
+	testTableCreateVectorColumn(t, "ShortText")
 }
 
 func TestTableCreateColumnForRefToBool(t *testing.T) {
@@ -414,7 +414,7 @@ func TestTableCreateColumnForRefToBool(t *testing.T) {
 }
 
 func TestTableCreateColumnForRefToInt(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Int")
+	testTableCreateScalarRefColumn(t, "Int64")
 }
 
 func TestTableCreateColumnForRefToFloat(t *testing.T) {
@@ -422,11 +422,11 @@ func TestTableCreateColumnForRefToFloat(t *testing.T) {
 }
 
 func TestTableCreateColumnForRefToGeoPoint(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "GeoPoint")
+	testTableCreateScalarRefColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForRefToText(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Text")
+	testTableCreateScalarRefColumn(t, "ShortText")
 }
 
 func TestTableCreateColumnForRefToBoolVector(t *testing.T) {
@@ -434,7 +434,7 @@ func TestTableCreateColumnForRefToBoolVector(t *testing.T) {
 }
 
 func TestTableCreateColumnForRefToIntVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "Int")
+	testTableCreateVectorRefColumn(t, "Int64")
 }
 
 func TestTableCreateColumnForRefToFloatVector(t *testing.T) {
@@ -442,22 +442,22 @@ func TestTableCreateColumnForRefToFloatVector(t *testing.T) {
 }
 
 func TestTableCreateColumnForRefToGeoPointVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "GeoPoint")
+	testTableCreateVectorRefColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForRefToTextVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "Text")
+	testTableCreateVectorRefColumn(t, "ShortText")
 }
 
 func generateRandomValue(valueType string) interface{} {
 	switch valueType {
 	case "Bool":
 		return (rand.Int() & 1) == 1
-	case "Int":
+	case "Int64":
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
-	case "GeoPoint":
+	case "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
 			MaxLatitude  = 164006000
@@ -467,7 +467,7 @@ func generateRandomValue(valueType string) interface{} {
 		latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
 		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
 		return GeoPoint{int32(latitude), int32(longitude)}
-	case "Text":
+	case "ShortText":
 		return []byte(strconv.Itoa(rand.Int()))
 	default:
 		return nil
@@ -483,7 +483,7 @@ func generateRandomVectorValue(valueType string) interface{} {
 			value[i] = (rand.Int() & 1) == 1
 		}
 		return value
-	case "Int":
+	case "Int64":
 		value := make([]int64, size)
 		for i := 0; i < size; i++ {
 			value[i] = rand.Int63()
@@ -495,7 +495,7 @@ func generateRandomVectorValue(valueType string) interface{} {
 			value[i] = rand.Float64()
 		}
 		return value
-	case "GeoPoint":
+	case "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
 			MaxLatitude  = 164006000
@@ -509,7 +509,7 @@ func generateRandomVectorValue(valueType string) interface{} {
 			value[i] = GeoPoint{int32(latitude), int32(longitude)}
 		}
 		return value
-	case "Text":
+	case "ShortText":
 		value := make([][]byte, size)
 		for i := 0; i < size; i++ {
 			value[i] = []byte(strconv.Itoa(rand.Int()))
@@ -565,7 +565,7 @@ func TestColumnSetValueForBool(t *testing.T) {
 }
 
 func TestColumnSetValueForInt(t *testing.T) {
-	testColumnSetValueForScalar(t, "Int")
+	testColumnSetValueForScalar(t, "Int64")
 }
 
 func TestColumnSetValueForFloat(t *testing.T) {
@@ -573,11 +573,11 @@ func TestColumnSetValueForFloat(t *testing.T) {
 }
 
 func TestColumnSetValueForGeoPoint(t *testing.T) {
-	testColumnSetValueForScalar(t, "GeoPoint")
+	testColumnSetValueForScalar(t, "WGS84GeoPoint")
 }
 
 func TestColumnSetValueForText(t *testing.T) {
-	testColumnSetValueForScalar(t, "Text")
+	testColumnSetValueForScalar(t, "ShortText")
 }
 
 func TestColumnSetValueForBoolVector(t *testing.T) {
@@ -585,7 +585,7 @@ func TestColumnSetValueForBoolVector(t *testing.T) {
 }
 
 func TestColumnSetValueForIntVector(t *testing.T) {
-	testColumnSetValueForVector(t, "Int")
+	testColumnSetValueForVector(t, "Int64")
 }
 
 func TestColumnSetValueForFloatVector(t *testing.T) {
@@ -593,11 +593,11 @@ func TestColumnSetValueForFloatVector(t *testing.T) {
 }
 
 func TestColumnSetValueForGeoPointVector(t *testing.T) {
-	testColumnSetValueForVector(t, "GeoPoint")
+	testColumnSetValueForVector(t, "WGS84GeoPoint")
 }
 
 func TestColumnSetValueForTextVector(t *testing.T) {
-	testColumnSetValueForVector(t, "Text")
+	testColumnSetValueForVector(t, "ShortText")
 }
 
 func testColumnGetValueForScalar(t *testing.T, valueType string) {
@@ -656,7 +656,7 @@ func TestColumnGetValueForBool(t *testing.T) {
 }
 
 func TestColumnGetValueForInt(t *testing.T) {
-	testColumnGetValueForScalar(t, "Int")
+	testColumnGetValueForScalar(t, "Int64")
 }
 
 func TestColumnGetValueForFloat(t *testing.T) {
@@ -664,11 +664,11 @@ func TestColumnGetValueForFloat(t *testing.T) {
 }
 
 func TestColumnGetValueForGeoPoint(t *testing.T) {
-	testColumnGetValueForScalar(t, "GeoPoint")
+	testColumnGetValueForScalar(t, "WGS84GeoPoint")
 }
 
 func TestColumnGetValueForText(t *testing.T) {
-	testColumnGetValueForScalar(t, "Text")
+	testColumnGetValueForScalar(t, "ShortText")
 }
 
 func TestColumnGetValueForBoolVector(t *testing.T) {
@@ -676,7 +676,7 @@ func TestColumnGetValueForBoolVector(t *testing.T) {
 }
 
 func TestColumnGetValueForIntVector(t *testing.T) {
-	testColumnGetValueForVector(t, "Int")
+	testColumnGetValueForVector(t, "Int64")
 }
 
 func TestColumnGetValueForFloatVector(t *testing.T) {
@@ -684,11 +684,11 @@ func TestColumnGetValueForFloatVector(t *testing.T) {
 }
 
 func TestColumnGetValueForGeoPointVector(t *testing.T) {
-	testColumnGetValueForVector(t, "GeoPoint")
+	testColumnGetValueForVector(t, "WGS84GeoPoint")
 }
 
 func TestColumnGetValueForTextVector(t *testing.T) {
-	testColumnGetValueForVector(t, "Text")
+	testColumnGetValueForVector(t, "ShortText")
 }
 
 var numTestRows = 100000
@@ -764,7 +764,7 @@ func BenchmarkColumnSetValueForBool(b *testing.B) {
 }
 
 func BenchmarkColumnSetValueForInt(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Int")
+	benchmarkColumnSetValueForScalar(b, "Int64")
 }
 
 func BenchmarkColumnSetValueForFloat(b *testing.B) {
@@ -772,11 +772,11 @@ func BenchmarkColumnSetValueForFloat(b *testing.B) {
 }
 
 func BenchmarkColumnSetValueForGeoPoint(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "GeoPoint")
+	benchmarkColumnSetValueForScalar(b, "WGS84GeoPoint")
 }
 
 func BenchmarkColumnSetValueForText(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Text")
+	benchmarkColumnSetValueForScalar(b, "ShortText")
 }
 
 func BenchmarkColumnSetValueForBoolVector(b *testing.B) {
@@ -784,7 +784,7 @@ func BenchmarkColumnSetValueForBoolVector(b *testing.B) {
 }
 
 func BenchmarkColumnSetValueForIntVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Int")
+	benchmarkColumnSetValueForVector(b, "Int64")
 }
 
 func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
@@ -792,11 +792,11 @@ func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
 }
 
 func BenchmarkColumnSetValueForGeoPointVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "GeoPoint")
+	benchmarkColumnSetValueForVector(b, "WGS84GeoPoint")
 }
 
 func BenchmarkColumnSetValueForTextVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Text")
+	benchmarkColumnSetValueForVector(b, "ShortText")
 }
 
 func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
@@ -858,7 +858,7 @@ func BenchmarkColumnGetValueForBool(b *testing.B) {
 }
 
 func BenchmarkColumnGetValueForInt(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Int")
+	benchmarkColumnGetValueForScalar(b, "Int64")
 }
 
 func BenchmarkColumnGetValueForFloat(b *testing.B) {
@@ -866,11 +866,11 @@ func BenchmarkColumnGetValueForFloat(b *testing.B) {
 }
 
 func BenchmarkColumnGetValueForGeoPoint(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "GeoPoint")
+	benchmarkColumnGetValueForScalar(b, "WGS84GeoPoint")
 }
 
 func BenchmarkColumnGetValueForText(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Text")
+	benchmarkColumnGetValueForScalar(b, "ShortText")
 }
 
 func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
@@ -878,7 +878,7 @@ func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
 }
 
 func BenchmarkColumnGetValueForIntVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Int")
+	benchmarkColumnGetValueForVector(b, "Int64")
 }
 
 func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
@@ -886,11 +886,11 @@ func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
 }
 
 func BenchmarkColumnGetValueForGeoPointVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "GeoPoint")
+	benchmarkColumnGetValueForVector(b, "WGS84GeoPoint")
 }
 
 func BenchmarkColumnGetValueForTextVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Text")
+	benchmarkColumnGetValueForVector(b, "ShortText")
 }
 
 func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
@@ -953,7 +953,7 @@ func BenchmarkDBSelectForBool(b *testing.B) {
 }
 
 func BenchmarkDBSelectForInt(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Int")
+	benchmarkDBSelectForScalar(b, "Int64")
 }
 
 func BenchmarkDBSelectForFloat(b *testing.B) {
@@ -961,11 +961,11 @@ func BenchmarkDBSelectForFloat(b *testing.B) {
 }
 
 func BenchmarkDBSelectForGeoPoint(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "GeoPoint")
+	benchmarkDBSelectForScalar(b, "WGS84GeoPoint")
 }
 
 func BenchmarkDBSelectForText(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Text")
+	benchmarkDBSelectForScalar(b, "ShortText")
 }
 
 func BenchmarkDBSelectForBoolVector(b *testing.B) {
@@ -973,7 +973,7 @@ func BenchmarkDBSelectForBoolVector(b *testing.B) {
 }
 
 func BenchmarkDBSelectForIntVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Int")
+	benchmarkDBSelectForVector(b, "Int64")
 }
 
 func BenchmarkDBSelectForFloatVector(b *testing.B) {
@@ -981,9 +981,9 @@ func BenchmarkDBSelectForFloatVector(b *testing.B) {
 }
 
 func BenchmarkDBSelectForGeoPointVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "GeoPoint")
+	benchmarkDBSelectForVector(b, "WGS84GeoPoint")
 }
 
 func BenchmarkDBSelectForTextVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Text")
+	benchmarkDBSelectForVector(b, "ShortText")
 }
