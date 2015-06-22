@@ -54,9 +54,23 @@ grngo_row_info grngo_table_insert_void(grn_ctx *ctx, grn_obj *table);
 // grngo_table_insert_bool() inserts a row with Bool key.
 grngo_row_info grngo_table_insert_bool(grn_ctx *ctx, grn_obj *table,
                                        grn_bool key);
-// grngo_table_insert_int() inserts a row with Int key.
-grngo_row_info grngo_table_insert_int(grn_ctx *ctx, grn_obj *table,
-                                      int64_t key);
+// grngo_table_insert_int*() inserts a row with Int key.
+grngo_row_info grngo_table_insert_int8(grn_ctx *ctx, grn_obj *table,
+                                       int8_t key);
+grngo_row_info grngo_table_insert_int16(grn_ctx *ctx, grn_obj *table,
+                                        int16_t key);
+grngo_row_info grngo_table_insert_int32(grn_ctx *ctx, grn_obj *table,
+                                        int32_t key);
+grngo_row_info grngo_table_insert_int64(grn_ctx *ctx, grn_obj *table,
+                                        int64_t key);
+grngo_row_info grngo_table_insert_uint8(grn_ctx *ctx, grn_obj *table,
+                                        uint8_t key);
+grngo_row_info grngo_table_insert_uint16(grn_ctx *ctx, grn_obj *table,
+                                         uint16_t key);
+grngo_row_info grngo_table_insert_uint32(grn_ctx *ctx, grn_obj *table,
+                                         uint32_t key);
+grngo_row_info grngo_table_insert_uint64(grn_ctx *ctx, grn_obj *table,
+                                         uint64_t key);
 // grngo_table_insert_float() inserts a row with Float key.
 grngo_row_info grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
                                         double key);

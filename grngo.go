@@ -596,15 +596,37 @@ func (table *Table) insertBool(key bool) (bool, uint32, error) {
 
 // insertInt() inserts a row with Int key.
 func (table *Table) insertInt(key int64) (bool, uint32, error) {
+	var rowInfo C.grngo_row_info
 	switch table.keyType {
-	case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64:
+	case Int8:
+		grnKey := C.int8_t(key)
+		rowInfo = C.grngo_table_insert_int8(table.db.ctx, table.obj, grnKey)
+	case Int16:
+		grnKey := C.int16_t(key)
+		rowInfo = C.grngo_table_insert_int16(table.db.ctx, table.obj, grnKey)
+	case Int32:
+		grnKey := C.int32_t(key)
+		rowInfo = C.grngo_table_insert_int32(table.db.ctx, table.obj, grnKey)
+	case Int64:
+		grnKey := C.int64_t(key)
+		rowInfo = C.grngo_table_insert_int64(table.db.ctx, table.obj, grnKey)
+	case UInt8:
+		grnKey := C.uint8_t(key)
+		rowInfo = C.grngo_table_insert_uint8(table.db.ctx, table.obj, grnKey)
+	case UInt16:
+		grnKey := C.uint16_t(key)
+		rowInfo = C.grngo_table_insert_uint16(table.db.ctx, table.obj, grnKey)
+	case UInt32:
+		grnKey := C.uint32_t(key)
+		rowInfo = C.grngo_table_insert_uint32(table.db.ctx, table.obj, grnKey)
+	case UInt64:
+		grnKey := C.uint64_t(key)
+		rowInfo = C.grngo_table_insert_uint64(table.db.ctx, table.obj, grnKey)
 	default:
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
-	grnKey := C.int64_t(key)
-	rowInfo := C.grngo_table_insert_int(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NilID, fmt.Errorf("grngo_table_insert_int() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_int*() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }

@@ -181,8 +181,43 @@ grngo_row_info grngo_table_insert_bool(grn_ctx *ctx, grn_obj *table,
   return grngo_table_insert_row(ctx, table, &key, sizeof(key));
 }
 
-grngo_row_info grngo_table_insert_int(grn_ctx *ctx, grn_obj *table,
-                                      int64_t key) {
+grngo_row_info grngo_table_insert_int8(grn_ctx *ctx, grn_obj *table,
+                                       int8_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_int16(grn_ctx *ctx, grn_obj *table,
+                                        int16_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_int32(grn_ctx *ctx, grn_obj *table,
+                                        int32_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_int64(grn_ctx *ctx, grn_obj *table,
+                                        int64_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_uint8(grn_ctx *ctx, grn_obj *table,
+                                        uint8_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_uint16(grn_ctx *ctx, grn_obj *table,
+                                         uint16_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_uint32(grn_ctx *ctx, grn_obj *table,
+                                         uint32_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
+grngo_row_info grngo_table_insert_uint64(grn_ctx *ctx, grn_obj *table,
+                                         uint64_t key) {
   return grngo_table_insert_row(ctx, table, &key, sizeof(key));
 }
 
