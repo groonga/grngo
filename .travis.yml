@@ -1,3 +1,8 @@
+notifications:
+  email:
+    recipients:
+      - groonga-commit@lists.sourceforge.jp
+
 sudo: required
 
 language: go
