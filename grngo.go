@@ -27,7 +27,7 @@ import (
 
 type GeoPoint struct{ Latitude, Longitude int32 }
 
-func NullID() uint32 { return uint32(C.GRN_ID_NIL) }
+const NilID = uint32(C.GRN_ID_NIL)
 
 type TypeID int
 
@@ -526,7 +526,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 func (db *DB) InsertRow(tableName string, key interface{}) (bool, uint32, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
-		return false, NullID(), err
+		return false, NilID, err
 	}
 	return table.InsertRow(key)
 }
@@ -581,11 +581,11 @@ func newTable(db *DB, obj *C.grn_obj, name string, keyType TypeID,
 // insertVoid() inserts an empty row.
 func (table *Table) insertVoid() (bool, uint32, error) {
 	if table.keyType != VoidID {
-		return false, NullID(), fmt.Errorf("key type conflict")
+		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	rowInfo := C.grngo_table_insert_void(table.db.ctx, table.obj)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullID(), fmt.Errorf("grngo_table_insert_void() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_void() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
@@ -593,7 +593,7 @@ func (table *Table) insertVoid() (bool, uint32, error) {
 // insertBool() inserts a row with Bool key.
 func (table *Table) insertBool(key bool) (bool, uint32, error) {
 	if table.keyType != BoolID {
-		return false, NullID(), fmt.Errorf("key type conflict")
+		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.grn_bool(C.GRN_FALSE)
 	if key {
@@ -601,7 +601,7 @@ func (table *Table) insertBool(key bool) (bool, uint32, error) {
 	}
 	rowInfo := C.grngo_table_insert_bool(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullID(), fmt.Errorf("grngo_table_insert_bool() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_bool() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
@@ -609,12 +609,12 @@ func (table *Table) insertBool(key bool) (bool, uint32, error) {
 // insertInt() inserts a row with Int key.
 func (table *Table) insertInt(key int64) (bool, uint32, error) {
 	if table.keyType != IntID {
-		return false, NullID(), fmt.Errorf("key type conflict")
+		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.int64_t(key)
 	rowInfo := C.grngo_table_insert_int(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullID(), fmt.Errorf("grngo_table_insert_int() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_int() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
@@ -622,12 +622,12 @@ func (table *Table) insertInt(key int64) (bool, uint32, error) {
 // insertFloat() inserts a row with Float key.
 func (table *Table) insertFloat(key float64) (bool, uint32, error) {
 	if table.keyType != FloatID {
-		return false, NullID(), fmt.Errorf("key type conflict")
+		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.double(key)
 	rowInfo := C.grngo_table_insert_float(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullID(), fmt.Errorf("grngo_table_insert_float() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_float() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
@@ -635,12 +635,12 @@ func (table *Table) insertFloat(key float64) (bool, uint32, error) {
 // insertGeoPoint() inserts a row with GeoPoint key.
 func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
 	if table.keyType != GeoPointID {
-		return false, NullID(), fmt.Errorf("key type conflict")
+		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	grnKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
 	rowInfo := C.grngo_table_insert_geo_point(table.db.ctx, table.obj, grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullID(), fmt.Errorf("grngo_table_insert_geo_point() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_geo_point() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
@@ -648,7 +648,7 @@ func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
 // insertText() inserts a row with Text key.
 func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	if table.keyType != TextID {
-		return false, NullID(), fmt.Errorf("key type conflict")
+		return false, NilID, fmt.Errorf("key type conflict")
 	}
 	var grnKey C.grngo_text
 	if len(key) != 0 {
@@ -657,7 +657,7 @@ func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	}
 	rowInfo := C.grngo_table_insert_text(table.db.ctx, table.obj, &grnKey)
 	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NullID(), fmt.Errorf("grngo_table_insert_text() failed")
+		return false, NilID, fmt.Errorf("grngo_table_insert_text() failed")
 	}
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
@@ -680,7 +680,7 @@ func (table *Table) InsertRow(key interface{}) (bool, uint32, error) {
 	case []byte:
 		return table.insertText(value)
 	default:
-		return false, NullID(), fmt.Errorf(
+		return false, NilID, fmt.Errorf(
 			"unsupported key type: typeName = <%s>", reflect.TypeOf(key).Name())
 	}
 }
