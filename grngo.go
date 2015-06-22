@@ -15,6 +15,16 @@ import (
 
 // -- Data types --
 
+// Relationships among Groonga and Golang built-in data types are as follows:
+//
+// - ID: uint32
+// - Bool: bool
+// - (U)Int8/16/32/64: int64
+// - Float: float64
+// - Time: TODO
+// - WGS84/TokyoGeoPoint: GeoPoint
+// - Text: []byte
+
 type GeoPoint struct{ Latitude, Longitude int32 }
 
 func NullID() uint32 { return uint32(C.GRN_ID_NIL) }
