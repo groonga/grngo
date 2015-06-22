@@ -539,7 +539,49 @@ func generateRandomVectorValue(valueType string) interface{} {
 			value[i] = (rand.Int() & 1) == 1
 		}
 		return value
+	case "Int8":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(int8(rand.Int()))
+		}
+		return value
+	case "Int16":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(int16(rand.Int()))
+		}
+		return value
+	case "Int32":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(int32(rand.Int()))
+		}
+		return value
 	case "Int64":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = rand.Int63()
+		}
+		return value
+	case "UInt8":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(uint8(rand.Int()))
+		}
+		return value
+	case "UInt16":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(uint16(rand.Int()))
+		}
+		return value
+	case "UInt32":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(rand.Uint32())
+		}
+		return value
+	case "UInt64":
 		value := make([]int64, size)
 		for i := 0; i < size; i++ {
 			value[i] = rand.Int63()
@@ -668,8 +710,36 @@ func TestColumnSetValueForBoolVector(t *testing.T) {
 	testColumnSetValueForVector(t, "Bool")
 }
 
-func TestColumnSetValueForIntVector(t *testing.T) {
+func TestColumnSetValueForInt8Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "Int8")
+}
+
+func TestColumnSetValueForInt16Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "Int16")
+}
+
+func TestColumnSetValueForInt32Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "Int32")
+}
+
+func TestColumnSetValueForInt64Vector(t *testing.T) {
 	testColumnSetValueForVector(t, "Int64")
+}
+
+func TestColumnSetValueForUInt8Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "UInt8")
+}
+
+func TestColumnSetValueForUInt16Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "UInt16")
+}
+
+func TestColumnSetValueForUInt32Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "UInt32")
+}
+
+func TestColumnSetValueForUInt64Vector(t *testing.T) {
+	testColumnSetValueForVector(t, "UInt64")
 }
 
 func TestColumnSetValueForFloatVector(t *testing.T) {
