@@ -495,7 +495,21 @@ func generateRandomValue(valueType string) interface{} {
 	switch valueType {
 	case "Bool":
 		return (rand.Int() & 1) == 1
+	case "Int8":
+		return int64(int8(rand.Int()))
+	case "Int16":
+		return int64(int16(rand.Int()))
+	case "Int32":
+		return int64(int32(rand.Int()))
 	case "Int64":
+		return rand.Int63()
+	case "UInt8":
+		return int64(uint8(rand.Int()))
+	case "UInt16":
+		return int64(uint16(rand.Int()))
+	case "UInt32":
+		return int64(rand.Uint32())
+	case "UInt64":
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
@@ -606,8 +620,36 @@ func TestColumnSetValueForBool(t *testing.T) {
 	testColumnSetValueForScalar(t, "Bool")
 }
 
-func TestColumnSetValueForInt(t *testing.T) {
+func TestColumnSetValueForInt8(t *testing.T) {
+	testColumnSetValueForScalar(t, "Int8")
+}
+
+func TestColumnSetValueForInt16(t *testing.T) {
+	testColumnSetValueForScalar(t, "Int16")
+}
+
+func TestColumnSetValueForInt32(t *testing.T) {
+	testColumnSetValueForScalar(t, "Int32")
+}
+
+func TestColumnSetValueForInt64(t *testing.T) {
 	testColumnSetValueForScalar(t, "Int64")
+}
+
+func TestColumnSetValueForUInt8(t *testing.T) {
+	testColumnSetValueForScalar(t, "UInt8")
+}
+
+func TestColumnSetValueForUInt16(t *testing.T) {
+	testColumnSetValueForScalar(t, "UInt16")
+}
+
+func TestColumnSetValueForUInt32(t *testing.T) {
+	testColumnSetValueForScalar(t, "UInt32")
+}
+
+func TestColumnSetValueForUInt64(t *testing.T) {
+	testColumnSetValueForScalar(t, "UInt64")
 }
 
 func TestColumnSetValueForFloat(t *testing.T) {
