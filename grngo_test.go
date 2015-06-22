@@ -154,7 +154,7 @@ func TestDBCreateTableWithWGS84GeoPointKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "WGS84GeoPoint")
 }
 
-func TestDBCreateTableWithTextKey(t *testing.T) {
+func TestDBCreateTableWithShortTextKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "ShortText")
 }
 
@@ -198,7 +198,7 @@ func TestDBCreateTableWithWGS84GeoPointRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "WGS84GeoPoint")
 }
 
-func TestDBCreateTableWithTextRefKey(t *testing.T) {
+func TestDBCreateTableWithShortTextRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "ShortText")
 }
 
@@ -222,7 +222,7 @@ func TestDBCreateTableWithWGS84GeoPointRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "WGS84GeoPoint")
 }
 
-func TestDBCreateTableWithTextRefValue(t *testing.T) {
+func TestDBCreateTableWithShortTextRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "ShortText")
 }
 
@@ -339,7 +339,7 @@ func TestTableInsertRowWithWGS84GeoPointKey(t *testing.T) {
 	testTableInsertRow(t, "WGS84GeoPoint")
 }
 
-func TestTableInsertRowWithTextKey(t *testing.T) {
+func TestTableInsertRowWithShortTextKey(t *testing.T) {
 	testTableInsertRow(t, "ShortText")
 }
 
@@ -451,8 +451,16 @@ func TestTableCreateColumnForWGS84GeoPoint(t *testing.T) {
 	testTableCreateScalarColumn(t, "WGS84GeoPoint")
 }
 
-func TestTableCreateColumnForText(t *testing.T) {
+func TestTableCreateColumnForShortText(t *testing.T) {
 	testTableCreateScalarColumn(t, "ShortText")
+}
+
+func TestTableCreateColumnForText(t *testing.T) {
+	testTableCreateScalarColumn(t, "Text")
+}
+
+func TestTableCreateColumnForLongText(t *testing.T) {
+	testTableCreateScalarColumn(t, "LongText")
 }
 
 func TestTableCreateColumnForBoolVector(t *testing.T) {
@@ -475,8 +483,16 @@ func TestTableCreateColumnForWGS84GeoPointVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "WGS84GeoPoint")
 }
 
-func TestTableCreateColumnForTextVector(t *testing.T) {
+func TestTableCreateColumnForShortTextVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "ShortText")
+}
+
+func TestTableCreateColumnForTextVector(t *testing.T) {
+	testTableCreateVectorColumn(t, "Text")
+}
+
+func TestTableCreateColumnForLongTextVector(t *testing.T) {
+	testTableCreateVectorColumn(t, "LongText")
 }
 
 func TestTableCreateColumnForRefToBool(t *testing.T) {
@@ -499,7 +515,7 @@ func TestTableCreateColumnForRefToWGS84GeoPoint(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "WGS84GeoPoint")
 }
 
-func TestTableCreateColumnForRefToText(t *testing.T) {
+func TestTableCreateColumnForRefToShortText(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "ShortText")
 }
 
@@ -523,7 +539,7 @@ func TestTableCreateColumnForRefToWGS84GeoPointVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "WGS84GeoPoint")
 }
 
-func TestTableCreateColumnForRefToTextVector(t *testing.T) {
+func TestTableCreateColumnForRefToShortTextVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "ShortText")
 }
 
@@ -559,7 +575,7 @@ func generateRandomValue(valueType string) interface{} {
 		latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
 		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
 		return GeoPoint{int32(latitude), int32(longitude)}
-	case "ShortText":
+	case "ShortText", "Text", "LongText":
 		return []byte(strconv.Itoa(rand.Int()))
 	default:
 		return nil
@@ -643,7 +659,7 @@ func generateRandomVectorValue(valueType string) interface{} {
 			value[i] = GeoPoint{int32(latitude), int32(longitude)}
 		}
 		return value
-	case "ShortText":
+	case "ShortText", "Text", "LongText":
 		value := make([][]byte, size)
 		for i := 0; i < size; i++ {
 			value[i] = []byte(strconv.Itoa(rand.Int()))
@@ -742,8 +758,16 @@ func TestColumnSetValueForWGS84GeoPoint(t *testing.T) {
 	testColumnSetValueForScalar(t, "WGS84GeoPoint")
 }
 
-func TestColumnSetValueForText(t *testing.T) {
+func TestColumnSetValueForShortText(t *testing.T) {
 	testColumnSetValueForScalar(t, "ShortText")
+}
+
+func TestColumnSetValueForText(t *testing.T) {
+	testColumnSetValueForScalar(t, "Text")
+}
+
+func TestColumnSetValueForLongText(t *testing.T) {
+	testColumnSetValueForScalar(t, "LongText")
 }
 
 func TestColumnSetValueForBoolVector(t *testing.T) {
@@ -794,8 +818,16 @@ func TestColumnSetValueForWGS84GeoPointVector(t *testing.T) {
 	testColumnSetValueForVector(t, "WGS84GeoPoint")
 }
 
-func TestColumnSetValueForTextVector(t *testing.T) {
+func TestColumnSetValueForShortTextVector(t *testing.T) {
 	testColumnSetValueForVector(t, "ShortText")
+}
+
+func TestColumnSetValueForTextVector(t *testing.T) {
+	testColumnSetValueForVector(t, "Text")
+}
+
+func TestColumnSetValueForLongTextVector(t *testing.T) {
+	testColumnSetValueForVector(t, "LongText")
 }
 
 func testColumnGetValueForScalar(t *testing.T, valueType string) {
@@ -897,8 +929,16 @@ func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
 	testColumnGetValueForScalar(t, "WGS84GeoPoint")
 }
 
-func TestColumnGetValueForText(t *testing.T) {
+func TestColumnGetValueForShortText(t *testing.T) {
 	testColumnGetValueForScalar(t, "ShortText")
+}
+
+func TestColumnGetValueForText(t *testing.T) {
+	testColumnGetValueForScalar(t, "Text")
+}
+
+func TestColumnGetValueForLongText(t *testing.T) {
+	testColumnGetValueForScalar(t, "LongText")
 }
 
 func TestColumnGetValueForBoolVector(t *testing.T) {
@@ -949,8 +989,16 @@ func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
 	testColumnGetValueForVector(t, "WGS84GeoPoint")
 }
 
-func TestColumnGetValueForTextVector(t *testing.T) {
+func TestColumnGetValueForShortTextVector(t *testing.T) {
 	testColumnGetValueForVector(t, "ShortText")
+}
+
+func TestColumnGetValueForTextVector(t *testing.T) {
+	testColumnGetValueForVector(t, "Text")
+}
+
+func TestColumnGetValueForLongTextVector(t *testing.T) {
+	testColumnGetValueForVector(t, "LongText")
 }
 
 var numTestRows = 100000
@@ -1041,8 +1089,16 @@ func BenchmarkColumnSetValueForWGS84GeoPoint(b *testing.B) {
 	benchmarkColumnSetValueForScalar(b, "WGS84GeoPoint")
 }
 
-func BenchmarkColumnSetValueForText(b *testing.B) {
+func BenchmarkColumnSetValueForShortText(b *testing.B) {
 	benchmarkColumnSetValueForScalar(b, "ShortText")
+}
+
+func BenchmarkColumnSetValueForText(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "Text")
+}
+
+func BenchmarkColumnSetValueForLongText(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "LongText")
 }
 
 func BenchmarkColumnSetValueForBoolVector(b *testing.B) {
@@ -1065,8 +1121,16 @@ func BenchmarkColumnSetValueForWGS84GeoPointVector(b *testing.B) {
 	benchmarkColumnSetValueForVector(b, "WGS84GeoPoint")
 }
 
-func BenchmarkColumnSetValueForTextVector(b *testing.B) {
+func BenchmarkColumnSetValueForShortTextVector(b *testing.B) {
 	benchmarkColumnSetValueForVector(b, "ShortText")
+}
+
+func BenchmarkColumnSetValueForTextVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "Text")
+}
+
+func BenchmarkColumnSetValueForLongTextVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "LongText")
 }
 
 func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
@@ -1143,8 +1207,16 @@ func BenchmarkColumnGetValueForWGS84GeoPoint(b *testing.B) {
 	benchmarkColumnGetValueForScalar(b, "WGS84GeoPoint")
 }
 
-func BenchmarkColumnGetValueForText(b *testing.B) {
+func BenchmarkColumnGetValueForShortText(b *testing.B) {
 	benchmarkColumnGetValueForScalar(b, "ShortText")
+}
+
+func BenchmarkColumnGetValueForText(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "Text")
+}
+
+func BenchmarkColumnGetValueForLongText(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "LongText")
 }
 
 func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
@@ -1167,8 +1239,16 @@ func BenchmarkColumnGetValueForWGS84GeoPointVector(b *testing.B) {
 	benchmarkColumnGetValueForVector(b, "WGS84GeoPoint")
 }
 
-func BenchmarkColumnGetValueForTextVector(b *testing.B) {
+func BenchmarkColumnGetValueForShortTextVector(b *testing.B) {
 	benchmarkColumnGetValueForVector(b, "ShortText")
+}
+
+func BenchmarkColumnGetValueForTextVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "Text")
+}
+
+func BenchmarkColumnGetValueForLongTextVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "LongText")
 }
 
 func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
@@ -1246,8 +1326,16 @@ func BenchmarkDBSelectForWGS84GeoPoint(b *testing.B) {
 	benchmarkDBSelectForScalar(b, "WGS84GeoPoint")
 }
 
-func BenchmarkDBSelectForText(b *testing.B) {
+func BenchmarkDBSelectForShortText(b *testing.B) {
 	benchmarkDBSelectForScalar(b, "ShortText")
+}
+
+func BenchmarkDBSelectForText(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "Text")
+}
+
+func BenchmarkDBSelectForLongText(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "LongText")
 }
 
 func BenchmarkDBSelectForBoolVector(b *testing.B) {
@@ -1270,6 +1358,14 @@ func BenchmarkDBSelectForWGS84GeoPointVector(b *testing.B) {
 	benchmarkDBSelectForVector(b, "WGS84GeoPoint")
 }
 
-func BenchmarkDBSelectForTextVector(b *testing.B) {
+func BenchmarkDBSelectForShortTextVector(b *testing.B) {
 	benchmarkDBSelectForVector(b, "ShortText")
+}
+
+func BenchmarkDBSelectForTextVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "Text")
+}
+
+func BenchmarkDBSelectForLongTextVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "LongText")
 }
