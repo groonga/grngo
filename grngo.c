@@ -337,9 +337,14 @@ grn_bool grngo_column_set_float(grn_ctx *ctx, grn_obj *column,
 }
 
 grn_bool grngo_column_set_geo_point(grn_ctx *ctx, grn_obj *column,
+                                    grn_builtin_type data_type,
                                     grn_id id, grn_geo_point value) {
   grn_obj obj;
-  GRN_WGS84_GEO_POINT_INIT(&obj, 0);
+  if (data_type == GRN_DB_TOKYO_GEO_POINT) {
+    GRN_TOKYO_GEO_POINT_INIT(&obj, 0);
+  } else {
+    GRN_WGS84_GEO_POINT_INIT(&obj, 0);
+  }
   GRN_GEO_POINT_SET(ctx, &obj, value.latitude, value.longitude);
   grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
   GRN_OBJ_FIN(ctx, &obj);
@@ -501,10 +506,15 @@ grn_bool grngo_column_set_float_vector(grn_ctx *ctx, grn_obj *column,
 }
 
 grn_bool grngo_column_set_geo_point_vector(grn_ctx *ctx, grn_obj *column,
+                                           grn_builtin_type data_type,
                                            grn_id id,
                                            const grngo_vector *value) {
   grn_obj obj;
-  GRN_WGS84_GEO_POINT_INIT(&obj, GRN_OBJ_VECTOR);
+  if (data_type == GRN_DB_TOKYO_GEO_POINT) {
+    GRN_TOKYO_GEO_POINT_INIT(&obj, GRN_OBJ_VECTOR);
+  } else {
+    GRN_WGS84_GEO_POINT_INIT(&obj, GRN_OBJ_VECTOR);
+  }
   size_t i;
   const grn_geo_point *values = (const grn_geo_point *)value->ptr;
   for (i = 0; i < value->size; i++) {

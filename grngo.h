@@ -106,6 +106,7 @@ grn_bool grngo_column_set_float(grn_ctx *ctx, grn_obj *column,
                                 grn_id id, double value);
 // grngo_column_set_geo_point() assigns a GeoPoint value.
 grn_bool grngo_column_set_geo_point(grn_ctx *ctx, grn_obj *column,
+                                    grn_builtin_type data_type,
                                     grn_id id, grn_geo_point value);
 // grngo_column_set_text() assigns a Text value.
 grn_bool grngo_column_set_text(grn_ctx *ctx, grn_obj *column,
@@ -145,6 +146,7 @@ grn_bool grngo_column_set_float_vector(grn_ctx *ctx, grn_obj *column,
                                        const grngo_vector *value);
 // grngo_column_set_geo_point_vector() assigns a GeoPoint vector.
 grn_bool grngo_column_set_geo_point_vector(grn_ctx *ctx, grn_obj *column,
+                                           grn_builtin_type data_type,
                                            grn_id id,
                                            const grngo_vector *value);
 // grngo_column_set_text_vector() assigns a Text vector.

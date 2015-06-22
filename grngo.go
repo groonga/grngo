@@ -968,6 +968,7 @@ func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
 	}
 	grnValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
 	if ok := C.grngo_column_set_geo_point(column.table.db.ctx, column.obj,
+		C.grn_builtin_type(column.valueType),
 		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
 		return fmt.Errorf("grngo_column_set_geo_point() failed")
 	}
@@ -1074,7 +1075,8 @@ func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
 		grnVector.size = C.size_t(len(value))
 	}
 	if ok := C.grngo_column_set_geo_point_vector(column.table.db.ctx,
-		column.obj, C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
+		column.obj, C.grn_builtin_type(column.valueType),
+		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
 		return fmt.Errorf("grngo_column_set_geo_point_vector() failed")
 	}
 	return nil
