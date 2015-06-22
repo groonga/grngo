@@ -215,7 +215,7 @@ func generateRandomKey(keyType string) interface{} {
 	case "Bool":
 	  return (rand.Int() & 1) == 1
 	case "Int":
-		return Int(rand.Int63())
+		return rand.Int63()
 	case "Float":
 		return rand.Float64()
 	case "GeoPoint":
@@ -454,7 +454,7 @@ func generateRandomValue(valueType string) interface{} {
 	case "Bool":
 		return (rand.Int() & 1) == 1
 	case "Int":
-		return Int(rand.Int63())
+		return rand.Int63()
 	case "Float":
 		return rand.Float64()
 	case "GeoPoint":
@@ -484,9 +484,9 @@ func generateRandomVectorValue(valueType string) interface{} {
 		}
 		return value
 	case "Int":
-		value := make([]Int, size)
+		value := make([]int64, size)
 		for i := 0; i < size; i++ {
-			value[i] = Int(rand.Int63())
+			value[i] = rand.Int63()
 		}
 		return value
 	case "Float":
@@ -698,7 +698,7 @@ func benchmarkColumnSetValueForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table :=
 		createTempTable(b, "Table", nil)
 	defer removeTempDB(b, dirPath, db)
-	ids := make([]Int, numTestRows)
+	ids := make([]uint32, numTestRows)
 	values := make([]interface{}, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
@@ -730,7 +730,7 @@ func benchmarkColumnSetValueForVector(b *testing.B, valueType string) {
 	dirPath, _, db, table :=
 		createTempTable(b, "Table", nil)
 	defer removeTempDB(b, dirPath, db)
-	ids := make([]Int, numTestRows)
+	ids := make([]uint32, numTestRows)
 	values := make([]interface{}, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
@@ -803,7 +803,7 @@ func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(b, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(b, dirPath, db)
-	ids := make([]Int, numTestRows)
+	ids := make([]uint32, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
 		if err != nil {
@@ -831,7 +831,7 @@ func benchmarkColumnGetValueForVector(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(b, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(b, dirPath, db)
-	ids := make([]Int, numTestRows)
+	ids := make([]uint32, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
 		if err != nil {
@@ -897,7 +897,7 @@ func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(b, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(b, dirPath, db)
-	ids := make([]Int, numTestRows)
+	ids := make([]uint32, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
 		if err != nil {
@@ -924,7 +924,7 @@ func benchmarkDBSelectForVector(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(b, "Table", nil, "Value", valueType, options)
 	defer removeTempDB(b, dirPath, db)
-	ids := make([]Int, numTestRows)
+	ids := make([]uint32, numTestRows)
 	for i, _ := range ids {
 		_, id, err := table.InsertRow(nil)
 		if err != nil {
