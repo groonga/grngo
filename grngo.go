@@ -904,18 +904,41 @@ func (column *Column) setBool(id uint32, value bool) error {
 
 // setInt() assigns an Int value.
 func (column *Column) setInt(id uint32, value int64) error {
-	switch column.valueType {
-	case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64:
-	default:
-		return fmt.Errorf("value type conflict")
-	}
 	if column.isVector {
 		return fmt.Errorf("value type conflict")
 	}
-	grnValue := C.int64_t(value)
-	if ok := C.grngo_column_set_int(column.table.db.ctx, column.obj,
-		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_int() failed")
+	ctx := column.table.db.ctx
+	var ok C.grn_bool
+	switch column.valueType {
+	case Int8:
+		grnValue := C.int8_t(value)
+		ok = C.grngo_column_set_int8(ctx, column.obj, C.grn_id(id), grnValue)
+	case Int16:
+		grnValue := C.int16_t(value)
+		ok = C.grngo_column_set_int16(ctx, column.obj, C.grn_id(id), grnValue)
+	case Int32:
+		grnValue := C.int32_t(value)
+		ok = C.grngo_column_set_int32(ctx, column.obj, C.grn_id(id), grnValue)
+	case Int64:
+		grnValue := C.int64_t(value)
+		ok = C.grngo_column_set_int64(ctx, column.obj, C.grn_id(id), grnValue)
+	case UInt8:
+		grnValue := C.uint8_t(value)
+		ok = C.grngo_column_set_uint8(ctx, column.obj, C.grn_id(id), grnValue)
+	case UInt16:
+		grnValue := C.uint16_t(value)
+		ok = C.grngo_column_set_uint16(ctx, column.obj, C.grn_id(id), grnValue)
+	case UInt32:
+		grnValue := C.uint32_t(value)
+		ok = C.grngo_column_set_uint32(ctx, column.obj, C.grn_id(id), grnValue)
+	case UInt64:
+		grnValue := C.uint64_t(value)
+		ok = C.grngo_column_set_uint64(ctx, column.obj, C.grn_id(id), grnValue)
+	default:
+		return fmt.Errorf("value type conflict")
+	}
+	if ok != C.GRN_TRUE {
+		return fmt.Errorf("grngo_column_set_int*() failed")
 	}
 	return nil
 }

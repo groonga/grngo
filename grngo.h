@@ -85,8 +85,22 @@ grngo_row_info grngo_table_insert_text(grn_ctx *ctx, grn_obj *table,
 grn_bool grngo_column_set_bool(grn_ctx *ctx, grn_obj *column,
                                grn_id id, grn_bool value);
 // grngo_column_set_int() assigns an Int value.
-grn_bool grngo_column_set_int(grn_ctx *ctx, grn_obj *column,
-                              grn_id id, int64_t value);
+grn_bool grngo_column_set_int8(grn_ctx *ctx, grn_obj *column,
+                               grn_id id, int8_t value);
+grn_bool grngo_column_set_int16(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, int16_t value);
+grn_bool grngo_column_set_int32(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, int32_t value);
+grn_bool grngo_column_set_int64(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, int64_t value);
+grn_bool grngo_column_set_uint8(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, uint8_t value);
+grn_bool grngo_column_set_uint16(grn_ctx *ctx, grn_obj *column,
+                                 grn_id id, uint16_t value);
+grn_bool grngo_column_set_uint32(grn_ctx *ctx, grn_obj *column,
+                                 grn_id id, uint32_t value);
+grn_bool grngo_column_set_uint64(grn_ctx *ctx, grn_obj *column,
+                                 grn_id id, uint64_t value);
 // grngo_column_set_float() assigns a Float value.
 grn_bool grngo_column_set_float(grn_ctx *ctx, grn_obj *column,
                                 grn_id id, double value);

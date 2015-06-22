@@ -246,11 +246,81 @@ grn_bool grngo_column_set_bool(grn_ctx *ctx, grn_obj *column,
   return rc == GRN_SUCCESS;
 }
 
-grn_bool grngo_column_set_int(grn_ctx *ctx, grn_obj *column,
-                              grn_id id, int64_t value) {
+grn_bool grngo_column_set_int8(grn_ctx *ctx, grn_obj *column,
+                               grn_id id, int8_t value) {
+  grn_obj obj;
+  GRN_INT8_INIT(&obj, 0);
+  GRN_INT8_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_int16(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, int16_t value) {
+  grn_obj obj;
+  GRN_INT16_INIT(&obj, 0);
+  GRN_INT16_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_int32(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, int32_t value) {
+  grn_obj obj;
+  GRN_INT32_INIT(&obj, 0);
+  GRN_INT32_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_int64(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, int64_t value) {
   grn_obj obj;
   GRN_INT64_INIT(&obj, 0);
   GRN_INT64_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint8(grn_ctx *ctx, grn_obj *column,
+                                grn_id id, uint8_t value) {
+  grn_obj obj;
+  GRN_UINT8_INIT(&obj, 0);
+  GRN_UINT8_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint16(grn_ctx *ctx, grn_obj *column,
+                                 grn_id id, uint16_t value) {
+  grn_obj obj;
+  GRN_UINT16_INIT(&obj, 0);
+  GRN_UINT16_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint32(grn_ctx *ctx, grn_obj *column,
+                                 grn_id id, uint32_t value) {
+  grn_obj obj;
+  GRN_UINT32_INIT(&obj, 0);
+  GRN_UINT32_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint64(grn_ctx *ctx, grn_obj *column,
+                                 grn_id id, uint64_t value) {
+  grn_obj obj;
+  GRN_UINT64_INIT(&obj, 0);
+  GRN_UINT64_SET(ctx, &obj, value);
   grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
   GRN_OBJ_FIN(ctx, &obj);
   return rc == GRN_SUCCESS;
