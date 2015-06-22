@@ -214,7 +214,21 @@ func generateRandomKey(keyType string) interface{} {
 	switch keyType {
 	case "Bool":
 	  return (rand.Int() & 1) == 1
+	case "Int8":
+		return int64(int8(rand.Int()))
+	case "Int16":
+		return int64(int16(rand.Int()))
+	case "Int32":
+		return int64(int32(rand.Int()))
 	case "Int64":
+		return rand.Int63()
+	case "UInt8":
+		return int64(uint8(rand.Int()))
+	case "UInt16":
+		return int64(uint16(rand.Int()))
+	case "UInt32":
+		return int64(rand.Uint32())
+	case "UInt64":
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
@@ -265,8 +279,36 @@ func TestTableInsertRowWithBoolKey(t *testing.T) {
 	testTableInsertRow(t, "Bool")
 }
 
-func TestTableInsertRowWithIntKey(t *testing.T) {
+func TestTableInsertRowWithInt8Key(t *testing.T) {
+	testTableInsertRow(t, "Int8")
+}
+
+func TestTableInsertRowWithInt16Key(t *testing.T) {
+	testTableInsertRow(t, "Int16")
+}
+
+func TestTableInsertRowWithInt32Key(t *testing.T) {
+	testTableInsertRow(t, "Int32")
+}
+
+func TestTableInsertRowWithInt64Key(t *testing.T) {
 	testTableInsertRow(t, "Int64")
+}
+
+func TestTableInsertRowWithUInt8Key(t *testing.T) {
+	testTableInsertRow(t, "UInt8")
+}
+
+func TestTableInsertRowWithUInt16Key(t *testing.T) {
+	testTableInsertRow(t, "UInt16")
+}
+
+func TestTableInsertRowWithUInt32Key(t *testing.T) {
+	testTableInsertRow(t, "UInt32")
+}
+
+func TestTableInsertRowWithUInt64Key(t *testing.T) {
+	testTableInsertRow(t, "UInt64")
 }
 
 func TestTableInsertRowWithFloatKey(t *testing.T) {
