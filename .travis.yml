@@ -11,6 +11,9 @@ matrix:
   allow_failures:
       - go: tip
 
+before_install:
+  - curl --silent --location https://github.com/groonga/groonga/raw/master/data/travis/setup.sh | sh
+
 script:
   - go build
   - go test
