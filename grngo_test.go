@@ -809,8 +809,36 @@ func TestColumnGetValueForBool(t *testing.T) {
 	testColumnGetValueForScalar(t, "Bool")
 }
 
-func TestColumnGetValueForInt(t *testing.T) {
+func TestColumnGetValueForInt8(t *testing.T) {
+	testColumnGetValueForScalar(t, "Int8")
+}
+
+func TestColumnGetValueForInt16(t *testing.T) {
+	testColumnGetValueForScalar(t, "Int16")
+}
+
+func TestColumnGetValueForInt32(t *testing.T) {
+	testColumnGetValueForScalar(t, "Int32")
+}
+
+func TestColumnGetValueForInt64(t *testing.T) {
 	testColumnGetValueForScalar(t, "Int64")
+}
+
+func TestColumnGetValueForUInt8(t *testing.T) {
+	testColumnGetValueForScalar(t, "UInt8")
+}
+
+func TestColumnGetValueForUInt16(t *testing.T) {
+	testColumnGetValueForScalar(t, "UInt16")
+}
+
+func TestColumnGetValueForUInt32(t *testing.T) {
+	testColumnGetValueForScalar(t, "UInt32")
+}
+
+func TestColumnGetValueForUInt64(t *testing.T) {
+	testColumnGetValueForScalar(t, "UInt64")
 }
 
 func TestColumnGetValueForFloat(t *testing.T) {
@@ -829,8 +857,36 @@ func TestColumnGetValueForBoolVector(t *testing.T) {
 	testColumnGetValueForVector(t, "Bool")
 }
 
-func TestColumnGetValueForIntVector(t *testing.T) {
+func TestColumnGetValueForInt8Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "Int8")
+}
+
+func TestColumnGetValueForInt16Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "Int16")
+}
+
+func TestColumnGetValueForInt32Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "Int32")
+}
+
+func TestColumnGetValueForInt64Vector(t *testing.T) {
 	testColumnGetValueForVector(t, "Int64")
+}
+
+func TestColumnGetValueForUInt8Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "UInt8")
+}
+
+func TestColumnGetValueForUInt16Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "UInt16")
+}
+
+func TestColumnGetValueForUInt32Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "UInt32")
+}
+
+func TestColumnGetValueForUInt64Vector(t *testing.T) {
+	testColumnGetValueForVector(t, "UInt64")
 }
 
 func TestColumnGetValueForFloatVector(t *testing.T) {
