@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.1
+  - 1.2
+  - 1.3
+  - 1.4
+  - tip
+
+matrix:
+  allow_failures:
+      - go: tip
+
+before_install:
+  - curl --silent --location https://github.com/groonga/groonga/raw/master/data/travis/setup.sh | sh
+
+script:
+  - go build
+  - go test
