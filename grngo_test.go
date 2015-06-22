@@ -146,7 +146,11 @@ func TestDBCreateTableWithFloatKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "Float")
 }
 
-func TestDBCreateTableWithGeoPointKey(t *testing.T) {
+func TestDBCreateTableWithTokyoGeoPointKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "TokyoGeoPoint")
+}
+
+func TestDBCreateTableWithWGS84GeoPointKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "WGS84GeoPoint")
 }
 
@@ -166,7 +170,11 @@ func TestDBCreateTableWithFloatValue(t *testing.T) {
 	testDBCreateTableWithValue(t, "Float")
 }
 
-func TestDBCreateTableWithGeoPointValue(t *testing.T) {
+func TestDBCreateTableWithTokyoGeoPointValue(t *testing.T) {
+	testDBCreateTableWithValue(t, "TokyoGeoPoint")
+}
+
+func TestDBCreateTableWithWGS84GeoPointValue(t *testing.T) {
 	testDBCreateTableWithValue(t, "WGS84GeoPoint")
 }
 
@@ -182,7 +190,11 @@ func TestDBCreateTableWithFloatRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "Float")
 }
 
-func TestDBCreateTableWithGeoPointRefKey(t *testing.T) {
+func TestDBCreateTableWithTokyoGeoPointRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "TokyoGeoPoint")
+}
+
+func TestDBCreateTableWithWGS84GeoPointRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "WGS84GeoPoint")
 }
 
@@ -202,7 +214,11 @@ func TestDBCreateTableWithFloatRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "Float")
 }
 
-func TestDBCreateTableWithGeoPointRefValue(t *testing.T) {
+func TestDBCreateTableWithTokyoGeoPointRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "TokyoGeoPoint")
+}
+
+func TestDBCreateTableWithWGS84GeoPointRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "WGS84GeoPoint")
 }
 
@@ -232,7 +248,7 @@ func generateRandomKey(keyType string) interface{} {
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
-	case "WGS84GeoPoint":
+	case "TokyoGeoPoint", "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
 			MaxLatitude  = 164006000
@@ -315,7 +331,11 @@ func TestTableInsertRowWithFloatKey(t *testing.T) {
 	testTableInsertRow(t, "Float")
 }
 
-func TestTableInsertRowWithGeoPointKey(t *testing.T) {
+func TestTableInsertRowWithTokyoGeoPointKey(t *testing.T) {
+	testTableInsertRow(t, "TokyoGeoPoint")
+}
+
+func TestTableInsertRowWithWGS84GeoPointKey(t *testing.T) {
 	testTableInsertRow(t, "WGS84GeoPoint")
 }
 
@@ -423,7 +443,11 @@ func TestTableCreateColumnForFloat(t *testing.T) {
 	testTableCreateScalarColumn(t, "Float")
 }
 
-func TestTableCreateColumnForGeoPoint(t *testing.T) {
+func TestTableCreateColumnForTokyoGeoPoint(t *testing.T) {
+	testTableCreateScalarColumn(t, "TokyoGeoPoint")
+}
+
+func TestTableCreateColumnForWGS84GeoPoint(t *testing.T) {
 	testTableCreateScalarColumn(t, "WGS84GeoPoint")
 }
 
@@ -443,7 +467,11 @@ func TestTableCreateColumnForFloatVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "Float")
 }
 
-func TestTableCreateColumnForGeoPointVector(t *testing.T) {
+func TestTableCreateColumnForTokyoGeoPointVector(t *testing.T) {
+	testTableCreateVectorColumn(t, "TokyoGeoPoint")
+}
+
+func TestTableCreateColumnForWGS84GeoPointVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "WGS84GeoPoint")
 }
 
@@ -463,7 +491,11 @@ func TestTableCreateColumnForRefToFloat(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "Float")
 }
 
-func TestTableCreateColumnForRefToGeoPoint(t *testing.T) {
+func TestTableCreateColumnForRefToTokyoGeoPoint(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "TokyoGeoPoint")
+}
+
+func TestTableCreateColumnForRefToWGS84GeoPoint(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "WGS84GeoPoint")
 }
 
@@ -483,7 +515,11 @@ func TestTableCreateColumnForRefToFloatVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "Float")
 }
 
-func TestTableCreateColumnForRefToGeoPointVector(t *testing.T) {
+func TestTableCreateColumnForRefToTokyoGeoPointVector(t *testing.T) {
+	testTableCreateVectorRefColumn(t, "TokyoGeoPoint")
+}
+
+func TestTableCreateColumnForRefToWGS84GeoPointVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "WGS84GeoPoint")
 }
 
@@ -513,7 +549,7 @@ func generateRandomValue(valueType string) interface{} {
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
-	case "WGS84GeoPoint":
+	case "TokyoGeoPoint", "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
 			MaxLatitude  = 164006000
@@ -593,7 +629,7 @@ func generateRandomVectorValue(valueType string) interface{} {
 			value[i] = rand.Float64()
 		}
 		return value
-	case "WGS84GeoPoint":
+	case "TokyoGeoPoint", "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
 			MaxLatitude  = 164006000
@@ -698,7 +734,11 @@ func TestColumnSetValueForFloat(t *testing.T) {
 	testColumnSetValueForScalar(t, "Float")
 }
 
-func TestColumnSetValueForGeoPoint(t *testing.T) {
+func TestColumnSetValueForTokyoGeoPoint(t *testing.T) {
+	testColumnSetValueForScalar(t, "TokyoGeoPoint")
+}
+
+func TestColumnSetValueForWGS84GeoPoint(t *testing.T) {
 	testColumnSetValueForScalar(t, "WGS84GeoPoint")
 }
 
@@ -746,7 +786,11 @@ func TestColumnSetValueForFloatVector(t *testing.T) {
 	testColumnSetValueForVector(t, "Float")
 }
 
-func TestColumnSetValueForGeoPointVector(t *testing.T) {
+func TestColumnSetValueForTokyoGeoPointVector(t *testing.T) {
+	testColumnSetValueForVector(t, "TokyoGeoPoint")
+}
+
+func TestColumnSetValueForWGS84GeoPointVector(t *testing.T) {
 	testColumnSetValueForVector(t, "WGS84GeoPoint")
 }
 
@@ -845,7 +889,11 @@ func TestColumnGetValueForFloat(t *testing.T) {
 	testColumnGetValueForScalar(t, "Float")
 }
 
-func TestColumnGetValueForGeoPoint(t *testing.T) {
+func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
+	testColumnGetValueForScalar(t, "TokyoGeoPoint")
+}
+
+func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
 	testColumnGetValueForScalar(t, "WGS84GeoPoint")
 }
 
@@ -893,7 +941,11 @@ func TestColumnGetValueForFloatVector(t *testing.T) {
 	testColumnGetValueForVector(t, "Float")
 }
 
-func TestColumnGetValueForGeoPointVector(t *testing.T) {
+func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
+	testColumnGetValueForVector(t, "TokyoGeoPoint")
+}
+
+func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
 	testColumnGetValueForVector(t, "WGS84GeoPoint")
 }
 
@@ -981,7 +1033,11 @@ func BenchmarkColumnSetValueForFloat(b *testing.B) {
 	benchmarkColumnSetValueForScalar(b, "Float")
 }
 
-func BenchmarkColumnSetValueForGeoPoint(b *testing.B) {
+func BenchmarkColumnSetValueForTokyoGeoPoint(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "TokyoGeoPoint")
+}
+
+func BenchmarkColumnSetValueForWGS84GeoPoint(b *testing.B) {
 	benchmarkColumnSetValueForScalar(b, "WGS84GeoPoint")
 }
 
@@ -1001,7 +1057,11 @@ func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
 	benchmarkColumnSetValueForVector(b, "Float")
 }
 
-func BenchmarkColumnSetValueForGeoPointVector(b *testing.B) {
+func BenchmarkColumnSetValueForTokyoGeoPointVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "TokyoGeoPoint")
+}
+
+func BenchmarkColumnSetValueForWGS84GeoPointVector(b *testing.B) {
 	benchmarkColumnSetValueForVector(b, "WGS84GeoPoint")
 }
 
@@ -1075,7 +1135,11 @@ func BenchmarkColumnGetValueForFloat(b *testing.B) {
 	benchmarkColumnGetValueForScalar(b, "Float")
 }
 
-func BenchmarkColumnGetValueForGeoPoint(b *testing.B) {
+func BenchmarkColumnGetValueForTokyoGeoPoint(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "TokyoGeoPoint")
+}
+
+func BenchmarkColumnGetValueForWGS84GeoPoint(b *testing.B) {
 	benchmarkColumnGetValueForScalar(b, "WGS84GeoPoint")
 }
 
@@ -1095,7 +1159,11 @@ func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
 	benchmarkColumnGetValueForVector(b, "Float")
 }
 
-func BenchmarkColumnGetValueForGeoPointVector(b *testing.B) {
+func BenchmarkColumnGetValueForTokyoGeoPointVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "TokyoGeoPoint")
+}
+
+func BenchmarkColumnGetValueForWGS84GeoPointVector(b *testing.B) {
 	benchmarkColumnGetValueForVector(b, "WGS84GeoPoint")
 }
 
@@ -1170,7 +1238,11 @@ func BenchmarkDBSelectForFloat(b *testing.B) {
 	benchmarkDBSelectForScalar(b, "Float")
 }
 
-func BenchmarkDBSelectForGeoPoint(b *testing.B) {
+func BenchmarkDBSelectForTokyoGeoPoint(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "TokyoGeoPoint")
+}
+
+func BenchmarkDBSelectForWGS84GeoPoint(b *testing.B) {
 	benchmarkDBSelectForScalar(b, "WGS84GeoPoint")
 }
 
@@ -1190,7 +1262,11 @@ func BenchmarkDBSelectForFloatVector(b *testing.B) {
 	benchmarkDBSelectForVector(b, "Float")
 }
 
-func BenchmarkDBSelectForGeoPointVector(b *testing.B) {
+func BenchmarkDBSelectForTokyoGeoPointVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "TokyoGeoPoint")
+}
+
+func BenchmarkDBSelectForWGS84GeoPointVector(b *testing.B) {
 	benchmarkDBSelectForVector(b, "WGS84GeoPoint")
 }
 
