@@ -1023,9 +1023,31 @@ func (column *Column) setIntVector(id uint32, value []int64) error {
 		grnVector.ptr = unsafe.Pointer(&value[0])
 		grnVector.size = C.size_t(len(value))
 	}
-	if ok := C.grngo_column_set_int_vector(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_int_vector() failed")
+	ctx := column.table.db.ctx
+	obj := column.obj
+	var ok C.grn_bool
+	switch column.valueType {
+	case Int8:
+		ok = C.grngo_column_set_int8_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case Int16:
+		ok = C.grngo_column_set_int16_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case Int32:
+		ok = C.grngo_column_set_int32_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case Int64:
+		ok = C.grngo_column_set_int64_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case UInt8:
+		ok = C.grngo_column_set_uint8_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case UInt16:
+		ok = C.grngo_column_set_uint16_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case UInt32:
+		ok = C.grngo_column_set_uint32_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case UInt64:
+		ok = C.grngo_column_set_uint64_vector(ctx, obj, C.grn_id(id), &grnVector)
+	default:
+		return fmt.Errorf("value type conflict")
+	}
+	if ok != C.GRN_TRUE {
+		return fmt.Errorf("grngo_column_set_int*_vector() failed")
 	}
 	return nil
 }

@@ -374,14 +374,112 @@ grn_bool grngo_column_set_bool_vector(grn_ctx *ctx, grn_obj *column,
   return rc == GRN_SUCCESS;
 }
 
-grn_bool grngo_column_set_int_vector(grn_ctx *ctx, grn_obj *column,
-                                     grn_id id,
-                                     const grngo_vector *value) {
+grn_bool grngo_column_set_int8_vector(grn_ctx *ctx, grn_obj *column,
+                                      grn_id id,
+                                      const grngo_vector *value) {
+  grn_obj obj;
+  GRN_INT8_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_INT8_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_int16_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value) {
+  grn_obj obj;
+  GRN_INT16_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_INT16_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_int32_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value) {
+  grn_obj obj;
+  GRN_INT32_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_INT32_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_int64_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value) {
   grn_obj obj;
   GRN_INT64_INIT(&obj, GRN_OBJ_VECTOR);
   size_t i;
   for (i = 0; i < value->size; i++) {
     GRN_INT64_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint8_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value) {
+  grn_obj obj;
+  GRN_UINT8_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_UINT8_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint16_vector(grn_ctx *ctx, grn_obj *column,
+                                        grn_id id,
+                                        const grngo_vector *value) {
+  grn_obj obj;
+  GRN_UINT16_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_UINT16_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint32_vector(grn_ctx *ctx, grn_obj *column,
+                                        grn_id id,
+                                        const grngo_vector *value) {
+  grn_obj obj;
+  GRN_UINT32_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_UINT32_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_uint64_vector(grn_ctx *ctx, grn_obj *column,
+                                        grn_id id,
+                                        const grngo_vector *value) {
+  grn_obj obj;
+  GRN_UINT64_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_UINT64_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
   }
   grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
   GRN_OBJ_FIN(ctx, &obj);

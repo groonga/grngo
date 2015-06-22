@@ -115,9 +115,30 @@ grn_bool grngo_column_set_bool_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id,
                                       const grngo_vector *value);
 // grngo_column_set_int_vector() assigns an Int vector.
-grn_bool grngo_column_set_int_vector(grn_ctx *ctx, grn_obj *column,
-                                     grn_id id,
-                                     const grngo_vector *value);
+grn_bool grngo_column_set_int8_vector(grn_ctx *ctx, grn_obj *column,
+                                      grn_id id,
+                                      const grngo_vector *value);
+grn_bool grngo_column_set_int16_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value);
+grn_bool grngo_column_set_int32_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value);
+grn_bool grngo_column_set_int64_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value);
+grn_bool grngo_column_set_uint8_vector(grn_ctx *ctx, grn_obj *column,
+                                       grn_id id,
+                                       const grngo_vector *value);
+grn_bool grngo_column_set_uint16_vector(grn_ctx *ctx, grn_obj *column,
+                                        grn_id id,
+                                        const grngo_vector *value);
+grn_bool grngo_column_set_uint32_vector(grn_ctx *ctx, grn_obj *column,
+                                        grn_id id,
+                                        const grngo_vector *value);
+grn_bool grngo_column_set_uint64_vector(grn_ctx *ctx, grn_obj *column,
+                                        grn_id id,
+                                        const grngo_vector *value);
 // grngo_column_set_float_vector() assigns a Float vector.
 grn_bool grngo_column_set_float_vector(grn_ctx *ctx, grn_obj *column,
                                        grn_id id,
