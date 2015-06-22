@@ -1144,6 +1144,7 @@ func (column *Column) getBool(id uint32) (interface{}, error) {
 func (column *Column) getInt(id uint32) (interface{}, error) {
 	var grnValue C.int64_t
 	if ok := C.grngo_column_get_int(column.table.db.ctx, column.obj,
+		C.grn_builtin_type(column.valueType),
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_int() failed")
 	}
@@ -1216,6 +1217,7 @@ func (column *Column) getBoolVector(id uint32) (interface{}, error) {
 func (column *Column) getIntVector(id uint32) (interface{}, error) {
 	var grnValue C.grngo_vector
 	if ok := C.grngo_column_get_int_vector(column.table.db.ctx, column.obj,
+		C.grn_builtin_type(column.valueType),
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_int_vector() failed")
 	}
@@ -1225,6 +1227,7 @@ func (column *Column) getIntVector(id uint32) (interface{}, error) {
 	value := make([]int64, int(grnValue.size))
 	grnValue.ptr = unsafe.Pointer(&value[0])
 	if ok := C.grngo_column_get_int_vector(column.table.db.ctx, column.obj,
+		C.grn_builtin_type(column.valueType),
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_int_vector() failed")
 	}

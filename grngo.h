@@ -164,6 +164,7 @@ grn_bool grngo_column_get_bool(grn_ctx *ctx, grn_obj *column,
                                grn_id id, grn_bool *value);
 // grngo_column_get_int() gets a stored Int value.
 grn_bool grngo_column_get_int(grn_ctx *ctx, grn_obj *column,
+                              grn_builtin_type data_type,
                               grn_id id, int64_t *value);
 // grngo_column_get_float() gets a stored Float value.
 grn_bool grngo_column_get_float(grn_ctx *ctx, grn_obj *column,
@@ -179,7 +180,8 @@ grn_bool grngo_column_get_bool_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id, grngo_vector *value);
 // grngo_column_get_int_vector() gets a stored Int vector.
 grn_bool grngo_column_get_int_vector(grn_ctx *ctx, grn_obj *column,
-                                      grn_id id, grngo_vector *value);
+                                     grn_builtin_type data_type,
+                                     grn_id id, grngo_vector *value);
 // grngo_column_get_float_vector() gets a stored Float vector.
 grn_bool grngo_column_get_float_vector(grn_ctx *ctx, grn_obj *column,
                                        grn_id id, grngo_vector *value);

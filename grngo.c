@@ -542,11 +542,59 @@ grn_bool grngo_column_get_bool(grn_ctx *ctx, grn_obj *column,
 }
 
 grn_bool grngo_column_get_int(grn_ctx *ctx, grn_obj *column,
+                              grn_builtin_type data_type,
                               grn_id id, int64_t *value) {
   grn_obj value_obj;
-  GRN_INT64_INIT(&value_obj, 0);
-  grn_obj_get_value(ctx, column, id, &value_obj);
-  *value = GRN_INT64_VALUE(&value_obj);
+  switch (data_type) {
+    case GRN_DB_INT8: {
+      GRN_INT8_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_INT8_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_INT16: {
+      GRN_INT16_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_INT16_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_INT32: {
+      GRN_INT32_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_INT32_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_INT64: {
+      GRN_INT64_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_INT64_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_UINT8: {
+      GRN_UINT8_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_UINT8_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_UINT16: {
+      GRN_UINT16_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_UINT16_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_UINT32: {
+      GRN_UINT32_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_UINT32_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_UINT64: {
+      GRN_UINT64_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_UINT64_VALUE(&value_obj);
+      break;
+    }
+  }
   GRN_OBJ_FIN(ctx, &value_obj);
   return GRN_TRUE;
 }
@@ -601,16 +649,123 @@ grn_bool grngo_column_get_bool_vector(grn_ctx *ctx, grn_obj *column,
 }
 
 grn_bool grngo_column_get_int_vector(grn_ctx *ctx, grn_obj *column,
+                                     grn_builtin_type data_type,
                                      grn_id id, grngo_vector *value) {
   grn_obj value_obj;
-  GRN_INT64_INIT(&value_obj, GRN_OBJ_VECTOR);
-  grn_obj_get_value(ctx, column, id, &value_obj);
-  size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
-  size_t size = size_in_bytes / sizeof(int64_t);
-  if (size <= value->size) {
-    memcpy(value->ptr, GRN_BULK_HEAD(&value_obj), size_in_bytes);
+  switch (data_type) {
+    case GRN_DB_INT8: {
+      GRN_INT8_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(int8_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_INT8_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_INT16: {
+      GRN_INT16_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(int16_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_INT16_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_INT32: {
+      GRN_INT32_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(int32_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_INT32_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_INT64: {
+      GRN_INT64_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(int64_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_INT64_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_UINT8: {
+      GRN_UINT8_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(uint8_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_UINT8_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_UINT16: {
+      GRN_UINT16_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(uint16_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_UINT16_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_UINT32: {
+      GRN_UINT32_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(uint32_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_UINT32_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_UINT64: {
+      GRN_UINT64_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(uint64_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_UINT64_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
   }
-  value->size = size;
   GRN_OBJ_FIN(ctx, &value_obj);
   return GRN_TRUE;
 }
