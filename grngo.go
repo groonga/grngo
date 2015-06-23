@@ -94,20 +94,18 @@ func (dataType DataType) String() string {
 
 // -- TableOptions --
 
-// Constants for TableOptions.
-type TableType int
-
 const (
-	ArrayTable = TableType(iota)
-	HashTable
-	PatTable
-	DatTable
+	TableTypeMask = C.GRN_OBJ_TABLE_TYPE_MASK
+	TableNoKey    = C.GRN_OBJ_TABLE_NO_KEY
+	TablePatKey   = C.GRN_OBJ_TABLE_PAT_KEY
+	TableDatKey   = C.GRN_OBJ_TABLE_DAT_KEY
+	TableHashKey  = C.GRN_OBJ_TABLE_HASH_KEY
+	KeyWithSIS    = C.GRN_OBJ_KEY_WITH_SIS
 )
 
 // http://groonga.org/docs/reference/commands/table_create.html
 type TableOptions struct {
-	TableType
-	WithSIS          bool     // KEY_WITH_SIS
+	Flags            int
 	KeyType          string   // http://groonga.org/docs/reference/types.html
 	ValueType        string   // http://groonga.org/docs/reference/types.html
 	DefaultTokenizer string   // http://groonga.org/docs/reference/tokenizers.html
@@ -119,7 +117,7 @@ type TableOptions struct {
 // settings.
 func NewTableOptions() *TableOptions {
 	var options TableOptions
-	options.TableType = HashTable
+	options.Flags = TableHashKey
 	return &options
 }
 
@@ -376,20 +374,20 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if options.KeyType == "" {
 		optionsMap["flags"] = "TABLE_NO_KEY"
 	} else {
-		switch options.TableType {
-		case ArrayTable:
+		switch options.Flags & TableTypeMask {
+		case TableNoKey:
 			optionsMap["flags"] = "TABLE_NO_KEY"
-		case HashTable:
+		case TableHashKey:
 			optionsMap["flags"] = "TABLE_HASH_KEY"
-		case PatTable:
+		case TablePatKey:
 			optionsMap["flags"] = "TABLE_PAT_KEY"
-		case DatTable:
+		case TableDatKey:
 			optionsMap["flags"] = "TABLE_DAT_KEY"
 		default:
 			return nil, fmt.Errorf("undefined table type: options = %+v", options)
 		}
 	}
-	if options.WithSIS {
+	if (options.Flags & KeyWithSIS) == KeyWithSIS {
 		optionsMap["flags"] += "|KEY_WITH_SIS"
 	}
 	if options.KeyType != "" {

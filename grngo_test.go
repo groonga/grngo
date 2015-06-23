@@ -84,7 +84,6 @@ func TestOpenDB(t *testing.T) {
 
 func testDBCreateTableWithKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
-	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempTable(t, "Table", options)
 	removeTempDB(t, dirPath, db)
@@ -92,7 +91,6 @@ func testDBCreateTableWithKey(t *testing.T, keyType string) {
 
 func testDBCreateTableWithValue(t *testing.T, valueType string) {
 	options := NewTableOptions()
-	options.TableType = PatTable
 	options.ValueType = valueType
 	dirPath, _, db, _ := createTempTable(t, "Table", options)
 	removeTempDB(t, dirPath, db)
@@ -100,13 +98,11 @@ func testDBCreateTableWithValue(t *testing.T, valueType string) {
 
 func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
-	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempTable(t, "To", options)
 	defer removeTempDB(t, dirPath, db)
 
 	options = NewTableOptions()
-	options.TableType = PatTable
 	options.KeyType = "To"
 	_, err := db.CreateTable("From", options)
 	if err != nil {
@@ -116,7 +112,6 @@ func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
 
 func testDBCreateTableWithRefValue(t *testing.T, keyType string) {
 	options := NewTableOptions()
-	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempTable(t, "To", options)
 	defer removeTempDB(t, dirPath, db)
@@ -285,9 +280,6 @@ func generateRandomKey(keyType string) interface{} {
 
 func testTableInsertRow(t *testing.T, keyType string) {
 	options := NewTableOptions()
-	if keyType != "" {
-		options.TableType = PatTable
-	}
 	options.KeyType = keyType
 	dirPath, _, db, table := createTempTable(t, "Table", options)
 	defer removeTempDB(t, dirPath, db)
@@ -401,7 +393,6 @@ func testTableCreateVectorColumn(t *testing.T, valueType string) {
 
 func testTableCreateScalarRefColumn(t *testing.T, keyType string) {
 	options := NewTableOptions()
-	options.TableType = PatTable
 	options.KeyType = keyType
 	dirPath, _, db, table, _ :=
 		createTempColumn(t, "Table", options, "Value", "Table", nil)
@@ -426,7 +417,6 @@ func testTableCreateScalarRefColumn(t *testing.T, keyType string) {
 
 func testTableCreateVectorRefColumn(t *testing.T, keyType string) {
 	tableOptions := NewTableOptions()
-	tableOptions.TableType = PatTable
 	tableOptions.KeyType = keyType
 	dirPath, _, db, table, _ :=
 		createTempColumn(t, "Table", tableOptions, "Value", "[]Table", nil)
