@@ -129,7 +129,7 @@ type CompressionType int
 const (
 	NoCompression = CompressionType(iota)
 	ZlibCompression
-	LzoCompression
+	Lz4Compression
 )
 
 // http://groonga.org/ja/docs/reference/commands/column_create.html
@@ -728,8 +728,8 @@ func (table *Table) CreateColumn(name string, valueType string,
 	case NoCompression:
 	case ZlibCompression:
 		optionsMap["flags"] = "|COMPRESS_ZLIB"
-	case LzoCompression:
-		optionsMap["flags"] = "|COMRESS_LZO"
+	case Lz4Compression:
+		optionsMap["flags"] = "|COMRESS_LZ4"
 	default:
 		return nil, fmt.Errorf("undefined compression type: options = %+v", options)
 	}
