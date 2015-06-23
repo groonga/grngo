@@ -123,9 +123,6 @@ func NewTableOptions() *TableOptions {
 
 // -- ColumnOptions --
 
-// Constants for ColumnOptions.
-type CompressionType int
-
 const (
 	CompressMask = C.GRN_OBJ_COMPRESS_MASK
 	CompressNone = C.GRN_OBJ_COMPRESS_NONE
