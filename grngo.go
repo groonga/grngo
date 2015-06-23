@@ -126,15 +126,6 @@ func NewTableOptions() *TableOptions {
 // -- ColumnOptions --
 
 // Constants for ColumnOptions.
-type ColumnType int
-
-const (
-	ScalarColumn = ColumnType(iota)
-	VectorColumn
-	IndexColumn
-)
-
-// Constants for ColumnOptions.
 type CompressionType int
 
 const (
@@ -145,12 +136,10 @@ const (
 
 // http://groonga.org/ja/docs/reference/commands/column_create.html
 type ColumnOptions struct {
-	ColumnType
 	CompressionType
 	WithSection  bool // WITH_SECTION
 	WithWeight   bool // WITH_WEIGHT
 	WithPosition bool // WITH_POSITION
-	Source       string
 }
 
 // NewColumnOptions() creates a new ColumnOptions object with the default
@@ -716,6 +705,16 @@ func (table *Table) CreateColumn(name string, valueType string,
 	optionsMap := make(map[string]string)
 	optionsMap["table"] = table.name
 	optionsMap["name"] = name
+	if strings.HasPrefix(valueType, "[]") {
+	  valueType = valueType[2:]
+	  optionsMap["flags"] = "COLUMN_VECTOR"
+	} else if delimPos := strings.IndexByte(valueType, '.'); delimPos != -1 {
+		optionsMap["source"] = valueType[delimPos:]
+		valueType = valueType[:delimPos]
+		optionsMap["flags"] = "COLUMN_INDEX"
+	} else {
+		optionsMap["flags"] = "COLUMN_SCALAR"
+	}
 	switch valueType {
 	case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
 		"UInt32", "UInt64", "Float", "Time", "ShortText", "Text", "LongText",
@@ -726,16 +725,6 @@ func (table *Table) CreateColumn(name string, valueType string,
 			return nil, fmt.Errorf("unsupported value type: valueType = %s", valueType)
 		}
 		optionsMap["type"] = valueType
-	}
-	switch options.ColumnType {
-	case ScalarColumn:
-		optionsMap["flags"] = "COLUMN_SCALAR"
-	case VectorColumn:
-		optionsMap["flags"] = "COLUMN_VECTOR"
-	case IndexColumn:
-		optionsMap["flags"] = "COLUMN_INDEX"
-	default:
-		return nil, fmt.Errorf("undefined column type: options = %+v", options)
 	}
 	switch options.CompressionType {
 	case NoCompression:
@@ -754,9 +743,6 @@ func (table *Table) CreateColumn(name string, valueType string,
 	}
 	if options.WithPosition {
 		optionsMap["flags"] += "|WITH_POSITION"
-	}
-	if options.Source != "" {
-		optionsMap["source"] = options.Source
 	}
 	bytes, err := table.db.QueryEx("column_create", optionsMap)
 	if err != nil {
