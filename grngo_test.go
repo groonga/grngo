@@ -170,6 +170,10 @@ func TestDBCreateTableWithFloatValue(t *testing.T) {
 	testDBCreateTableWithValue(t, "Float")
 }
 
+func TestDBCreateTableWithTimeValue(t *testing.T) {
+	testDBCreateTableWithValue(t, "Time")
+}
+
 func TestDBCreateTableWithTokyoGeoPointValue(t *testing.T) {
 	testDBCreateTableWithValue(t, "TokyoGeoPoint")
 }
@@ -188,6 +192,10 @@ func TestDBCreateTableWithIntRefKey(t *testing.T) {
 
 func TestDBCreateTableWithFloatRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "Float")
+}
+
+func TestDBCreateTableWithTimeRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Time")
 }
 
 func TestDBCreateTableWithTokyoGeoPointRefKey(t *testing.T) {
@@ -212,6 +220,10 @@ func TestDBCreateTableWithIntRefValue(t *testing.T) {
 
 func TestDBCreateTableWithFloatRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "Float")
+}
+
+func TestDBCreateTableWithTimeRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Time")
 }
 
 func TestDBCreateTableWithTokyoGeoPointRefValue(t *testing.T) {
@@ -248,6 +260,12 @@ func generateRandomKey(keyType string) interface{} {
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
+	case "Time":
+		const (
+			MinTime = int64(0)
+			MaxTime = int64(1892160000000000)
+		)
+		return MinTime + rand.Int63n(MaxTime-MinTime+1)
 	case "TokyoGeoPoint", "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
@@ -329,6 +347,10 @@ func TestTableInsertRowWithUInt64Key(t *testing.T) {
 
 func TestTableInsertRowWithFloatKey(t *testing.T) {
 	testTableInsertRow(t, "Float")
+}
+
+func TestTableInsertRowWithTimeKey(t *testing.T) {
+	testTableInsertRow(t, "Time")
 }
 
 func TestTableInsertRowWithTokyoGeoPointKey(t *testing.T) {
@@ -443,6 +465,10 @@ func TestTableCreateColumnForFloat(t *testing.T) {
 	testTableCreateScalarColumn(t, "Float")
 }
 
+func TestTableCreateColumnForTime(t *testing.T) {
+	testTableCreateScalarColumn(t, "Time")
+}
+
 func TestTableCreateColumnForTokyoGeoPoint(t *testing.T) {
 	testTableCreateScalarColumn(t, "TokyoGeoPoint")
 }
@@ -473,6 +499,10 @@ func TestTableCreateColumnForIntVector(t *testing.T) {
 
 func TestTableCreateColumnForFloatVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "Float")
+}
+
+func TestTableCreateColumnForTimeVector(t *testing.T) {
+	testTableCreateVectorColumn(t, "Time")
 }
 
 func TestTableCreateColumnForTokyoGeoPointVector(t *testing.T) {
@@ -507,6 +537,10 @@ func TestTableCreateColumnForRefToFloat(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "Float")
 }
 
+func TestTableCreateColumnForRefToTime(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "Time")
+}
+
 func TestTableCreateColumnForRefToTokyoGeoPoint(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "TokyoGeoPoint")
 }
@@ -529,6 +563,10 @@ func TestTableCreateColumnForRefToIntVector(t *testing.T) {
 
 func TestTableCreateColumnForRefToFloatVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "Float")
+}
+
+func TestTableCreateColumnForRefToTimeVector(t *testing.T) {
+	testTableCreateVectorRefColumn(t, "Time")
 }
 
 func TestTableCreateColumnForRefToTokyoGeoPointVector(t *testing.T) {
@@ -565,6 +603,12 @@ func generateRandomValue(valueType string) interface{} {
 		return rand.Int63()
 	case "Float":
 		return rand.Float64()
+	case "Time":
+		const (
+			MinTime = int64(0)
+			MaxTime = int64(1892160000000000)
+		)
+		return MinTime + rand.Int63n(MaxTime-MinTime+1)
 	case "TokyoGeoPoint", "WGS84GeoPoint":
 		const (
 			MinLatitude  = 73531000
@@ -643,6 +687,16 @@ func generateRandomVectorValue(valueType string) interface{} {
 		value := make([]float64, size)
 		for i := 0; i < size; i++ {
 			value[i] = rand.Float64()
+		}
+		return value
+	case "Time":
+		const (
+			MinTime = int64(0)
+			MaxTime = int64(1892160000000000)
+		)
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = MinTime + rand.Int63n(MaxTime-MinTime+1)
 		}
 		return value
 	case "TokyoGeoPoint", "WGS84GeoPoint":
@@ -750,6 +804,10 @@ func TestColumnSetValueForFloat(t *testing.T) {
 	testColumnSetValueForScalar(t, "Float")
 }
 
+func TestColumnSetValueForTime(t *testing.T) {
+	testColumnSetValueForScalar(t, "Time")
+}
+
 func TestColumnSetValueForTokyoGeoPoint(t *testing.T) {
 	testColumnSetValueForScalar(t, "TokyoGeoPoint")
 }
@@ -808,6 +866,10 @@ func TestColumnSetValueForUInt64Vector(t *testing.T) {
 
 func TestColumnSetValueForFloatVector(t *testing.T) {
 	testColumnSetValueForVector(t, "Float")
+}
+
+func TestColumnSetValueForTimeVector(t *testing.T) {
+	testColumnSetValueForVector(t, "Time")
 }
 
 func TestColumnSetValueForTokyoGeoPointVector(t *testing.T) {
@@ -921,6 +983,10 @@ func TestColumnGetValueForFloat(t *testing.T) {
 	testColumnGetValueForScalar(t, "Float")
 }
 
+func TestColumnGetValueForTime(t *testing.T) {
+	testColumnGetValueForScalar(t, "Time")
+}
+
 func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
 	testColumnGetValueForScalar(t, "TokyoGeoPoint")
 }
@@ -979,6 +1045,10 @@ func TestColumnGetValueForUInt64Vector(t *testing.T) {
 
 func TestColumnGetValueForFloatVector(t *testing.T) {
 	testColumnGetValueForVector(t, "Float")
+}
+
+func TestColumnGetValueForTimeVector(t *testing.T) {
+	testColumnGetValueForVector(t, "Time")
 }
 
 func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
@@ -1081,6 +1151,10 @@ func BenchmarkColumnSetValueForFloat(b *testing.B) {
 	benchmarkColumnSetValueForScalar(b, "Float")
 }
 
+func BenchmarkColumnSetValueForTime(b *testing.B) {
+	benchmarkColumnSetValueForScalar(b, "Time")
+}
+
 func BenchmarkColumnSetValueForTokyoGeoPoint(b *testing.B) {
 	benchmarkColumnSetValueForScalar(b, "TokyoGeoPoint")
 }
@@ -1111,6 +1185,10 @@ func BenchmarkColumnSetValueForIntVector(b *testing.B) {
 
 func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
 	benchmarkColumnSetValueForVector(b, "Float")
+}
+
+func BenchmarkColumnSetValueForTimeVector(b *testing.B) {
+	benchmarkColumnSetValueForVector(b, "Time")
 }
 
 func BenchmarkColumnSetValueForTokyoGeoPointVector(b *testing.B) {
@@ -1199,6 +1277,10 @@ func BenchmarkColumnGetValueForFloat(b *testing.B) {
 	benchmarkColumnGetValueForScalar(b, "Float")
 }
 
+func BenchmarkColumnGetValueForTime(b *testing.B) {
+	benchmarkColumnGetValueForScalar(b, "Time")
+}
+
 func BenchmarkColumnGetValueForTokyoGeoPoint(b *testing.B) {
 	benchmarkColumnGetValueForScalar(b, "TokyoGeoPoint")
 }
@@ -1229,6 +1311,10 @@ func BenchmarkColumnGetValueForIntVector(b *testing.B) {
 
 func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
 	benchmarkColumnGetValueForVector(b, "Float")
+}
+
+func BenchmarkColumnGetValueForTimeVector(b *testing.B) {
+	benchmarkColumnGetValueForVector(b, "Time")
 }
 
 func BenchmarkColumnGetValueForTokyoGeoPointVector(b *testing.B) {
@@ -1318,6 +1404,10 @@ func BenchmarkDBSelectForFloat(b *testing.B) {
 	benchmarkDBSelectForScalar(b, "Float")
 }
 
+func BenchmarkDBSelectForTime(b *testing.B) {
+	benchmarkDBSelectForScalar(b, "Time")
+}
+
 func BenchmarkDBSelectForTokyoGeoPoint(b *testing.B) {
 	benchmarkDBSelectForScalar(b, "TokyoGeoPoint")
 }
@@ -1348,6 +1438,10 @@ func BenchmarkDBSelectForIntVector(b *testing.B) {
 
 func BenchmarkDBSelectForFloatVector(b *testing.B) {
 	benchmarkDBSelectForVector(b, "Float")
+}
+
+func BenchmarkDBSelectForTimeVector(b *testing.B) {
+	benchmarkDBSelectForVector(b, "Time")
 }
 
 func BenchmarkDBSelectForTokyoGeoPointVector(b *testing.B) {
