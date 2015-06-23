@@ -127,17 +127,18 @@ func NewTableOptions() *TableOptions {
 type CompressionType int
 
 const (
-	NoCompression = CompressionType(iota)
-	ZlibCompression
-	Lz4Compression
+	CompressMask = C.GRN_OBJ_COMPRESS_MASK
+	CompressNone = C.GRN_OBJ_COMPRESS_NONE
+	CompressZlib = C.GRN_OBJ_COMPRESS_ZLIB
+	CompressLZ4  = C.GRN_OBJ_COMPRESS_LZ4
+	WithSection  = C.GRN_OBJ_WITH_SECTION
+	WithWeight   = C.GRN_OBJ_WITH_WEIGHT
+	WithPosition = C.GRN_OBJ_WITH_POSITION
 )
 
 // http://groonga.org/ja/docs/reference/commands/column_create.html
 type ColumnOptions struct {
-	CompressionType
-	WithSection  bool // WITH_SECTION
-	WithWeight   bool // WITH_WEIGHT
-	WithPosition bool // WITH_POSITION
+	Flags int
 }
 
 // NewColumnOptions() creates a new ColumnOptions object with the default
@@ -724,22 +725,22 @@ func (table *Table) CreateColumn(name string, valueType string,
 		}
 		optionsMap["type"] = valueType
 	}
-	switch options.CompressionType {
-	case NoCompression:
-	case ZlibCompression:
+	switch options.Flags & CompressMask {
+	case CompressNone:
+	case CompressZlib:
 		optionsMap["flags"] = "|COMPRESS_ZLIB"
-	case Lz4Compression:
+	case CompressLZ4:
 		optionsMap["flags"] = "|COMRESS_LZ4"
 	default:
 		return nil, fmt.Errorf("undefined compression type: options = %+v", options)
 	}
-	if options.WithSection {
+	if (options.Flags & WithSection) == WithSection {
 		optionsMap["flags"] += "|WITH_SECTION"
 	}
-	if options.WithWeight {
+	if (options.Flags & WithWeight) == WithWeight {
 		optionsMap["flags"] += "|WITH_WEIGHT"
 	}
-	if options.WithPosition {
+	if (options.Flags & WithPosition) == WithPosition {
 		optionsMap["flags"] += "|WITH_POSITION"
 	}
 	bytes, err := table.db.QueryEx("column_create", optionsMap)
