@@ -119,6 +119,7 @@ type TableOptions struct {
 // settings.
 func NewTableOptions() *TableOptions {
 	var options TableOptions
+	options.TableType = HashTable
 	return &options
 }
 
@@ -383,17 +384,21 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	}
 	optionsMap := make(map[string]string)
 	optionsMap["name"] = name
-	switch options.TableType {
-	case ArrayTable:
+	if options.KeyType == "" {
 		optionsMap["flags"] = "TABLE_NO_KEY"
-	case HashTable:
-		optionsMap["flags"] = "TABLE_HASH_KEY"
-	case PatTable:
-		optionsMap["flags"] = "TABLE_PAT_KEY"
-	case DatTable:
-		optionsMap["flags"] = "TABLE_DAT_KEY"
-	default:
-		return nil, fmt.Errorf("undefined table type: options = %+v", options)
+	} else {
+		switch options.TableType {
+		case ArrayTable:
+			optionsMap["flags"] = "TABLE_NO_KEY"
+		case HashTable:
+			optionsMap["flags"] = "TABLE_HASH_KEY"
+		case PatTable:
+			optionsMap["flags"] = "TABLE_PAT_KEY"
+		case DatTable:
+			optionsMap["flags"] = "TABLE_DAT_KEY"
+		default:
+			return nil, fmt.Errorf("undefined table type: options = %+v", options)
+		}
 	}
 	if options.WithSIS {
 		optionsMap["flags"] += "|KEY_WITH_SIS"
