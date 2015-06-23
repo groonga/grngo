@@ -71,6 +71,8 @@ grngo_row_info grngo_table_insert_uint32(grn_ctx *ctx, grn_obj *table,
                                          uint32_t key);
 grngo_row_info grngo_table_insert_uint64(grn_ctx *ctx, grn_obj *table,
                                          uint64_t key);
+grngo_row_info grngo_table_insert_time(grn_ctx *ctx, grn_obj *table,
+                                       int64_t key);
 // grngo_table_insert_float() inserts a row with Float key.
 grngo_row_info grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
                                         double key);
@@ -101,6 +103,8 @@ grn_bool grngo_column_set_uint32(grn_ctx *ctx, grn_obj *column,
                                  grn_id id, uint32_t value);
 grn_bool grngo_column_set_uint64(grn_ctx *ctx, grn_obj *column,
                                  grn_id id, uint64_t value);
+grn_bool grngo_column_set_time(grn_ctx *ctx, grn_obj *column,
+                               grn_id id, int64_t value);
 // grngo_column_set_float() assigns a Float value.
 grn_bool grngo_column_set_float(grn_ctx *ctx, grn_obj *column,
                                 grn_id id, double value);
@@ -140,6 +144,9 @@ grn_bool grngo_column_set_uint32_vector(grn_ctx *ctx, grn_obj *column,
 grn_bool grngo_column_set_uint64_vector(grn_ctx *ctx, grn_obj *column,
                                         grn_id id,
                                         const grngo_vector *value);
+grn_bool grngo_column_set_time_vector(grn_ctx *ctx, grn_obj *column,
+                                      grn_id id,
+                                      const grngo_vector *value);
 // grngo_column_set_float_vector() assigns a Float vector.
 grn_bool grngo_column_set_float_vector(grn_ctx *ctx, grn_obj *column,
                                        grn_id id,

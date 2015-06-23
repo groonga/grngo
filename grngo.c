@@ -221,6 +221,11 @@ grngo_row_info grngo_table_insert_uint64(grn_ctx *ctx, grn_obj *table,
   return grngo_table_insert_row(ctx, table, &key, sizeof(key));
 }
 
+grngo_row_info grngo_table_insert_time(grn_ctx *ctx, grn_obj *table,
+                                       int64_t key) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+}
+
 grngo_row_info grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
                                         double key) {
   return grngo_table_insert_row(ctx, table, &key, sizeof(key));
@@ -321,6 +326,16 @@ grn_bool grngo_column_set_uint64(grn_ctx *ctx, grn_obj *column,
   grn_obj obj;
   GRN_UINT64_INIT(&obj, 0);
   GRN_UINT64_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
+grn_bool grngo_column_set_time(grn_ctx *ctx, grn_obj *column,
+                               grn_id id, int64_t value) {
+  grn_obj obj;
+  GRN_TIME_INIT(&obj, 0);
+  GRN_TIME_SET(ctx, &obj, value);
   grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
   GRN_OBJ_FIN(ctx, &obj);
   return rc == GRN_SUCCESS;
@@ -491,6 +506,20 @@ grn_bool grngo_column_set_uint64_vector(grn_ctx *ctx, grn_obj *column,
   return rc == GRN_SUCCESS;
 }
 
+grn_bool grngo_column_set_time_vector(grn_ctx *ctx, grn_obj *column,
+                                      grn_id id,
+                                      const grngo_vector *value) {
+  grn_obj obj;
+  GRN_TIME_INIT(&obj, GRN_OBJ_VECTOR);
+  size_t i;
+  for (i = 0; i < value->size; i++) {
+    GRN_TIME_SET_AT(ctx, &obj, i, ((const int64_t *)value->ptr)[i]);
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column, id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc == GRN_SUCCESS;
+}
+
 grn_bool grngo_column_set_float_vector(grn_ctx *ctx, grn_obj *column,
                                        grn_id id,
                                        const grngo_vector *value) {
@@ -602,6 +631,12 @@ grn_bool grngo_column_get_int(grn_ctx *ctx, grn_obj *column,
       GRN_UINT64_INIT(&value_obj, 0);
       grn_obj_get_value(ctx, column, id, &value_obj);
       *value = GRN_UINT64_VALUE(&value_obj);
+      break;
+    }
+    case GRN_DB_TIME: {
+      GRN_TIME_INIT(&value_obj, 0);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      *value = GRN_TIME_VALUE(&value_obj);
       break;
     }
   }
@@ -770,6 +805,20 @@ grn_bool grngo_column_get_int_vector(grn_ctx *ctx, grn_obj *column,
         size_t i;
         for (i = 0; i < size; i++) {
           ((int64_t *)value->ptr)[i] = GRN_UINT64_VALUE_AT(&value_obj, i);
+        }
+      }
+      value->size = size;
+      break;
+    }
+    case GRN_DB_TIME: {
+      GRN_TIME_INIT(&value_obj, GRN_OBJ_VECTOR);
+      grn_obj_get_value(ctx, column, id, &value_obj);
+      size_t size_in_bytes = GRN_BULK_VSIZE(&value_obj);
+      size_t size = size_in_bytes / sizeof(int64_t);
+      if (size <= value->size) {
+        size_t i;
+        for (i = 0; i < size; i++) {
+          ((int64_t *)value->ptr)[i] = GRN_TIME_VALUE_AT(&value_obj, i);
         }
       }
       value->size = size;

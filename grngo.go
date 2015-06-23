@@ -21,7 +21,7 @@ import (
 // - Bool: bool
 // - (U)Int8/16/32/64: int64
 // - Float: float64
-// - Time: TODO
+// - Time: int64
 // - WGS84/TokyoGeoPoint: GeoPoint
 // - (Short/Long)Text: []byte
 
@@ -622,6 +622,9 @@ func (table *Table) insertInt(key int64) (bool, uint32, error) {
 	case UInt64:
 		grnKey := C.uint64_t(key)
 		rowInfo = C.grngo_table_insert_uint64(table.db.ctx, table.obj, grnKey)
+	case Time:
+		grnKey := C.int64_t(key)
+		rowInfo = C.grngo_table_insert_time(table.db.ctx, table.obj, grnKey)
 	default:
 		return false, NilID, fmt.Errorf("key type conflict")
 	}
@@ -934,6 +937,9 @@ func (column *Column) setInt(id uint32, value int64) error {
 	case UInt64:
 		grnValue := C.uint64_t(value)
 		ok = C.grngo_column_set_uint64(ctx, column.obj, C.grn_id(id), grnValue)
+	case Time:
+		grnValue := C.int64_t(value)
+		ok = C.grngo_column_set_time(ctx, column.obj, C.grn_id(id), grnValue)
 	default:
 		return fmt.Errorf("value type conflict")
 	}
@@ -1044,6 +1050,8 @@ func (column *Column) setIntVector(id uint32, value []int64) error {
 		ok = C.grngo_column_set_uint32_vector(ctx, obj, C.grn_id(id), &grnVector)
 	case UInt64:
 		ok = C.grngo_column_set_uint64_vector(ctx, obj, C.grn_id(id), &grnVector)
+	case Time:
+		ok = C.grngo_column_set_time_vector(ctx, obj, C.grn_id(id), &grnVector)
 	default:
 		return fmt.Errorf("value type conflict")
 	}
@@ -1314,6 +1322,8 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 			return column.getInt(id)
 		case Float:
 			return column.getFloat(id)
+		case Time:
+			return column.getInt(id)
 		case ShortText, Text, LongText:
 			return column.getText(id)
 		case TokyoGeoPoint, WGS84GeoPoint:
@@ -1327,6 +1337,8 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 			return column.getIntVector(id)
 		case Float:
 			return column.getFloatVector(id)
+		case Time:
+			return column.getIntVector(id)
 		case ShortText, Text, LongText:
 			return column.getTextVector(id)
 		case TokyoGeoPoint, WGS84GeoPoint:
