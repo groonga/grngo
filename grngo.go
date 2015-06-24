@@ -38,24 +38,25 @@ const NilID = uint32(C.GRN_ID_NIL)
 type DataType int
 
 // Time (int64) is the number of microseconds elapsed since the Unix epoch.
+// See http://groonga.org/docs/reference/types.html for details.
 const (
-	Void          = DataType(C.GRN_DB_VOID)            // N/A
-	Bool          = DataType(C.GRN_DB_BOOL)            // bool
-	Int8          = DataType(C.GRN_DB_INT8)            // int64
-	Int16         = DataType(C.GRN_DB_INT16)           // int64
-	Int32         = DataType(C.GRN_DB_INT32)           // int64
-	Int64         = DataType(C.GRN_DB_INT64)           // int64
-	UInt8         = DataType(C.GRN_DB_UINT8)           // int64
-	UInt16        = DataType(C.GRN_DB_UINT16)          // int64
-	UInt32        = DataType(C.GRN_DB_UINT32)          // int64
-	UInt64        = DataType(C.GRN_DB_UINT64)          // int64
-	Float         = DataType(C.GRN_DB_FLOAT)           // float64
-	Time          = DataType(C.GRN_DB_TIME)            // int64
-	ShortText     = DataType(C.GRN_DB_SHORT_TEXT)      // []byte
-	Text          = DataType(C.GRN_DB_TEXT)            // []byte
-	LongText      = DataType(C.GRN_DB_LONG_TEXT)       // []byte
-	TokyoGeoPoint = DataType(C.GRN_DB_TOKYO_GEO_POINT) // GeoPoint
-	WGS84GeoPoint = DataType(C.GRN_DB_WGS84_GEO_POINT) // GeoPoint
+	Void          = DataType(C.GRN_DB_VOID)            // N/A.
+	Bool          = DataType(C.GRN_DB_BOOL)            // bool.
+	Int8          = DataType(C.GRN_DB_INT8)            // int64.
+	Int16         = DataType(C.GRN_DB_INT16)           // int64.
+	Int32         = DataType(C.GRN_DB_INT32)           // int64.
+	Int64         = DataType(C.GRN_DB_INT64)           // int64.
+	UInt8         = DataType(C.GRN_DB_UINT8)           // int64.
+	UInt16        = DataType(C.GRN_DB_UINT16)          // int64.
+	UInt32        = DataType(C.GRN_DB_UINT32)          // int64.
+	UInt64        = DataType(C.GRN_DB_UINT64)          // int64.
+	Float         = DataType(C.GRN_DB_FLOAT)           // float64.
+	Time          = DataType(C.GRN_DB_TIME)            // int64.
+	ShortText     = DataType(C.GRN_DB_SHORT_TEXT)      // []byte.
+	Text          = DataType(C.GRN_DB_TEXT)            // []byte.
+	LongText      = DataType(C.GRN_DB_LONG_TEXT)       // []byte.
+	TokyoGeoPoint = DataType(C.GRN_DB_TOKYO_GEO_POINT) // GeoPoint.
+	WGS84GeoPoint = DataType(C.GRN_DB_WGS84_GEO_POINT) // GeoPoint.
 )
 
 func (dataType DataType) String() string {
