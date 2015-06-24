@@ -537,8 +537,7 @@ func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id ui
 
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
-func (db *DB) CreateColumn(tableName, columnName string, valueType string,
-	options *ColumnOptions) (*Column, error) {
+func (db *DB) CreateColumn(tableName, columnName string, valueType string, options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
 		return nil, err
@@ -570,8 +569,7 @@ type Table struct {
 }
 
 // newTable returns a new Table.
-func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType,
-	keyTable *Table, valueType DataType, valueTable *Table) *Table {
+func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType, keyTable *Table, valueType DataType, valueTable *Table) *Table {
 	var table Table
 	table.db = db
 	table.obj = obj
@@ -720,8 +718,7 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
-func (table *Table) CreateColumn(name string, valueType string,
-	options *ColumnOptions) (*Column, error) {
+func (table *Table) CreateColumn(name string, valueType string, options *ColumnOptions) (*Column, error) {
 	if options == nil {
 		options = NewColumnOptions()
 	}
@@ -892,8 +889,7 @@ type Column struct {
 }
 
 // newColumn returns a new Column.
-func newColumn(table *Table, obj *C.grn_obj, name string,
-	valueType DataType, isVector bool, valueTable *Table) *Column {
+func newColumn(table *Table, obj *C.grn_obj, name string, valueType DataType, isVector bool, valueTable *Table) *Column {
 	var column Column
 	column.table = table
 	column.obj = obj
