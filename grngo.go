@@ -425,31 +425,29 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if (options.Flags & KeyWithSIS) == KeyWithSIS {
 		optionsMap["flags"] += "|KEY_WITH_SIS"
 	}
-	if options.KeyType != "" {
-		switch options.KeyType {
-		case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
-			"UInt32", "UInt64", "Float", "Time", "ShortText", "TokyoGeoPoint",
-			"WGS84GeoPoint":
-			optionsMap["key_type"] = options.KeyType
-		default:
-			if _, err := db.FindTable(options.KeyType); err != nil {
-				return nil, fmt.Errorf("unsupported key type: options = %+v", options)
-			}
-			optionsMap["key_type"] = options.KeyType
+	switch options.KeyType {
+	case "":
+	case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
+		"UInt32", "UInt64", "Float", "Time", "ShortText", "TokyoGeoPoint",
+		"WGS84GeoPoint":
+		optionsMap["key_type"] = options.KeyType
+	default:
+		if _, err := db.FindTable(options.KeyType); err != nil {
+			return nil, fmt.Errorf("invalid key type: options = %+v", options)
 		}
+		optionsMap["key_type"] = options.KeyType
 	}
-	if options.ValueType != "" {
-		switch options.ValueType {
-		case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
-			"UInt32", "UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint":
-			optionsMap["value_type"] = options.ValueType
-		default:
-			if _, err := db.FindTable(options.ValueType); err != nil {
-				return nil, fmt.Errorf("unsupported value type: options = %+v",
-					options)
-			}
-			optionsMap["value_type"] = options.ValueType
+	switch options.ValueType {
+	case "":
+	case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
+		"UInt32", "UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint":
+		optionsMap["value_type"] = options.ValueType
+	default:
+		if _, err := db.FindTable(options.ValueType); err != nil {
+			return nil, fmt.Errorf("invalid value type: options = %+v",
+				options)
 		}
+		optionsMap["value_type"] = options.ValueType
 	}
 	if options.DefaultTokenizer != "" {
 		optionsMap["default_tokenizer"] = options.DefaultTokenizer
