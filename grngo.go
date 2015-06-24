@@ -102,11 +102,8 @@ func (dataType DataType) String() string {
 
 // -- TableOptions --
 
-// Flags of TableOptions accepts one of the TableNoKey, TablePatKey,
-// TableDatKey and TableHashKey.
-// KeyWithSIS is an optional flag.
-// See http://groonga.org/docs/reference/commands/table_create.html#flags
-// for details.
+// Flags of TableOptions accepts a combination of these constants.
+// See http://groonga.org/docs/reference/commands/table_create.html#flags for details.
 const (
 	TableTypeMask = C.GRN_OBJ_TABLE_TYPE_MASK // TableNoKey | TablePatKey | TableDatKey | TableHashKey.
 	TableNoKey    = C.GRN_OBJ_TABLE_NO_KEY    // TableNoKey is associated with TABLE_NO_KEY.
