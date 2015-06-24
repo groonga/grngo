@@ -138,17 +138,21 @@ func NewTableOptions() *TableOptions {
 
 // -- ColumnOptions --
 
+// Flags of ColumnOptions accepts a combination of these constants.
+// See http://groonga.org/docs/reference/commands/column_create.html#parameters for details.
 const (
-	CompressMask = C.GRN_OBJ_COMPRESS_MASK
-	CompressNone = C.GRN_OBJ_COMPRESS_NONE
-	CompressZlib = C.GRN_OBJ_COMPRESS_ZLIB
-	CompressLZ4  = C.GRN_OBJ_COMPRESS_LZ4
-	WithSection  = C.GRN_OBJ_WITH_SECTION
-	WithWeight   = C.GRN_OBJ_WITH_WEIGHT
-	WithPosition = C.GRN_OBJ_WITH_POSITION
+	CompressMask = C.GRN_OBJ_COMPRESS_MASK // CompressZlib | CompressLZ4.
+	CompressNone = C.GRN_OBJ_COMPRESS_NONE // CompressNone is 0.
+	CompressZlib = C.GRN_OBJ_COMPRESS_ZLIB // CompressZlib is associated with COMPRESS_ZLIB.
+	CompressLZ4  = C.GRN_OBJ_COMPRESS_LZ4  // CompressLZ4 is associated with COMPRESS_LZ4.
+	WithSection  = C.GRN_OBJ_WITH_SECTION  // WithSection is associated with WITH_SECTION.
+	WithWeight   = C.GRN_OBJ_WITH_WEIGHT   // WithWeight is associated with WITH_WEIGHT.
+	WithPosition = C.GRN_OBJ_WITH_POSITION // WithPosition is associated with WITH_POSITION.
 )
 
-// http://groonga.org/ja/docs/reference/commands/column_create.html
+// ColumnOptions is a set of options for CreateColumn.
+// Flags is CompressNone by default.
+// See http://groonga.org/docs/reference/commands/column_create.html#parameters for details.
 type ColumnOptions struct {
 	Flags int
 }
