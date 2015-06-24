@@ -869,16 +869,17 @@ func (table *Table) FindColumn(name string) (*Column, error) {
 
 // -- Column --
 
+// Column is associated with a Groonga column or accessor.
 type Column struct {
-	table      *Table
-	obj        *C.grn_obj
-	name       string
-	valueType  DataType
-	isVector   bool
-	valueTable *Table
+	table      *Table     // The owner table.
+	obj        *C.grn_obj // The associated column or accessor.
+	name       string     // The column name.
+	valueType  DataType   // The built-in data type of values.
+	isVector   bool       // Whether values are vector or not.
+	valueTable *Table     // The reference table or nil if not available.
 }
 
-// newColumn() creates a new Column object.
+// newColumn returns a new Column.
 func newColumn(table *Table, obj *C.grn_obj, name string,
 	valueType DataType, isVector bool, valueTable *Table) *Column {
 	var column Column
@@ -891,7 +892,7 @@ func newColumn(table *Table, obj *C.grn_obj, name string,
 	return &column
 }
 
-// setBool() assigns a Bool value.
+// setBool assigns a Bool value.
 func (column *Column) setBool(id uint32, value bool) error {
 	if (column.valueType != Bool) || column.isVector {
 		return fmt.Errorf("value type conflict")
@@ -907,7 +908,7 @@ func (column *Column) setBool(id uint32, value bool) error {
 	return nil
 }
 
-// setInt() assigns an Int value.
+// setInt assigns an Int value.
 func (column *Column) setInt(id uint32, value int64) error {
 	if column.isVector {
 		return fmt.Errorf("value type conflict")
@@ -951,7 +952,7 @@ func (column *Column) setInt(id uint32, value int64) error {
 	return nil
 }
 
-// setFloat() assigns a Float value.
+// setFloat assigns a Float value.
 func (column *Column) setFloat(id uint32, value float64) error {
 	if (column.valueType != Float) || column.isVector {
 		return fmt.Errorf("value type conflict")
@@ -964,7 +965,7 @@ func (column *Column) setFloat(id uint32, value float64) error {
 	return nil
 }
 
-// setGeoPoint() assigns a GeoPoint value.
+// setGeoPoint assigns a GeoPoint value.
 func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
 	switch column.valueType {
 	case TokyoGeoPoint, WGS84GeoPoint:
@@ -983,7 +984,7 @@ func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
 	return nil
 }
 
-// setText() assigns a Text value.
+// setText assigns a Text value.
 func (column *Column) setText(id uint32, value []byte) error {
 	switch column.valueType {
 	case ShortText, Text, LongText:
@@ -1005,7 +1006,7 @@ func (column *Column) setText(id uint32, value []byte) error {
 	return nil
 }
 
-// setBoolVector() assigns a Bool vector.
+// setBoolVector assigns a Bool vector.
 func (column *Column) setBoolVector(id uint32, value []bool) error {
 	grnValue := make([]C.grn_bool, len(value))
 	for i, v := range value {
@@ -1025,7 +1026,7 @@ func (column *Column) setBoolVector(id uint32, value []bool) error {
 	return nil
 }
 
-// setIntVector() assigns an Int vector.
+// setIntVector assigns an Int vector.
 func (column *Column) setIntVector(id uint32, value []int64) error {
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
@@ -1063,7 +1064,7 @@ func (column *Column) setIntVector(id uint32, value []int64) error {
 	return nil
 }
 
-// setFloatVector() assigns a Float vector.
+// setFloatVector assigns a Float vector.
 func (column *Column) setFloatVector(id uint32, value []float64) error {
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
@@ -1077,7 +1078,7 @@ func (column *Column) setFloatVector(id uint32, value []float64) error {
 	return nil
 }
 
-// setGeoPointVector() assigns a GeoPoint vector.
+// setGeoPointVector assigns a GeoPoint vector.
 func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
@@ -1092,7 +1093,7 @@ func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
 	return nil
 }
 
-// setTextVector() assigns a Text vector.
+// setTextVector assigns a Text vector.
 func (column *Column) setTextVector(id uint32, value [][]byte) error {
 	grnValue := make([]C.grngo_text, len(value))
 	for i, v := range value {
@@ -1113,7 +1114,7 @@ func (column *Column) setTextVector(id uint32, value [][]byte) error {
 	return nil
 }
 
-// SetValue() assigns a value.
+// SetValue assigns a value.
 func (column *Column) SetValue(id uint32, value interface{}) error {
 	switch v := value.(type) {
 	case bool:
@@ -1142,7 +1143,7 @@ func (column *Column) SetValue(id uint32, value interface{}) error {
 	}
 }
 
-// getBool() gets a Bool value.
+// getBool gets a Bool value.
 func (column *Column) getBool(id uint32) (interface{}, error) {
 	var grnValue C.grn_bool
 	if ok := C.grngo_column_get_bool(column.table.db.ctx, column.obj,
@@ -1152,7 +1153,7 @@ func (column *Column) getBool(id uint32) (interface{}, error) {
 	return grnValue == C.GRN_TRUE, nil
 }
 
-// getInt() gets an Int value.
+// getInt gets an Int value.
 func (column *Column) getInt(id uint32) (interface{}, error) {
 	var grnValue C.int64_t
 	if ok := C.grngo_column_get_int(column.table.db.ctx, column.obj,
@@ -1163,7 +1164,7 @@ func (column *Column) getInt(id uint32) (interface{}, error) {
 	return int64(grnValue), nil
 }
 
-// getFloat() gets a Float value.
+// getFloat gets a Float value.
 func (column *Column) getFloat(id uint32) (interface{}, error) {
 	var grnValue C.double
 	if ok := C.grngo_column_get_float(column.table.db.ctx, column.obj,
@@ -1173,7 +1174,7 @@ func (column *Column) getFloat(id uint32) (interface{}, error) {
 	return float64(grnValue), nil
 }
 
-// getGeoPoint() gets a GeoPoint value.
+// getGeoPoint gets a GeoPoint value.
 func (column *Column) getGeoPoint(id uint32) (interface{}, error) {
 	var grnValue C.grn_geo_point
 	if ok := C.grngo_column_get_geo_point(column.table.db.ctx, column.obj,
@@ -1183,7 +1184,7 @@ func (column *Column) getGeoPoint(id uint32) (interface{}, error) {
 	return GeoPoint{int32(grnValue.latitude), int32(grnValue.longitude)}, nil
 }
 
-// getText() gets a Text value.
+// getText gets a Text value.
 func (column *Column) getText(id uint32) (interface{}, error) {
 	var grnValue C.grngo_text
 	if ok := C.grngo_column_get_text(column.table.db.ctx, column.obj,
@@ -1202,7 +1203,7 @@ func (column *Column) getText(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// getBoolVector() gets a BoolVector.
+// getBoolVector gets a BoolVector.
 func (column *Column) getBoolVector(id uint32) (interface{}, error) {
 	var grnVector C.grngo_vector
 	if ok := C.grngo_column_get_bool_vector(column.table.db.ctx, column.obj,
@@ -1225,7 +1226,7 @@ func (column *Column) getBoolVector(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// getIntVector() gets a IntVector.
+// getIntVector gets a IntVector.
 func (column *Column) getIntVector(id uint32) (interface{}, error) {
 	var grnValue C.grngo_vector
 	if ok := C.grngo_column_get_int_vector(column.table.db.ctx, column.obj,
@@ -1246,7 +1247,7 @@ func (column *Column) getIntVector(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// getFloatVector() gets a FloatVector.
+// getFloatVector gets a FloatVector.
 func (column *Column) getFloatVector(id uint32) (interface{}, error) {
 	var grnValue C.grngo_vector
 	if ok := C.grngo_column_get_float_vector(column.table.db.ctx, column.obj,
@@ -1265,7 +1266,7 @@ func (column *Column) getFloatVector(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// getGeoPointVector() gets a GeoPointVector.
+// getGeoPointVector gets a GeoPointVector.
 func (column *Column) getGeoPointVector(id uint32) (interface{}, error) {
 	var grnValue C.grngo_vector
 	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
@@ -1284,7 +1285,7 @@ func (column *Column) getGeoPointVector(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// getTextVector() gets a TextVector.
+// getTextVector gets a TextVector.
 func (column *Column) getTextVector(id uint32) (interface{}, error) {
 	var grnVector C.grngo_vector
 	if ok := C.grngo_column_get_text_vector(column.table.db.ctx, column.obj,
@@ -1314,7 +1315,7 @@ func (column *Column) getTextVector(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// GetValue() gets a value.
+// GetValue gets a value.
 func (column *Column) GetValue(id uint32) (interface{}, error) {
 	if !column.isVector {
 		switch column.valueType {
