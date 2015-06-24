@@ -1,3 +1,4 @@
+// Another Groonga binding for Go language.
 package grngo
 
 // #cgo pkg-config: groonga
@@ -231,10 +232,10 @@ func closeCtx(ctx *C.grn_ctx) error {
 
 // -- DB --
 
-// DB is associated with a Groonga DB with its context.
+// DB is associated with a Groonga database with its context.
 type DB struct {
 	ctx    *C.grn_ctx        // The associated grn_ctx.
-	obj    *C.grn_obj        // The associated DB.
+	obj    *C.grn_obj        // The associated database.
 	tables map[string]*Table // A cache to find tables by name.
 }
 
@@ -243,8 +244,11 @@ func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
 	return &DB{ctx, obj, make(map[string]*Table)}
 }
 
-// CreateDB creates a Groonga DB and returns a handle to it.
-// A temporary database is created if path is empty.
+// CreateDB creates a Groonga database and returns a new DB associated with it.
+// If path is empty, CreateDB creates a temporary database.
+//
+// Note that CreateDB initializes Groonga if the new DB will be the only one
+// and implicit initialization is not disabled.
 func CreateDB(path string) (*DB, error) {
 	ctx, err := openCtx()
 	if err != nil {
@@ -264,7 +268,11 @@ func CreateDB(path string) (*DB, error) {
 	return newDB(ctx, obj), nil
 }
 
-// OpenDB opens an existing Groonga database and returns a handle.
+// OpenDB opens an existing Groonga database and returns a new DB associated
+// with it.
+//
+// Note that CreateDB initializes Groonga if the new DB will be the only one
+// and implicit initialization is not disabled.
 func OpenDB(path string) (*DB, error) {
 	ctx, err := openCtx()
 	if err != nil {
@@ -281,7 +289,7 @@ func OpenDB(path string) (*DB, error) {
 	return newDB(ctx, obj), nil
 }
 
-// Close closes a handle.
+// Close finalizes a DB.
 func (db *DB) Close() error {
 	rc := C.grn_obj_close(db.ctx, db.obj)
 	if rc != C.GRN_SUCCESS {
@@ -291,8 +299,8 @@ func (db *DB) Close() error {
 	return closeCtx(db.ctx)
 }
 
-// Send sends a raw command.
-// The given command must be well-formed.
+// Send executes a Groonga command.
+// The command must be well-formed.
 func (db *DB) Send(command string) error {
 	commandBytes := []byte(command)
 	var cCommand *C.char
@@ -312,7 +320,7 @@ func (db *DB) Send(command string) error {
 	return nil
 }
 
-// SendEx sends a command with separated options.
+// SendEx executes a Groonga command with separated options.
 func (db *DB) SendEx(name string, options map[string]string) error {
 	if name == "" {
 		return fmt.Errorf("invalid command: name = <%s>", name)
@@ -339,7 +347,7 @@ func (db *DB) SendEx(name string, options map[string]string) error {
 	return db.Send(strings.Join(commandParts, " "))
 }
 
-// Recv receives the result of commands sent by Send().
+// Recv returns the result of Groonga commands executed by Send and SendEx.
 func (db *DB) Recv() ([]byte, error) {
 	var resultBuffer *C.char
 	var resultLength C.uint
@@ -359,7 +367,7 @@ func (db *DB) Recv() ([]byte, error) {
 	return result, nil
 }
 
-// Query sends a raw command and receive the result.
+// Query executes a Groonga command and returns the result.
 func (db *DB) Query(command string) ([]byte, error) {
 	if err := db.Send(command); err != nil {
 		result, _ := db.Recv()
@@ -368,7 +376,8 @@ func (db *DB) Query(command string) ([]byte, error) {
 	return db.Recv()
 }
 
-// QueryEx sends a command with separated options and receives the result.
+// Query executes a Groonga command with separated options and returns the
+// result.
 func (db *DB) QueryEx(name string, options map[string]string) (
 	[]byte, error) {
 	if err := db.SendEx(name, options); err != nil {
@@ -378,7 +387,8 @@ func (db *DB) QueryEx(name string, options map[string]string) (
 	return db.Recv()
 }
 
-// CreateTable creates a table.
+// CreateTable creates a Groonga table and returns a new Table associated with
+// it.
 func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if options == nil {
 		options = NewTableOptions()
@@ -516,6 +526,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	return table, nil
 }
 
+// TODO: responses should be named.
 // InsertRow inserts a row.
 func (db *DB) InsertRow(tableName string, key interface{}) (bool, uint32, error) {
 	table, err := db.FindTable(tableName)
@@ -525,7 +536,8 @@ func (db *DB) InsertRow(tableName string, key interface{}) (bool, uint32, error)
 	return table.InsertRow(key)
 }
 
-// CreateColumn creates a column.
+// CreateColumn creates a Groonga column and returns a new Column associated
+// with it.
 func (db *DB) CreateColumn(tableName, columnName string, valueType string,
 	options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
@@ -686,6 +698,7 @@ func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
+// TODO: responses should be named.
 // InsertRow inserts a row.
 // The first return value specifies whether a row is inserted or not.
 // The second return value is the ID of the inserted or found row.
@@ -709,7 +722,8 @@ func (table *Table) InsertRow(key interface{}) (bool, uint32, error) {
 	}
 }
 
-// CreateColumn creates a column.
+// CreateColumn creates a Groonga column and returns a new Column associated
+// with it.
 func (table *Table) CreateColumn(name string, valueType string,
 	options *ColumnOptions) (*Column, error) {
 	if options == nil {
