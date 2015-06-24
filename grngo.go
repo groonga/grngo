@@ -545,18 +545,19 @@ func (db *DB) FindColumn(tableName, columnName string) (*Column, error) {
 
 // -- Table --
 
+// Table is associated with a Groonga table.
 type Table struct {
-	db         *DB
-	obj        *C.grn_obj
-	name       string
-	keyType    DataType
-	keyTable   *Table
-	valueType  DataType
-	valueTable *Table
-	columns    map[string]*Column
+	db         *DB                // The owner DB.
+	obj        *C.grn_obj         // The associated table.
+	name       string             // The table name.
+	keyType    DataType           // The built-in data type of keys.
+	keyTable   *Table             // Keys' reference table or nil if not available.
+	valueType  DataType           // The built-in data type of values.
+	valueTable *Table             // Values' reference table or nil if not available.
+	columns    map[string]*Column // A cache to find columns by name.
 }
 
-// newTable() creates a new Table object.
+// newTable returns a new Table.
 func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType,
 	keyTable *Table, valueType DataType, valueTable *Table) *Table {
 	var table Table
@@ -571,7 +572,7 @@ func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType,
 	return &table
 }
 
-// insertVoid() inserts an empty row.
+// insertVoid inserts an empty row.
 func (table *Table) insertVoid() (bool, uint32, error) {
 	if table.keyType != Void {
 		return false, NilID, fmt.Errorf("key type conflict")
@@ -583,7 +584,7 @@ func (table *Table) insertVoid() (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// insertBool() inserts a row with Bool key.
+// insertBool inserts a row with Bool key.
 func (table *Table) insertBool(key bool) (bool, uint32, error) {
 	if table.keyType != Bool {
 		return false, NilID, fmt.Errorf("key type conflict")
@@ -599,7 +600,7 @@ func (table *Table) insertBool(key bool) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// insertInt() inserts a row with Int key.
+// insertInt inserts a row with Int key.
 func (table *Table) insertInt(key int64) (bool, uint32, error) {
 	var rowInfo C.grngo_row_info
 	switch table.keyType {
@@ -639,7 +640,7 @@ func (table *Table) insertInt(key int64) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// insertFloat() inserts a row with Float key.
+// insertFloat inserts a row with Float key.
 func (table *Table) insertFloat(key float64) (bool, uint32, error) {
 	if table.keyType != Float {
 		return false, NilID, fmt.Errorf("key type conflict")
@@ -652,7 +653,7 @@ func (table *Table) insertFloat(key float64) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// insertGeoPoint() inserts a row with GeoPoint key.
+// insertGeoPoint inserts a row with GeoPoint key.
 func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
 	switch table.keyType {
 	case TokyoGeoPoint, WGS84GeoPoint:
@@ -667,7 +668,7 @@ func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// insertText() inserts a row with Text key.
+// insertText inserts a row with Text key.
 func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	if table.keyType != ShortText {
 		return false, NilID, fmt.Errorf("key type conflict")
@@ -684,7 +685,7 @@ func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// InsertRow() inserts a row.
+// InsertRow inserts a row.
 // The first return value specifies whether a row is inserted or not.
 // The second return value is the ID of the inserted or found row.
 func (table *Table) InsertRow(key interface{}) (bool, uint32, error) {
@@ -707,7 +708,7 @@ func (table *Table) InsertRow(key interface{}) (bool, uint32, error) {
 	}
 }
 
-// CreateColumn() creates a column.
+// CreateColumn creates a column.
 func (table *Table) CreateColumn(name string, valueType string,
 	options *ColumnOptions) (*Column, error) {
 	if options == nil {
@@ -765,7 +766,7 @@ func (table *Table) CreateColumn(name string, valueType string,
 	return table.FindColumn(name)
 }
 
-// findColumn() finds a column.
+// findColumn finds a column.
 func (table *Table) findColumn(name string) (*Column, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
@@ -822,7 +823,7 @@ func (table *Table) findColumn(name string) (*Column, error) {
 	return column, nil
 }
 
-// FindColumn() finds a column.
+// FindColumn finds a column.
 func (table *Table) FindColumn(name string) (*Column, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
