@@ -236,7 +236,7 @@ func TestDBCreateTableWithShortTextRefValue(t *testing.T) {
 func generateRandomKey(keyType string) interface{} {
 	switch keyType {
 	case "Bool":
-	  return (rand.Int() & 1) == 1
+		return (rand.Int() & 1) == 1
 	case "Int8":
 		return int64(int8(rand.Int()))
 	case "Int16":
@@ -376,7 +376,7 @@ func testTableCreateScalarColumn(t *testing.T, valueType string) {
 
 func testTableCreateVectorColumn(t *testing.T, valueType string) {
 	dirPath, _, db, table, _ :=
-		createTempColumn(t, "Table", nil, "Value", "[]" + valueType, nil)
+		createTempColumn(t, "Table", nil, "Value", "[]"+valueType, nil)
 	defer removeTempDB(t, dirPath, db)
 
 	if column, err := table.FindColumn("_id"); err != nil {
@@ -731,7 +731,7 @@ func testColumnSetValueForScalar(t *testing.T, valueType string) {
 
 func testColumnSetValueForVector(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", "[]" + valueType, nil)
+		createTempColumn(t, "Table", nil, "Value", "[]"+valueType, nil)
 	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
@@ -901,7 +901,7 @@ func testColumnGetValueForScalar(t *testing.T, valueType string) {
 
 func testColumnGetValueForVector(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", "[]" + valueType, nil)
+		createTempColumn(t, "Table", nil, "Value", "[]"+valueType, nil)
 	defer removeTempDB(t, dirPath, db)
 
 	for i := 0; i < 100; i++ {
@@ -1104,7 +1104,7 @@ func benchmarkColumnSetValueForVector(b *testing.B, valueType string) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		column, err := table.CreateColumn(fmt.Sprintf("V%d", i), "[]" + valueType, nil)
+		column, err := table.CreateColumn(fmt.Sprintf("V%d", i), "[]"+valueType, nil)
 		if err != nil {
 			b.Fatalf("Table.CreateColumn() failed(): %s", err)
 		}
@@ -1219,7 +1219,7 @@ func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
 
 func benchmarkColumnGetValueForVector(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempColumn(b, "Table", nil, "Value", "[]" + valueType, nil)
+		createTempColumn(b, "Table", nil, "Value", "[]"+valueType, nil)
 	defer removeTempDB(b, dirPath, db)
 	ids := make([]uint32, numTestRows)
 	for i, _ := range ids {
@@ -1342,7 +1342,7 @@ func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
 
 func benchmarkDBSelectForVector(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
-		createTempColumn(b, "Table", nil, "Value", "[]" + valueType, nil)
+		createTempColumn(b, "Table", nil, "Value", "[]"+valueType, nil)
 	defer removeTempDB(b, dirPath, db)
 	ids := make([]uint32, numTestRows)
 	for i, _ := range ids {

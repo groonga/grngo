@@ -25,8 +25,8 @@ import (
 
 // GeoPoint represents a coordinate of latitude and longitude.
 type GeoPoint struct {
-  Latitude int32  // Latitude in milliseconds.
-  Longitude int32 // Longitude in milliseconds.
+	Latitude  int32 // Latitude in milliseconds.
+	Longitude int32 // Longitude in milliseconds.
 }
 
 // NilID is an invalid record ID.
@@ -709,8 +709,8 @@ func (table *Table) CreateColumn(name string, valueType string,
 	optionsMap["table"] = table.name
 	optionsMap["name"] = name
 	if strings.HasPrefix(valueType, "[]") {
-	  valueType = valueType[2:]
-	  optionsMap["flags"] = "COLUMN_VECTOR"
+		valueType = valueType[2:]
+		optionsMap["flags"] = "COLUMN_VECTOR"
 	} else if delimPos := strings.IndexByte(valueType, '.'); delimPos != -1 {
 		optionsMap["source"] = valueType[delimPos:]
 		valueType = valueType[:delimPos]
