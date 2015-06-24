@@ -389,6 +389,7 @@ func (db *DB) QueryEx(name string, options map[string]string) (
 
 // CreateTable creates a Groonga table and returns a new Table associated with
 // it.
+// See http://groonga.org/docs/reference/commands/table_create.html for details.
 func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if options == nil {
 		options = NewTableOptions()
@@ -537,6 +538,7 @@ func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id ui
 
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
+// See http://groonga.org/docs/reference/commands/column_create.html for details.
 func (db *DB) CreateColumn(tableName, columnName string, valueType string, options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
@@ -718,6 +720,7 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
+// See http://groonga.org/docs/reference/commands/column_create.html for details.
 func (table *Table) CreateColumn(name string, valueType string, options *ColumnOptions) (*Column, error) {
 	if options == nil {
 		options = NewColumnOptions()
