@@ -258,8 +258,8 @@ func CreateDB(path string) (*DB, error) {
 	}
 	obj := C.grn_db_create(ctx, cPath, nil)
 	if obj == nil {
-		closeCtx(ctx)
 		errMsg := C.GoString(&ctx.errbuf[0])
+		closeCtx(ctx)
 		return nil, fmt.Errorf("grn_db_create() failed: err = %s", errMsg)
 	}
 	return newDB(ctx, obj), nil
@@ -279,8 +279,8 @@ func OpenDB(path string) (*DB, error) {
 	defer C.free(unsafe.Pointer(cPath))
 	obj := C.grn_db_open(ctx, cPath)
 	if obj == nil {
-		closeCtx(ctx)
 		errMsg := C.GoString(&ctx.errbuf[0])
+		closeCtx(ctx)
 		return nil, fmt.Errorf("grn_db_open() failed: err = %s", errMsg)
 	}
 	return newDB(ctx, obj), nil
