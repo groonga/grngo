@@ -23,7 +23,11 @@ import (
 // - WGS84/TokyoGeoPoint: GeoPoint
 // - (Short/Long)Text: []byte
 
-type GeoPoint struct{ Latitude, Longitude int32 }
+// GeoPoint represents a coordinate of latitude and longitude.
+type GeoPoint struct {
+  Latitude int32  // Latitude in milliseconds.
+  Longitude int32 // Longitude in milliseconds.
+}
 
 const NilID = uint32(C.GRN_ID_NIL)
 
