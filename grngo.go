@@ -33,6 +33,8 @@ type GeoPoint struct {
 // Some functions return NilID if operations failed.
 const NilID = uint32(C.GRN_ID_NIL)
 
+// DataType is an enumeration of Groonga built-in data types.
+// See http://groonga.org/docs/reference/types.html for details.
 type DataType int
 
 const (
