@@ -526,9 +526,8 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	return table, nil
 }
 
-// TODO: responses should be named.
-// InsertRow inserts a row.
-func (db *DB) InsertRow(tableName string, key interface{}) (bool, uint32, error) {
+// InsertRow finds or inserts a row.
+func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id uint32, err error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
 		return false, NilID, err
@@ -698,11 +697,8 @@ func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// TODO: responses should be named.
-// InsertRow inserts a row.
-// The first return value specifies whether a row is inserted or not.
-// The second return value is the ID of the inserted or found row.
-func (table *Table) InsertRow(key interface{}) (bool, uint32, error) {
+// InsertRow finds or inserts a row.
+func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err error) {
 	switch value := key.(type) {
 	case nil:
 		return table.insertVoid()
