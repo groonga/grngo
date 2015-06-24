@@ -1,9 +1,7 @@
 package grngo
 
-/*
-#cgo pkg-config: groonga
-#include "grngo.h"
-*/
+// #cgo pkg-config: groonga
+// #include "grngo.h"
 import "C"
 
 import (
