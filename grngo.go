@@ -539,6 +539,14 @@ func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id ui
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
 // See http://groonga.org/docs/reference/commands/column_create.html for details.
+//
+// If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
+// as the type parameter.
+// If valueType contains '.', COLUMN_INDEX is enabled and valueType is split by
+// the first '.'. Then, the former is used as the type parameter and the
+// latter is used as the source parameter.
+// Otherwise, COLUMN_SCALAR is enabled and valueType is used as the type
+// parameter.
 func (db *DB) CreateColumn(tableName, columnName string, valueType string, options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
@@ -721,6 +729,14 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
 // See http://groonga.org/docs/reference/commands/column_create.html for details.
+//
+// If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
+// as the type parameter.
+// If valueType contains '.', COLUMN_INDEX is enabled and valueType is split by
+// the first '.'. Then, the former is used as the type parameter and the
+// latter is used as the source parameter.
+// Otherwise, COLUMN_SCALAR is enabled and valueType is used as the type
+// parameter.
 func (table *Table) CreateColumn(name string, valueType string, options *ColumnOptions) (*Column, error) {
 	if options == nil {
 		options = NewColumnOptions()
