@@ -161,17 +161,18 @@ func NewColumnOptions() *ColumnOptions {
 
 // -- Groonga --
 
-// initCount is a counter for automatically initializing and finalizing
-// Groonga.
+// initCount is an internal counter used in Init and Fin.
 var initCount = 0
 
-// DisableInitCount() disables initCount.
-// This is useful if you want to manyally initialize and finalize Groonga.
+// DisableInitCount disables Init and Fin, so that Grngo does not implicitly
+// initialize and finalize Groonga.
+// DisableInitCount should be used if you manually or another library
+// initialize and finalize Groonga.
 func DisableInitCount() {
 	initCount = -1
 }
 
-// Init() initializes Groonga if needed.
+// Init initializes Groonga if needed.
 // initCount is incremented and when it changes from 0 to 1, Groonga is
 // initialized.
 func Init() error {
@@ -187,7 +188,7 @@ func Init() error {
 	return nil
 }
 
-// Fin() finalizes Groonga if needed.
+// Fin finalizes Groonga if needed.
 // initCount is decremented and when it changes from 1 to 0, Groonga is
 // finalized.
 func Fin() error {
@@ -205,7 +206,7 @@ func Fin() error {
 	return nil
 }
 
-// openCtx() allocates memory for grn_ctx and initializes it.
+// openCtx returns a new grn_ctx.
 func openCtx() (*C.grn_ctx, error) {
 	if err := Init(); err != nil {
 		return nil, err
@@ -218,7 +219,7 @@ func openCtx() (*C.grn_ctx, error) {
 	return ctx, nil
 }
 
-// closeCtx() finalizes grn_ctx and frees allocated memory.
+// closeCtx finalizes a grn_ctx.
 func closeCtx(ctx *C.grn_ctx) error {
 	rc := C.grn_ctx_close(ctx)
 	Fin()
