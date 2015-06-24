@@ -231,18 +231,19 @@ func closeCtx(ctx *C.grn_ctx) error {
 
 // -- DB --
 
+// DB is associated with a Groonga DB with its context.
 type DB struct {
-	ctx    *C.grn_ctx
-	obj    *C.grn_obj
-	tables map[string]*Table
+	ctx    *C.grn_ctx        // The associated grn_ctx.
+	obj    *C.grn_obj        // The associated DB.
+	tables map[string]*Table // A cache to find tables by name.
 }
 
-// newDB() creates a new DB object.
+// newDB returns a new DB.
 func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
 	return &DB{ctx, obj, make(map[string]*Table)}
 }
 
-// CreateDB() creates a Groonga database and returns a handle to it.
+// CreateDB creates a Groonga DB and returns a handle to it.
 // A temporary database is created if path is empty.
 func CreateDB(path string) (*DB, error) {
 	ctx, err := openCtx()
@@ -263,7 +264,7 @@ func CreateDB(path string) (*DB, error) {
 	return newDB(ctx, obj), nil
 }
 
-// OpenDB() opens an existing Groonga database and returns a handle.
+// OpenDB opens an existing Groonga database and returns a handle.
 func OpenDB(path string) (*DB, error) {
 	ctx, err := openCtx()
 	if err != nil {
@@ -280,7 +281,7 @@ func OpenDB(path string) (*DB, error) {
 	return newDB(ctx, obj), nil
 }
 
-// Close() closes a handle.
+// Close closes a handle.
 func (db *DB) Close() error {
 	rc := C.grn_obj_close(db.ctx, db.obj)
 	if rc != C.GRN_SUCCESS {
@@ -290,7 +291,7 @@ func (db *DB) Close() error {
 	return closeCtx(db.ctx)
 }
 
-// Send() sends a raw command.
+// Send sends a raw command.
 // The given command must be well-formed.
 func (db *DB) Send(command string) error {
 	commandBytes := []byte(command)
@@ -311,7 +312,7 @@ func (db *DB) Send(command string) error {
 	return nil
 }
 
-// SendEx() sends a command with separated options.
+// SendEx sends a command with separated options.
 func (db *DB) SendEx(name string, options map[string]string) error {
 	if name == "" {
 		return fmt.Errorf("invalid command: name = <%s>", name)
@@ -338,7 +339,7 @@ func (db *DB) SendEx(name string, options map[string]string) error {
 	return db.Send(strings.Join(commandParts, " "))
 }
 
-// Recv() receives the result of commands sent by Send().
+// Recv receives the result of commands sent by Send().
 func (db *DB) Recv() ([]byte, error) {
 	var resultBuffer *C.char
 	var resultLength C.uint
@@ -358,7 +359,7 @@ func (db *DB) Recv() ([]byte, error) {
 	return result, nil
 }
 
-// Query() sends a raw command and receive the result.
+// Query sends a raw command and receive the result.
 func (db *DB) Query(command string) ([]byte, error) {
 	if err := db.Send(command); err != nil {
 		result, _ := db.Recv()
@@ -367,7 +368,7 @@ func (db *DB) Query(command string) ([]byte, error) {
 	return db.Recv()
 }
 
-// QueryEx() sends a command with separated options and receives the result.
+// QueryEx sends a command with separated options and receives the result.
 func (db *DB) QueryEx(name string, options map[string]string) (
 	[]byte, error) {
 	if err := db.SendEx(name, options); err != nil {
@@ -377,7 +378,7 @@ func (db *DB) QueryEx(name string, options map[string]string) (
 	return db.Recv()
 }
 
-// CreateTable() creates a table.
+// CreateTable creates a table.
 func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if options == nil {
 		options = NewTableOptions()
@@ -448,7 +449,7 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	return db.FindTable(name)
 }
 
-// FindTable() finds a table.
+// FindTable finds a table.
 func (db *DB) FindTable(name string) (*Table, error) {
 	if table, ok := db.tables[name]; ok {
 		return table, nil
@@ -515,7 +516,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	return table, nil
 }
 
-// InsertRow() inserts a row.
+// InsertRow inserts a row.
 func (db *DB) InsertRow(tableName string, key interface{}) (bool, uint32, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
@@ -524,7 +525,7 @@ func (db *DB) InsertRow(tableName string, key interface{}) (bool, uint32, error)
 	return table.InsertRow(key)
 }
 
-// CreateColumn() creates a column.
+// CreateColumn creates a column.
 func (db *DB) CreateColumn(tableName, columnName string, valueType string,
 	options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
@@ -534,7 +535,7 @@ func (db *DB) CreateColumn(tableName, columnName string, valueType string,
 	return table.CreateColumn(columnName, valueType, options)
 }
 
-// FindColumn() finds a column.
+// FindColumn finds a column.
 func (db *DB) FindColumn(tableName, columnName string) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
