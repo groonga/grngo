@@ -29,6 +29,8 @@ type GeoPoint struct {
   Longitude int32 // Longitude in milliseconds.
 }
 
+// NilID is an invalid record ID.
+// Some functions return NilID if operations failed.
 const NilID = uint32(C.GRN_ID_NIL)
 
 type DataType int
