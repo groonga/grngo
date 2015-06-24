@@ -577,6 +577,24 @@ func (db *DB) FindColumn(tableName, columnName string) (*Column, error) {
 	return table.FindColumn(columnName)
 }
 
+// SetValue assigns a value.
+func (db *DB) SetValue(tableName, columnName string, id uint32, value interface{}) error {
+	table, err := db.FindTable(tableName)
+	if err != nil {
+		return err
+	}
+	return table.SetValue(columnName, id, value)
+}
+
+// GetValue gets a value.
+func (db *DB) GetValue(tableName, columnName string, id uint32) (interface{}, error) {
+	table, err := db.FindTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	return table.GetValue(columnName, id)
+}
+
 // -- Table --
 
 // Table is associated with a Groonga table.
@@ -737,6 +755,24 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 		return false, NilID, fmt.Errorf(
 			"unsupported key type: typeName = <%s>", reflect.TypeOf(key).Name())
 	}
+}
+
+// SetValue assigns a value.
+func (table *Table) SetValue(columnName string, id uint32, value interface{}) error {
+	column, err := table.FindColumn(columnName)
+	if err != nil {
+		return err
+	}
+	return column.SetValue(id, value)
+}
+
+// GetValue gets a value.
+func (table *Table) GetValue(columnName string, id uint32) (interface{}, error) {
+	column, err := table.FindColumn(columnName)
+	if err != nil {
+		return nil, err
+	}
+	return column.GetValue(id)
 }
 
 // CreateColumn creates a Groonga column and returns a new Column associated
