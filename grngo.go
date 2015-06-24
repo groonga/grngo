@@ -125,8 +125,7 @@ type TableOptions struct {
 	TokenFilters     []string // TokenFilters is associated with token_filters.
 }
 
-// NewTableOptions() creates a new TableOptions object with the default
-// settings.
+// NewTableOptions returns a new TableOptions with the default settings.
 func NewTableOptions() *TableOptions {
 	var options TableOptions
 	options.Flags = TableHashKey
@@ -154,8 +153,7 @@ type ColumnOptions struct {
 	Flags int
 }
 
-// NewColumnOptions() creates a new ColumnOptions object with the default
-// settings.
+// NewColumnOptions returns a new ColumnOptions with the default settings.
 func NewColumnOptions() *ColumnOptions {
 	var options ColumnOptions
 	return &options
