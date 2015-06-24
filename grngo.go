@@ -101,23 +101,30 @@ func (dataType DataType) String() string {
 
 // -- TableOptions --
 
+// Flags of TableOptions accepts one of the TableNoKey, TablePatKey,
+// TableDatKey and TableHashKey.
+// KeyWithSIS is an optional flag.
+// See http://groonga.org/docs/reference/commands/table_create.html#flags
+// for details.
 const (
-	TableTypeMask = C.GRN_OBJ_TABLE_TYPE_MASK
-	TableNoKey    = C.GRN_OBJ_TABLE_NO_KEY
-	TablePatKey   = C.GRN_OBJ_TABLE_PAT_KEY
-	TableDatKey   = C.GRN_OBJ_TABLE_DAT_KEY
-	TableHashKey  = C.GRN_OBJ_TABLE_HASH_KEY
-	KeyWithSIS    = C.GRN_OBJ_KEY_WITH_SIS
+	TableTypeMask = C.GRN_OBJ_TABLE_TYPE_MASK // TableNoKey | TablePatKey | TableDatKey | TableHashKey.
+	TableNoKey    = C.GRN_OBJ_TABLE_NO_KEY    // TableNoKey is associated with TABLE_NO_KEY.
+	TablePatKey   = C.GRN_OBJ_TABLE_PAT_KEY   // TablePatKey is associated with TABLE_PAT_KEY.
+	TableDatKey   = C.GRN_OBJ_TABLE_DAT_KEY   // TableDatKey is associated with TABLE_DAT_KEY.
+	TableHashKey  = C.GRN_OBJ_TABLE_HASH_KEY  // TableHashKey is associated with TABLE_HASH_KEY.
+	KeyWithSIS    = C.GRN_OBJ_KEY_WITH_SIS    // KeyWithSIS is associated with KEY_WITH_SIS.
 )
 
-// http://groonga.org/docs/reference/commands/table_create.html
+// TableOptions is a set of options for CreateTable.
+// Flags is TableHashKey by default.
+// See http://groonga.org/docs/reference/commands/table_create.html#parameters for details.
 type TableOptions struct {
-	Flags            int
-	KeyType          string   // http://groonga.org/docs/reference/types.html
-	ValueType        string   // http://groonga.org/docs/reference/types.html
-	DefaultTokenizer string   // http://groonga.org/docs/reference/tokenizers.html
-	Normalizer       string   // http://groonga.org/docs/reference/normalizers.html
-	TokenFilters     []string // http://groonga.org/docs/reference/token_filters.html
+	Flags            int      // Flags is associated with flags.
+	KeyType          string   // KeyType is associated with key_type.
+	ValueType        string   // ValueType is associated with value_type.
+	DefaultTokenizer string   // DefaultTokenizer is associated with default_tokenizer.
+	Normalizer       string   // Normalizer is associated with normalizer.
+	TokenFilters     []string // TokenFilters is associated with token_filters.
 }
 
 // NewTableOptions() creates a new TableOptions object with the default
