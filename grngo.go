@@ -35,10 +35,12 @@ type GeoPoint struct {
 const NilID = uint32(C.GRN_ID_NIL)
 
 // DataType is an enumeration of Groonga built-in data types.
+//
 // See http://groonga.org/docs/reference/types.html for details.
 type DataType int
 
 // Time (int64) is the number of microseconds elapsed since the Unix epoch.
+//
 // See http://groonga.org/docs/reference/types.html for details.
 const (
 	Void          = DataType(C.GRN_DB_VOID)            // N/A.
@@ -104,6 +106,7 @@ func (dataType DataType) String() string {
 // -- TableOptions --
 
 // Flags of TableOptions accepts a combination of these constants.
+//
 // See http://groonga.org/docs/reference/commands/table_create.html#flags for details.
 const (
 	TableTypeMask = C.GRN_OBJ_TABLE_TYPE_MASK // TableNoKey | TablePatKey | TableDatKey | TableHashKey.
@@ -116,6 +119,7 @@ const (
 
 // TableOptions is a set of options for CreateTable.
 // Flags is TableHashKey by default.
+//
 // See http://groonga.org/docs/reference/commands/table_create.html#parameters for details.
 type TableOptions struct {
 	Flags            int      // Flags is associated with flags.
@@ -136,6 +140,7 @@ func NewTableOptions() *TableOptions {
 // -- ColumnOptions --
 
 // Flags of ColumnOptions accepts a combination of these constants.
+//
 // See http://groonga.org/docs/reference/commands/column_create.html#parameters for details.
 const (
 	CompressMask = C.GRN_OBJ_COMPRESS_MASK // CompressZlib | CompressLZ4.
@@ -149,6 +154,7 @@ const (
 
 // ColumnOptions is a set of options for CreateColumn.
 // Flags is CompressNone by default.
+//
 // See http://groonga.org/docs/reference/commands/column_create.html#parameters for details.
 type ColumnOptions struct {
 	Flags int
@@ -301,6 +307,8 @@ func (db *DB) Close() error {
 
 // Send executes a Groonga command.
 // The command must be well-formed.
+//
+// See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) Send(command string) error {
 	commandBytes := []byte(command)
 	var cCommand *C.char
@@ -321,6 +329,8 @@ func (db *DB) Send(command string) error {
 }
 
 // SendEx executes a Groonga command with separated options.
+//
+// See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) SendEx(name string, options map[string]string) error {
 	if name == "" {
 		return fmt.Errorf("invalid command: name = <%s>", name)
@@ -348,6 +358,8 @@ func (db *DB) SendEx(name string, options map[string]string) error {
 }
 
 // Recv returns the result of Groonga commands executed by Send and SendEx.
+//
+// See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) Recv() ([]byte, error) {
 	var resultBuffer *C.char
 	var resultLength C.uint
@@ -368,6 +380,8 @@ func (db *DB) Recv() ([]byte, error) {
 }
 
 // Query executes a Groonga command and returns the result.
+//
+// See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) Query(command string) ([]byte, error) {
 	if err := db.Send(command); err != nil {
 		result, _ := db.Recv()
@@ -378,6 +392,8 @@ func (db *DB) Query(command string) ([]byte, error) {
 
 // Query executes a Groonga command with separated options and returns the
 // result.
+//
+// See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) QueryEx(name string, options map[string]string) (
 	[]byte, error) {
 	if err := db.SendEx(name, options); err != nil {
@@ -389,9 +405,10 @@ func (db *DB) QueryEx(name string, options map[string]string) (
 
 // CreateTable creates a Groonga table and returns a new Table associated with
 // it.
-// See http://groonga.org/docs/reference/commands/table_create.html for details.
 //
 // If options is nil, the default parameters are used.
+//
+// See http://groonga.org/docs/reference/commands/table_create.html for details.
 func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if options == nil {
 		options = NewTableOptions()
@@ -540,7 +557,6 @@ func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id ui
 
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
-// See http://groonga.org/docs/reference/commands/column_create.html for details.
 //
 // If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
 // as the type parameter.
@@ -551,6 +567,8 @@ func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id ui
 // parameter.
 //
 // If options is nil, the default parameters are used.
+//
+// See http://groonga.org/docs/reference/commands/column_create.html for details.
 func (db *DB) CreateColumn(tableName, columnName string, valueType string, options *ColumnOptions) (*Column, error) {
 	table, err := db.FindTable(tableName)
 	if err != nil {
@@ -732,7 +750,6 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 
 // CreateColumn creates a Groonga column and returns a new Column associated
 // with it.
-// See http://groonga.org/docs/reference/commands/column_create.html for details.
 //
 // If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
 // as the type parameter.
@@ -743,6 +760,8 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 // parameter.
 //
 // If options is nil, the default parameters are used.
+//
+// See http://groonga.org/docs/reference/commands/column_create.html for details.
 func (table *Table) CreateColumn(name string, valueType string, options *ColumnOptions) (*Column, error) {
 	if options == nil {
 		options = NewColumnOptions()
