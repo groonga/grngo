@@ -551,9 +551,9 @@ func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id ui
 //
 // If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
 // as the type parameter.
-// If valueType contains '.', COLUMN_INDEX is enabled and valueType is split by
-// the first '.'. Then, the former is used as the type parameter and the
-// latter is used as the source parameter.
+// If valueType contains a dot ('.'), COLUMN_INDEX is enabled and valueType is
+// split by the first dot. Then, the former part is used as the type parameter
+// and the latter part is used as the source parameter.
 // Otherwise, COLUMN_SCALAR is enabled and valueType is used as the type
 // parameter.
 //
