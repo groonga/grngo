@@ -189,7 +189,7 @@ func GrnInit() error {
 // Fin finalizes Groonga if needed.
 // initCount is decremented and when it changes from 1 to 0, Groonga is
 // finalized.
-func Fin() error {
+func GrnFin() error {
 	switch initCount {
 	case -1: // Disabled.
 		return nil
@@ -211,7 +211,7 @@ func openCtx() (*C.grn_ctx, error) {
 	}
 	ctx := C.grn_ctx_open(0)
 	if ctx == nil {
-		Fin()
+		GrnFin()
 		return nil, fmt.Errorf("grn_ctx_open() failed")
 	}
 	return ctx, nil
@@ -220,7 +220,7 @@ func openCtx() (*C.grn_ctx, error) {
 // closeCtx finalizes a grn_ctx.
 func closeCtx(ctx *C.grn_ctx) error {
 	rc := C.grn_ctx_close(ctx)
-	Fin()
+	GrnFin()
 	if rc != C.GRN_SUCCESS {
 		return fmt.Errorf("grn_ctx_close() failed: rc = %d", rc)
 	}
