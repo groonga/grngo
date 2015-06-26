@@ -165,17 +165,19 @@ var grnInitFinDisabled = false
 // grnInitCount is an internal counter used in GrnInit and GrnFin.
 var grnInitCount = 0
 
-// DisableGrnInitFin disables implicit calls of C.grn_init and C.grn_fin, so
-// that Grngo does not implicitly initialize and finalize Groonga.
+// DisableGrnInitFin disables calls of C.grn_init and C.grn_fin in GrnInit()
+// and GrnFin().
 // DisableGrnInitFin should be used if you manually or another library
 // initialize and finalize Groonga.
 func DisableGrnInitFin() {
 	grnInitFinDisabled = true
 }
 
-// GrnInit initializes Groonga if needed.
-// grnInitCount is incremented and when it changes from 0 to 1, Groonga is
-// initialized.
+// GrnInit increments an internal counter grnInitCount and if it changes from
+// 0 to 1, calls C.grn_init to initialize Groonga.
+//
+// Note that CreateDB and OpenDB call GrnInit, so you should not manually call
+// GrnInit if not needed.
 func GrnInit() error {
 	if grnInitCount == 0 {
 		if !grnInitFinDisabled {
@@ -188,9 +190,11 @@ func GrnInit() error {
 	return nil
 }
 
-// GrnFin finalizes Groonga if needed.
-// grnInitCount is decremented and when it changes from 1 to 0, Groonga is
-// finalized.
+// GrnFin decrements an internal counter grnInitCount and if it changes from
+// 1 to 0, calls C.grn_fin to finalize Groonga.
+//
+// Note that DB.Close calls GrnFin, so you should not manually call GrnFin if
+// not needed.
 func GrnFin() error {
 	switch grnInitCount {
 	case 0:
