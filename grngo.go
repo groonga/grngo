@@ -19,6 +19,19 @@ func newInvalidKeyTypeError(expected, actual DataType) error {
 	return fmt.Errorf("invalid data type: expected = %s, actual = %s", expected, actual)
 }
 
+// newInvalidValueTypeError returns an error for data type conflict.
+func newInvalidValueTypeError(expectedDataType DataType, expectedIsVector bool, actualDataType DataType, actualIsVector bool) error {
+	expected := expectedDataType.String()
+	if expectedIsVector {
+		expected = "[]" + expected
+	}
+	actual := actualDataType.String()
+	if actualIsVector {
+		actual = "[]" + actual
+	}
+	return fmt.Errorf("invalid data type: expected = %s, actual = %s", expected, actual)
+}
+
 // -- Data types --
 
 // GeoPoint represents a coordinate of latitude and longitude.
@@ -987,7 +1000,7 @@ func newColumn(table *Table, obj *C.grn_obj, name string, valueType DataType, is
 // setBool assigns a Bool value.
 func (column *Column) setBool(id uint32, value bool) error {
 	if (column.valueType != Bool) || column.isVector {
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, Bool, false)
 	}
 	var grnValue C.grn_bool = C.GRN_FALSE
 	if value {
@@ -1003,7 +1016,7 @@ func (column *Column) setBool(id uint32, value bool) error {
 // setInt assigns an Int value.
 func (column *Column) setInt(id uint32, value int64) error {
 	if column.isVector {
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, false)
 	}
 	ctx := column.table.db.ctx
 	var ok C.grn_bool
@@ -1036,7 +1049,7 @@ func (column *Column) setInt(id uint32, value int64) error {
 		grnValue := C.int64_t(value)
 		ok = C.grngo_column_set_time(ctx, column.obj, C.grn_id(id), grnValue)
 	default:
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, false)
 	}
 	if ok != C.GRN_TRUE {
 		return fmt.Errorf("grngo_column_set_int*() failed")
@@ -1047,7 +1060,7 @@ func (column *Column) setInt(id uint32, value int64) error {
 // setFloat assigns a Float value.
 func (column *Column) setFloat(id uint32, value float64) error {
 	if (column.valueType != Float) || column.isVector {
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, Float, false)
 	}
 	grnValue := C.double(value)
 	if ok := C.grngo_column_set_float(column.table.db.ctx, column.obj,
@@ -1062,7 +1075,7 @@ func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
 	switch column.valueType {
 	case TokyoGeoPoint, WGS84GeoPoint:
 	default:
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, false)
 	}
 	if column.isVector {
 		return fmt.Errorf("value type conflict")
@@ -1081,10 +1094,10 @@ func (column *Column) setText(id uint32, value []byte) error {
 	switch column.valueType {
 	case ShortText, Text, LongText:
 	default:
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, Text, false)
 	}
 	if column.isVector {
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, Text, false)
 	}
 	var grnValue C.grngo_text
 	if len(value) != 0 {
