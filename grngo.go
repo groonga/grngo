@@ -319,8 +319,7 @@ func (db *DB) Send(command string) error {
 		return fmt.Errorf("grn_ctx_send() failed: rc = %d, err = %s", rc, errMsg)
 	case db.ctx.rc != C.GRN_SUCCESS:
 		errMsg := C.GoString(&db.ctx.errbuf[0])
-		return fmt.Errorf("grn_ctx_send() failed: ctx.rc = %d, err = %s",
-			db.ctx.rc, errMsg)
+		return fmt.Errorf("grn_ctx_send() failed: ctx.rc = %d, err = %s", db.ctx.rc, errMsg)
 	}
 	return nil
 }
@@ -369,8 +368,7 @@ func (db *DB) Recv() ([]byte, error) {
 			"grn_ctx_recv() failed: rc = %d, err = %s", rc, errMsg)
 	case db.ctx.rc != C.GRN_SUCCESS:
 		errMsg := C.GoString(&db.ctx.errbuf[0])
-		return nil, fmt.Errorf(
-			"grn_ctx_recv() failed: ctx.rc = %d, err = %s", db.ctx.rc, errMsg)
+		return nil, fmt.Errorf("grn_ctx_recv() failed: ctx.rc = %d, err = %s", db.ctx.rc, errMsg)
 	}
 	result := C.GoBytes(unsafe.Pointer(resultBuffer), C.int(resultLength))
 	return result, nil
@@ -450,8 +448,7 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 		optionsMap["value_type"] = options.ValueType
 	default:
 		if _, err := db.FindTable(options.ValueType); err != nil {
-			return nil, fmt.Errorf("invalid value type: options = %+v",
-				options)
+			return nil, fmt.Errorf("invalid value type: options = %+v", options)
 		}
 		optionsMap["value_type"] = options.ValueType
 	}
@@ -514,8 +511,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	}
 	var valueInfo C.grngo_type_info
 	if ok := C.grngo_table_get_value_info(db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grngo_table_get_value_info() failed: name = <%s>",
-			name)
+		return nil, fmt.Errorf("grngo_table_get_value_info() failed: name = <%s>", name)
 	}
 	// Check the value type.
 	valueType := DataType(valueInfo.data_type)
@@ -1221,8 +1217,7 @@ func (column *Column) SetValue(id uint32, value interface{}) error {
 	case [][]byte:
 		return column.setTextVector(id, v)
 	default:
-		return fmt.Errorf("unsupported value type: name = <%s>",
-			reflect.TypeOf(value).Name())
+		return fmt.Errorf("unsupported value type: name = <%s>", reflect.TypeOf(value).Name())
 	}
 }
 
