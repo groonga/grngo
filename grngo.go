@@ -1113,6 +1113,9 @@ func (column *Column) setText(id uint32, value []byte) error {
 
 // setBoolVector assigns a Bool vector.
 func (column *Column) setBoolVector(id uint32, value []bool) error {
+	if (column.valueType != Bool) || !column.isVector {
+		return newInvalidValueTypeError(column.valueType, column.isVector, Bool, true)
+	}
 	grnValue := make([]C.grn_bool, len(value))
 	for i, v := range value {
 		if v {
@@ -1133,6 +1136,9 @@ func (column *Column) setBoolVector(id uint32, value []bool) error {
 
 // setIntVector assigns an Int vector.
 func (column *Column) setIntVector(id uint32, value []int64) error {
+	if !column.isVector {
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, true)
+	}
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -1161,7 +1167,7 @@ func (column *Column) setIntVector(id uint32, value []int64) error {
 	case Time:
 		ok = C.grngo_column_set_time_vector(ctx, obj, C.grn_id(id), &grnVector)
 	default:
-		return fmt.Errorf("value type conflict")
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, true)
 	}
 	if ok != C.GRN_TRUE {
 		return fmt.Errorf("grngo_column_set_int*_vector() failed")
@@ -1171,6 +1177,9 @@ func (column *Column) setIntVector(id uint32, value []int64) error {
 
 // setFloatVector assigns a Float vector.
 func (column *Column) setFloatVector(id uint32, value []float64) error {
+	if (column.valueType != Float) || !column.isVector {
+		return newInvalidValueTypeError(column.valueType, column.isVector, Float, true)
+	}
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -1185,6 +1194,14 @@ func (column *Column) setFloatVector(id uint32, value []float64) error {
 
 // setGeoPointVector assigns a GeoPoint vector.
 func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
+	if !column.isVector {
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
+	}
+	switch column.valueType {
+	case TokyoGeoPoint, WGS84GeoPoint:
+	default:
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
+	}
 	var grnVector C.grngo_vector
 	if len(value) != 0 {
 		grnVector.ptr = unsafe.Pointer(&value[0])
@@ -1200,6 +1217,14 @@ func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
 
 // setTextVector assigns a Text vector.
 func (column *Column) setTextVector(id uint32, value [][]byte) error {
+	if !column.isVector {
+		return newInvalidValueTypeError(column.valueType, column.isVector, Text, true)
+	}
+	switch column.valueType {
+	case ShortText, Text, LongText:
+	default:
+		return newInvalidValueTypeError(column.valueType, column.isVector, Text, true)
+	}
 	grnValue := make([]C.grngo_text, len(value))
 	for i, v := range value {
 		if len(v) != 0 {
