@@ -800,7 +800,7 @@ func (table *Table) CreateColumn(name string, valueType string, options *ColumnO
 		valueType = valueType[2:]
 		optionsMap["flags"] = "COLUMN_VECTOR"
 	} else if delimPos := strings.IndexByte(valueType, '.'); delimPos != -1 {
-		optionsMap["source"] = valueType[delimPos:]
+		optionsMap["source"] = valueType[delimPos+1:]
 		valueType = valueType[:delimPos]
 		optionsMap["flags"] = "COLUMN_INDEX"
 	} else {
