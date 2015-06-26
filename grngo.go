@@ -170,10 +170,10 @@ func DisableInitCount() {
 	initCount = -1
 }
 
-// Init initializes Groonga if needed.
+// GrnInit initializes Groonga if needed.
 // initCount is incremented and when it changes from 0 to 1, Groonga is
 // initialized.
-func Init() error {
+func GrnInit() error {
 	switch initCount {
 	case -1: // Disabled.
 		return nil
@@ -206,7 +206,7 @@ func Fin() error {
 
 // openCtx returns a new grn_ctx.
 func openCtx() (*C.grn_ctx, error) {
-	if err := Init(); err != nil {
+	if err := GrnInit(); err != nil {
 		return nil, err
 	}
 	ctx := C.grn_ctx_open(0)
