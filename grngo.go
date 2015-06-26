@@ -159,45 +159,47 @@ func NewColumnOptions() *ColumnOptions {
 
 // -- Groonga --
 
-// grnInitCount is an internal counter used in Init and Fin.
+// grnInitFinDisabled shows whther C.grn_init and C.grn_fin are disabled.
+var grnInitFinDisabled = false
+
+// grnInitCount is an internal counter used in GrnInit and GrnFin.
 var grnInitCount = 0
 
-// DisableInitCount disables Init and Fin, so that Grngo does not implicitly
+// DisableGrnInitFin disables implicit calls of C.grn_init and C.grn_fin, so
+// that Grngo does not implicitly initialize and finalize Groonga.
+// DisableGrnInitFin should be used if you manually or another library
 // initialize and finalize Groonga.
-// DisableInitCount should be used if you manually or another library
-// initialize and finalize Groonga.
-func DisableInitCount() {
-	grnInitCount = -1
+func DisableGrnInitFin() {
+	grnInitFinDisabled = true
 }
 
 // GrnInit initializes Groonga if needed.
 // grnInitCount is incremented and when it changes from 0 to 1, Groonga is
 // initialized.
 func GrnInit() error {
-	switch grnInitCount {
-	case -1: // Disabled.
-		return nil
-	case 0:
-		if rc := C.grn_init(); rc != C.GRN_SUCCESS {
-			return fmt.Errorf("grn_init() failed: rc = %d", rc)
+	if grnInitCount == 0 {
+		if !grnInitFinDisabled {
+			if rc := C.grn_init(); rc != C.GRN_SUCCESS {
+				return fmt.Errorf("grn_init() failed: rc = %d", rc)
+			}
 		}
 	}
 	grnInitCount++
 	return nil
 }
 
-// Fin finalizes Groonga if needed.
+// GrnFin finalizes Groonga if needed.
 // grnInitCount is decremented and when it changes from 1 to 0, Groonga is
 // finalized.
 func GrnFin() error {
 	switch grnInitCount {
-	case -1: // Disabled.
-		return nil
 	case 0:
 		return fmt.Errorf("Groonga is not initialized yet")
 	case 1:
-		if rc := C.grn_fin(); rc != C.GRN_SUCCESS {
-			return fmt.Errorf("grn_fin() failed: rc = %d", rc)
+		if !grnInitFinDisabled {
+			if rc := C.grn_fin(); rc != C.GRN_SUCCESS {
+				return fmt.Errorf("grn_fin() failed: rc = %d", rc)
+			}
 		}
 	}
 	grnInitCount--
