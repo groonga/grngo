@@ -210,8 +210,8 @@ func GrnFin() error {
 	return nil
 }
 
-// openCtx returns a new grn_ctx.
-func openCtx() (*C.grn_ctx, error) {
+// openGrnCtx returns a new grn_ctx.
+func openGrnCtx() (*C.grn_ctx, error) {
 	if err := GrnInit(); err != nil {
 		return nil, err
 	}
@@ -223,8 +223,8 @@ func openCtx() (*C.grn_ctx, error) {
 	return ctx, nil
 }
 
-// closeCtx finalizes a grn_ctx.
-func closeCtx(ctx *C.grn_ctx) error {
+// closeGrnCtx finalizes a grn_ctx.
+func closeGrnCtx(ctx *C.grn_ctx) error {
 	rc := C.grn_ctx_close(ctx)
 	GrnFin()
 	if rc != C.GRN_SUCCESS {
@@ -253,7 +253,7 @@ func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
 // Note that CreateDB initializes Groonga if the new DB will be the only one
 // and implicit initialization is not disabled.
 func CreateDB(path string) (*DB, error) {
-	ctx, err := openCtx()
+	ctx, err := openGrnCtx()
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func CreateDB(path string) (*DB, error) {
 	obj := C.grn_db_create(ctx, cPath, nil)
 	if obj == nil {
 		errMsg := C.GoString(&ctx.errbuf[0])
-		closeCtx(ctx)
+		closeGrnCtx(ctx)
 		return nil, fmt.Errorf("grn_db_create() failed: err = %s", errMsg)
 	}
 	return newDB(ctx, obj), nil
@@ -277,7 +277,7 @@ func CreateDB(path string) (*DB, error) {
 // Note that CreateDB initializes Groonga if the new DB will be the only one
 // and implicit initialization is not disabled.
 func OpenDB(path string) (*DB, error) {
-	ctx, err := openCtx()
+	ctx, err := openGrnCtx()
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func OpenDB(path string) (*DB, error) {
 	obj := C.grn_db_open(ctx, cPath)
 	if obj == nil {
 		errMsg := C.GoString(&ctx.errbuf[0])
-		closeCtx(ctx)
+		closeGrnCtx(ctx)
 		return nil, fmt.Errorf("grn_db_open() failed: err = %s", errMsg)
 	}
 	return newDB(ctx, obj), nil
@@ -296,10 +296,10 @@ func OpenDB(path string) (*DB, error) {
 func (db *DB) Close() error {
 	rc := C.grn_obj_close(db.ctx, db.obj)
 	if rc != C.GRN_SUCCESS {
-		closeCtx(db.ctx)
+		closeGrnCtx(db.ctx)
 		return fmt.Errorf("grn_obj_close() failed: rc = %d", rc)
 	}
-	return closeCtx(db.ctx)
+	return closeGrnCtx(db.ctx)
 }
 
 // Send executes a Groonga command.
