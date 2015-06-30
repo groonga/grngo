@@ -328,6 +328,19 @@ func (db *DB) Close() error {
 	return closeGrnCtx(db.ctx)
 }
 
+// Refresh clears a cache for Table and Column name resolution.
+//
+// Note that Table and Column instances are invalidated.
+func (db *DB) Refresh() error {
+	for _, table := range(db.tables) {
+		for _, column := range(table.columns) {
+			C.grn_obj_unlink(db.ctx, column.obj)
+		}
+		C.grn_obj_unlink(db.ctx, table.obj)
+	}
+	return nil
+}
+
 // Send executes a Groonga command.
 // The command must be well-formed.
 //
