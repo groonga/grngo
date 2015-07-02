@@ -362,8 +362,36 @@ func TestDBCreateTableWithBoolValue(t *testing.T) {
 	testDBCreateTableWithValue(t, "Bool")
 }
 
-func TestDBCreateTableWithIntValue(t *testing.T) {
+func TestDBCreateTableWithInt8Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "Int8")
+}
+
+func TestDBCreateTableWithInt16Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "Int16")
+}
+
+func TestDBCreateTableWithInt32Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "Int32")
+}
+
+func TestDBCreateTableWithInt64Value(t *testing.T) {
 	testDBCreateTableWithValue(t, "Int64")
+}
+
+func TestDBCreateTableWithUInt8Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "UInt8")
+}
+
+func TestDBCreateTableWithUInt16Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "UInt16")
+}
+
+func TestDBCreateTableWithUInt32Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "UInt32")
+}
+
+func TestDBCreateTableWithUInt64Value(t *testing.T) {
+	testDBCreateTableWithValue(t, "UInt64")
 }
 
 func TestDBCreateTableWithFloatValue(t *testing.T) {
@@ -386,8 +414,36 @@ func TestDBCreateTableWithBoolRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "Bool")
 }
 
-func TestDBCreateTableWithIntRefKey(t *testing.T) {
+func TestDBCreateTableWithInt8RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Int8")
+}
+
+func TestDBCreateTableWithInt16RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Int16")
+}
+
+func TestDBCreateTableWithInt32RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "Int32")
+}
+
+func TestDBCreateTableWithInt64RefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "Int64")
+}
+
+func TestDBCreateTableWithUInt8RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "UInt8")
+}
+
+func TestDBCreateTableWithUInt16RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "UInt16")
+}
+
+func TestDBCreateTableWithUInt32RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "UInt32")
+}
+
+func TestDBCreateTableWithUInt64RefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "UInt64")
 }
 
 func TestDBCreateTableWithFloatRefKey(t *testing.T) {
@@ -414,8 +470,36 @@ func TestDBCreateTableWithBoolRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "Bool")
 }
 
-func TestDBCreateTableWithIntRefValue(t *testing.T) {
+func TestDBCreateTableWithInt8RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Int8")
+}
+
+func TestDBCreateTableWithInt16RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Int16")
+}
+
+func TestDBCreateTableWithInt32RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "Int32")
+}
+
+func TestDBCreateTableWithInt64RefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "Int64")
+}
+
+func TestDBCreateTableWithUInt8RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "UInt8")
+}
+
+func TestDBCreateTableWithUInt16RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "UInt16")
+}
+
+func TestDBCreateTableWithUInt32RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "UInt32")
+}
+
+func TestDBCreateTableWithUInt64RefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "UInt64")
 }
 
 func TestDBCreateTableWithFloatRefValue(t *testing.T) {
@@ -603,8 +687,36 @@ func TestTableCreateColumnForBool(t *testing.T) {
 	testTableCreateScalarColumn(t, "Bool")
 }
 
-func TestTableCreateColumnForInt(t *testing.T) {
+func TestTableCreateColumnForInt8(t *testing.T) {
+	testTableCreateScalarColumn(t, "Int8")
+}
+
+func TestTableCreateColumnForInt16(t *testing.T) {
+	testTableCreateScalarColumn(t, "Int16")
+}
+
+func TestTableCreateColumnForInt32(t *testing.T) {
+	testTableCreateScalarColumn(t, "Int32")
+}
+
+func TestTableCreateColumnForInt64(t *testing.T) {
 	testTableCreateScalarColumn(t, "Int64")
+}
+
+func TestTableCreateColumnForUInt8(t *testing.T) {
+	testTableCreateScalarColumn(t, "UInt8")
+}
+
+func TestTableCreateColumnForUInt16(t *testing.T) {
+	testTableCreateScalarColumn(t, "UInt16")
+}
+
+func TestTableCreateColumnForUInt32(t *testing.T) {
+	testTableCreateScalarColumn(t, "UInt32")
+}
+
+func TestTableCreateColumnForUInt64(t *testing.T) {
+	testTableCreateScalarColumn(t, "UInt64")
 }
 
 func TestTableCreateColumnForFloat(t *testing.T) {
@@ -639,8 +751,36 @@ func TestTableCreateColumnForBoolVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "Bool")
 }
 
-func TestTableCreateColumnForIntVector(t *testing.T) {
+func TestTableCreateColumnForInt8Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "Int8")
+}
+
+func TestTableCreateColumnForInt16Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "Int16")
+}
+
+func TestTableCreateColumnForInt32Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "Int32")
+}
+
+func TestTableCreateColumnForInt64Vector(t *testing.T) {
 	testTableCreateVectorColumn(t, "Int64")
+}
+
+func TestTableCreateColumnForUInt8Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "UInt8")
+}
+
+func TestTableCreateColumnForUInt16Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "UInt16")
+}
+
+func TestTableCreateColumnForUInt32Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "UInt32")
+}
+
+func TestTableCreateColumnForUInt64Vector(t *testing.T) {
+	testTableCreateVectorColumn(t, "UInt64")
 }
 
 func TestTableCreateColumnForFloatVector(t *testing.T) {
@@ -675,8 +815,36 @@ func TestTableCreateColumnForRefToBool(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "Bool")
 }
 
-func TestTableCreateColumnForRefToInt(t *testing.T) {
+func TestTableCreateColumnForRefToInt8(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "Int8")
+}
+
+func TestTableCreateColumnForRefToInt16(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "Int16")
+}
+
+func TestTableCreateColumnForRefToInt32(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "Int32")
+}
+
+func TestTableCreateColumnForRefToInt64(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "Int64")
+}
+
+func TestTableCreateColumnForRefToUInt8(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "UInt8")
+}
+
+func TestTableCreateColumnForRefToUInt16(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "UInt16")
+}
+
+func TestTableCreateColumnForRefToUInt32(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "UInt32")
+}
+
+func TestTableCreateColumnForRefToUInt64(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "UInt64")
 }
 
 func TestTableCreateColumnForRefToFloat(t *testing.T) {
@@ -1065,8 +1233,36 @@ func BenchmarkColumnSetValueForBool(b *testing.B) {
 	benchmarkColumnSetValue(b, "Bool")
 }
 
-func BenchmarkColumnSetValueForInt(b *testing.B) {
+func BenchmarkColumnSetValueForInt8(b *testing.B) {
+	benchmarkColumnSetValue(b, "Int8")
+}
+
+func BenchmarkColumnSetValueForInt16(b *testing.B) {
+	benchmarkColumnSetValue(b, "Int16")
+}
+
+func BenchmarkColumnSetValueForInt32(b *testing.B) {
+	benchmarkColumnSetValue(b, "Int32")
+}
+
+func BenchmarkColumnSetValueForInt64(b *testing.B) {
 	benchmarkColumnSetValue(b, "Int64")
+}
+
+func BenchmarkColumnSetValueForUInt8(b *testing.B) {
+	benchmarkColumnSetValue(b, "UInt8")
+}
+
+func BenchmarkColumnSetValueForUInt16(b *testing.B) {
+	benchmarkColumnSetValue(b, "UInt16")
+}
+
+func BenchmarkColumnSetValueForUInt32(b *testing.B) {
+	benchmarkColumnSetValue(b, "UInt32")
+}
+
+func BenchmarkColumnSetValueForUInt64(b *testing.B) {
+	benchmarkColumnSetValue(b, "UInt64")
 }
 
 func BenchmarkColumnSetValueForFloat(b *testing.B) {
@@ -1101,8 +1297,36 @@ func BenchmarkColumnSetValueForBoolVector(b *testing.B) {
 	benchmarkColumnSetValue(b, "[]Bool")
 }
 
-func BenchmarkColumnSetValueForIntVector(b *testing.B) {
+func BenchmarkColumnSetValueForInt8Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]Int8")
+}
+
+func BenchmarkColumnSetValueForInt16Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]Int16")
+}
+
+func BenchmarkColumnSetValueForInt32Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]Int32")
+}
+
+func BenchmarkColumnSetValueForInt64Vector(b *testing.B) {
 	benchmarkColumnSetValue(b, "[]Int64")
+}
+
+func BenchmarkColumnSetValueForUInt8Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]UInt8")
+}
+
+func BenchmarkColumnSetValueForUInt16Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]UInt16")
+}
+
+func BenchmarkColumnSetValueForUInt32Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]UInt32")
+}
+
+func BenchmarkColumnSetValueForUInt64Vector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]UInt64")
 }
 
 func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
@@ -1163,8 +1387,36 @@ func BenchmarkColumnGetValueForBool(b *testing.B) {
 	benchmarkColumnGetValue(b, "Bool")
 }
 
-func BenchmarkColumnGetValueForInt(b *testing.B) {
+func BenchmarkColumnGetValueForInt8(b *testing.B) {
+	benchmarkColumnGetValue(b, "Int8")
+}
+
+func BenchmarkColumnGetValueForInt16(b *testing.B) {
+	benchmarkColumnGetValue(b, "Int16")
+}
+
+func BenchmarkColumnGetValueForInt32(b *testing.B) {
+	benchmarkColumnGetValue(b, "Int32")
+}
+
+func BenchmarkColumnGetValueForInt64(b *testing.B) {
 	benchmarkColumnGetValue(b, "Int64")
+}
+
+func BenchmarkColumnGetValueForUInt8(b *testing.B) {
+	benchmarkColumnGetValue(b, "UInt8")
+}
+
+func BenchmarkColumnGetValueForUInt16(b *testing.B) {
+	benchmarkColumnGetValue(b, "UInt16")
+}
+
+func BenchmarkColumnGetValueForUInt32(b *testing.B) {
+	benchmarkColumnGetValue(b, "UInt32")
+}
+
+func BenchmarkColumnGetValueForUInt64(b *testing.B) {
+	benchmarkColumnGetValue(b, "UInt64")
 }
 
 func BenchmarkColumnGetValueForFloat(b *testing.B) {
@@ -1199,8 +1451,36 @@ func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
 	benchmarkColumnGetValue(b, "[]Bool")
 }
 
-func BenchmarkColumnGetValueForIntVector(b *testing.B) {
+func BenchmarkColumnGetValueForInt8Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]Int8")
+}
+
+func BenchmarkColumnGetValueForInt16Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]Int16")
+}
+
+func BenchmarkColumnGetValueForInt32Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]Int32")
+}
+
+func BenchmarkColumnGetValueForInt64Vector(b *testing.B) {
 	benchmarkColumnGetValue(b, "[]Int64")
+}
+
+func BenchmarkColumnGetValueForUInt8Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]UInt8")
+}
+
+func BenchmarkColumnGetValueForUInt16Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]UInt16")
+}
+
+func BenchmarkColumnGetValueForUInt32Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]UInt32")
+}
+
+func BenchmarkColumnGetValueForUInt64Vector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]UInt64")
 }
 
 func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
@@ -1260,8 +1540,36 @@ func BenchmarkDBSelectForBool(b *testing.B) {
 	benchmarkDBSelect(b, "Bool")
 }
 
-func BenchmarkDBSelectForInt(b *testing.B) {
+func BenchmarkDBSelectForInt8(b *testing.B) {
+	benchmarkDBSelect(b, "Int8")
+}
+
+func BenchmarkDBSelectForInt16(b *testing.B) {
+	benchmarkDBSelect(b, "Int16")
+}
+
+func BenchmarkDBSelectForInt32(b *testing.B) {
+	benchmarkDBSelect(b, "Int32")
+}
+
+func BenchmarkDBSelectForInt64(b *testing.B) {
 	benchmarkDBSelect(b, "Int64")
+}
+
+func BenchmarkDBSelectForUInt8(b *testing.B) {
+	benchmarkDBSelect(b, "UInt8")
+}
+
+func BenchmarkDBSelectForUInt16(b *testing.B) {
+	benchmarkDBSelect(b, "UInt16")
+}
+
+func BenchmarkDBSelectForUInt32(b *testing.B) {
+	benchmarkDBSelect(b, "UInt32")
+}
+
+func BenchmarkDBSelectForUInt64(b *testing.B) {
+	benchmarkDBSelect(b, "UInt64")
 }
 
 func BenchmarkDBSelectForFloat(b *testing.B) {
@@ -1296,8 +1604,36 @@ func BenchmarkDBSelectForBoolVector(b *testing.B) {
 	benchmarkDBSelect(b, "[]Bool")
 }
 
-func BenchmarkDBSelectForIntVector(b *testing.B) {
+func BenchmarkDBSelectForInt8Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]Int8")
+}
+
+func BenchmarkDBSelectForInt16Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]Int16")
+}
+
+func BenchmarkDBSelectForInt32Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]Int32")
+}
+
+func BenchmarkDBSelectForInt64Vector(b *testing.B) {
 	benchmarkDBSelect(b, "[]Int64")
+}
+
+func BenchmarkDBSelectForUInt8Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]UInt8")
+}
+
+func BenchmarkDBSelectForUInt16Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]UInt16")
+}
+
+func BenchmarkDBSelectForUInt32Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]UInt32")
+}
+
+func BenchmarkDBSelectForUInt64Vector(b *testing.B) {
+	benchmarkDBSelect(b, "[]UInt64")
 }
 
 func BenchmarkDBSelectForFloatVector(b *testing.B) {
