@@ -212,17 +212,6 @@ func createTempDB(tb testing.TB) (string, string, *DB) {
 	return dirPath, dbPath, db
 }
 
-// removeTempDB() removes a database created with createTempDB().
-func removeTempDB(tb testing.TB, dirPath string, db *DB) {
-	if err := db.Close(); err != nil {
-		os.RemoveAll(dirPath)
-		tb.Fatalf("DB.Close() failed: %v", err)
-	}
-	if err := os.RemoveAll(dirPath); err != nil {
-		tb.Fatalf("os.RemoveAll() failed: %v", err)
-	}
-}
-
 // createTempTable() creates a database and a table for tests.
 // createTempTable() uses createTempDB() to create a database, so the
 // database must be removed with removeTempDB().
@@ -253,21 +242,32 @@ func createTempColumn(tb testing.TB, tableName string,
 	return dirPath, dbPath, db, table, column
 }
 
+// removeTempDB() removes a database created with createTempDB().
+func removeTempDB(tb testing.TB, dirPath string, db *DB) {
+	if err := db.Close(); err != nil {
+		os.RemoveAll(dirPath)
+		tb.Fatalf("DB.Close() failed: %v", err)
+	}
+	if err := os.RemoveAll(dirPath); err != nil {
+		tb.Fatalf("os.RemoveAll() failed: %v", err)
+	}
+}
+
 // Tests.
 
 func TestCreateDB(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
-	removeTempDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 }
 
 func TestOpenDB(t *testing.T) {
 	dirPath, dbPath, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
 	db2, err := OpenDB(dbPath)
 	if err != nil {
 		t.Fatalf("OpenDB() failed: %v", err)
 	}
-	db2.Close()
-	removeTempDB(t, dirPath, db)
+	defer db2.Close()
 }
 
 func TestDBRefresh(t *testing.T) {
@@ -291,14 +291,14 @@ func testDBCreateTableWithKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempTable(t, "Table", options)
-	removeTempDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 }
 
 func testDBCreateTableWithValue(t *testing.T, valueType string) {
 	options := NewTableOptions()
 	options.ValueType = valueType
 	dirPath, _, db, _ := createTempTable(t, "Table", options)
-	removeTempDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 }
 
 func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
@@ -331,7 +331,7 @@ func testDBCreateTableWithRefValue(t *testing.T, keyType string) {
 
 func TestDBCreateTableWithoutKeyValue(t *testing.T) {
 	dirPath, _, db, _ := createTempTable(t, "Table", nil)
-	removeTempDB(t, dirPath, db)
+	defer removeTempDB(t, dirPath, db)
 }
 
 func TestDBCreateTableWithBoolKey(t *testing.T) {
