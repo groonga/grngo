@@ -338,8 +338,8 @@ func (db *DB) Close() error {
 // you should call Refresh just before or reopen the database immediately after
 // that.
 func (db *DB) Refresh() error {
-	for _, table := range(db.tables) {
-		for _, column := range(table.columns) {
+	for _, table := range db.tables {
+		for _, column := range table.columns {
 			C.grn_obj_unlink(db.ctx, column.obj)
 		}
 		C.grn_obj_unlink(db.ctx, table.obj)

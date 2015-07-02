@@ -271,7 +271,7 @@ func TestOpenDB(t *testing.T) {
 }
 
 func TestDBRefresh(t *testing.T) {
-	dirPath, _, db, _, _ := createTempColumn(t, "Table", nil, "Value", "Bool", nil);
+	dirPath, _, db, _, _ := createTempColumn(t, "Table", nil, "Value", "Bool", nil)
 	defer removeTempDB(t, dirPath, db)
 	if err := db.Refresh(); err != nil {
 		t.Fatalf("DB.Refresh() failed: %v", err)
