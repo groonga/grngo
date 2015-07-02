@@ -287,50 +287,15 @@ func TestDBRefresh(t *testing.T) {
 	}
 }
 
+func TestDBCreateTableWithoutKeyValue(t *testing.T) {
+	dirPath, _, db, _ := createTempTable(t, "Table", nil)
+	defer removeTempDB(t, dirPath, db)
+}
+
 func testDBCreateTableWithKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
 	options.KeyType = keyType
 	dirPath, _, db, _ := createTempTable(t, "Table", options)
-	defer removeTempDB(t, dirPath, db)
-}
-
-func testDBCreateTableWithValue(t *testing.T, valueType string) {
-	options := NewTableOptions()
-	options.ValueType = valueType
-	dirPath, _, db, _ := createTempTable(t, "Table", options)
-	defer removeTempDB(t, dirPath, db)
-}
-
-func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
-	options := NewTableOptions()
-	options.KeyType = keyType
-	dirPath, _, db, _ := createTempTable(t, "To", options)
-	defer removeTempDB(t, dirPath, db)
-
-	options = NewTableOptions()
-	options.KeyType = "To"
-	_, err := db.CreateTable("From", options)
-	if err != nil {
-		t.Fatalf("DB.CreateTable() failed: %v", err)
-	}
-}
-
-func testDBCreateTableWithRefValue(t *testing.T, keyType string) {
-	options := NewTableOptions()
-	options.KeyType = keyType
-	dirPath, _, db, _ := createTempTable(t, "To", options)
-	defer removeTempDB(t, dirPath, db)
-
-	options = NewTableOptions()
-	options.ValueType = ""
-	_, err := db.CreateTable("From", options)
-	if err != nil {
-		t.Fatalf("DB.CreateTable() failed: %v", err)
-	}
-}
-
-func TestDBCreateTableWithoutKeyValue(t *testing.T) {
-	dirPath, _, db, _ := createTempTable(t, "Table", nil)
 	defer removeTempDB(t, dirPath, db)
 }
 
@@ -356,6 +321,13 @@ func TestDBCreateTableWithTokyoGeoPointKey(t *testing.T) {
 
 func TestDBCreateTableWithWGS84GeoPointKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "WGS84GeoPoint")
+}
+
+func testDBCreateTableWithValue(t *testing.T, valueType string) {
+	options := NewTableOptions()
+	options.ValueType = valueType
+	dirPath, _, db, _ := createTempTable(t, "Table", options)
+	defer removeTempDB(t, dirPath, db)
 }
 
 func TestDBCreateTableWithBoolValue(t *testing.T) {
@@ -408,6 +380,20 @@ func TestDBCreateTableWithTokyoGeoPointValue(t *testing.T) {
 
 func TestDBCreateTableWithWGS84GeoPointValue(t *testing.T) {
 	testDBCreateTableWithValue(t, "WGS84GeoPoint")
+}
+
+func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
+	options := NewTableOptions()
+	options.KeyType = keyType
+	dirPath, _, db, _ := createTempTable(t, "To", options)
+	defer removeTempDB(t, dirPath, db)
+
+	options = NewTableOptions()
+	options.KeyType = "To"
+	_, err := db.CreateTable("From", options)
+	if err != nil {
+		t.Fatalf("DB.CreateTable() failed: %v", err)
+	}
 }
 
 func TestDBCreateTableWithBoolRefKey(t *testing.T) {
@@ -464,6 +450,20 @@ func TestDBCreateTableWithTokyoGeoPointRefKey(t *testing.T) {
 
 func TestDBCreateTableWithWGS84GeoPointRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "WGS84GeoPoint")
+}
+
+func testDBCreateTableWithRefValue(t *testing.T, keyType string) {
+	options := NewTableOptions()
+	options.KeyType = keyType
+	dirPath, _, db, _ := createTempTable(t, "To", options)
+	defer removeTempDB(t, dirPath, db)
+
+	options = NewTableOptions()
+	options.ValueType = ""
+	_, err := db.CreateTable("From", options)
+	if err != nil {
+		t.Fatalf("DB.CreateTable() failed: %v", err)
+	}
 }
 
 func TestDBCreateTableWithBoolRefValue(t *testing.T) {
