@@ -7,8 +7,194 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
+
+// Functions for random key/value generation.
+
+func generateRandomTime() int64 {
+	const (
+		MinTime = int64(0)
+		MaxTime = int64(1892160000000000)
+	)
+	return MinTime + rand.Int63n(MaxTime-MinTime+1)
+}
+
+func generateRandomText() []byte {
+	return []byte(strconv.Itoa(rand.Int()))
+}
+
+func generateRandomGeoPoint() GeoPoint {
+	const (
+		MinLatitude  = 73531000
+		MaxLatitude  = 164006000
+		MinLongitude = 439451000
+		MaxLongitude = 554351000
+	)
+	latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
+	longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
+	return GeoPoint{int32(latitude), int32(longitude)}
+}
+
+func generateRandomScalar(valueType string) interface{} {
+	switch valueType {
+	case "Bool":
+		return (rand.Int() & 1) == 1
+	case "Int8":
+		return int64(int8(rand.Int()))
+	case "Int16":
+		return int64(int16(rand.Int()))
+	case "Int32":
+		return int64(int32(rand.Int()))
+	case "Int64":
+		return rand.Int63()
+	case "UInt8":
+		return int64(uint8(rand.Int()))
+	case "UInt16":
+		return int64(uint16(rand.Int()))
+	case "UInt32":
+		return int64(rand.Uint32())
+	case "UInt64":
+		return rand.Int63()
+	case "Float":
+		return rand.Float64()
+	case "Time":
+		return generateRandomTime()
+	case "ShortText", "Text", "LongText":
+		return generateRandomText()
+	case "TokyoGeoPoint", "WGS84GeoPoint":
+		return generateRandomGeoPoint()
+	}
+	return nil
+}
+
+func generateRandomVector(valueType string) interface{} {
+	size := rand.Int() % 10
+	switch valueType {
+	case "Bool":
+		value := make([]bool, size)
+		for i := 0; i < size; i++ {
+			value[i] = (rand.Int() & 1) == 1
+		}
+		return value
+	case "Int8":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(int8(rand.Int()))
+		}
+		return value
+	case "Int16":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(int16(rand.Int()))
+		}
+		return value
+	case "Int32":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(int32(rand.Int()))
+		}
+		return value
+	case "Int64":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = rand.Int63()
+		}
+		return value
+	case "UInt8":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(uint8(rand.Int()))
+		}
+		return value
+	case "UInt16":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(uint16(rand.Int()))
+		}
+		return value
+	case "UInt32":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = int64(rand.Uint32())
+		}
+		return value
+	case "UInt64":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = rand.Int63()
+		}
+		return value
+	case "Float":
+		value := make([]float64, size)
+		for i := 0; i < size; i++ {
+			value[i] = rand.Float64()
+		}
+		return value
+	case "Time":
+		value := make([]int64, size)
+		for i := 0; i < size; i++ {
+			value[i] = generateRandomTime()
+		}
+		return value
+	case "ShortText", "Text", "LongText":
+		value := make([][]byte, size)
+		for i := 0; i < size; i++ {
+			value[i] = generateRandomText()
+		}
+		return value
+	case "TokyoGeoPoint", "WGS84GeoPoint":
+		value := make([]GeoPoint, size)
+		for i := 0; i < size; i++ {
+			value[i] = generateRandomGeoPoint()
+		}
+		return value
+	}
+	return nil
+}
+
+func generateRandomValue(valueType string) interface{} {
+	if strings.HasPrefix(valueType, "[]") {
+		return generateRandomVector(valueType[2:])
+	}
+	return generateRandomScalar(valueType)
+}
+
+func generateRandomKey(keyType string) interface{} {
+	switch keyType {
+	case "Bool":
+		return (rand.Int() & 1) == 1
+	case "Int8":
+		return int64(int8(rand.Int()))
+	case "Int16":
+		return int64(int16(rand.Int()))
+	case "Int32":
+		return int64(int32(rand.Int()))
+	case "Int64":
+		return rand.Int63()
+	case "UInt8":
+		return int64(uint8(rand.Int()))
+	case "UInt16":
+		return int64(uint16(rand.Int()))
+	case "UInt32":
+		return int64(rand.Uint32())
+	case "UInt64":
+		return rand.Int63()
+	case "Float":
+		return rand.Float64()
+	case "Time":
+		return generateRandomTime()
+	case "TokyoGeoPoint", "WGS84GeoPoint":
+		return generateRandomGeoPoint()
+	case "ShortText":
+		return generateRandomText()
+	default:
+		return nil
+	}
+}
+
+// Functions to create/remove temporary DB objects.
 
 // createTempDB() creates a database for tests.
 // The database must be removed with removeTempDB().
@@ -66,6 +252,8 @@ func createTempColumn(tb testing.TB, tableName string,
 	}
 	return dirPath, dbPath, db, table, column
 }
+
+// Tests.
 
 func TestCreateDB(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
@@ -248,51 +436,6 @@ func TestDBCreateTableWithWGS84GeoPointRefValue(t *testing.T) {
 
 func TestDBCreateTableWithShortTextRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "ShortText")
-}
-
-func generateRandomKey(keyType string) interface{} {
-	switch keyType {
-	case "Bool":
-		return (rand.Int() & 1) == 1
-	case "Int8":
-		return int64(int8(rand.Int()))
-	case "Int16":
-		return int64(int16(rand.Int()))
-	case "Int32":
-		return int64(int32(rand.Int()))
-	case "Int64":
-		return rand.Int63()
-	case "UInt8":
-		return int64(uint8(rand.Int()))
-	case "UInt16":
-		return int64(uint16(rand.Int()))
-	case "UInt32":
-		return int64(rand.Uint32())
-	case "UInt64":
-		return rand.Int63()
-	case "Float":
-		return rand.Float64()
-	case "Time":
-		const (
-			MinTime = int64(0)
-			MaxTime = int64(1892160000000000)
-		)
-		return MinTime + rand.Int63n(MaxTime-MinTime+1)
-	case "TokyoGeoPoint", "WGS84GeoPoint":
-		const (
-			MinLatitude  = 73531000
-			MaxLatitude  = 164006000
-			MinLongitude = 439451000
-			MaxLongitude = 554351000
-		)
-		latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
-		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
-		return GeoPoint{int32(latitude), int32(longitude)}
-	case "ShortText":
-		return []byte(strconv.Itoa(rand.Int()))
-	default:
-		return nil
-	}
 }
 
 func testTableInsertRow(t *testing.T, keyType string) {
@@ -584,150 +727,7 @@ func TestTableCreateColumnForRefToShortTextVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "ShortText")
 }
 
-func generateRandomValue(valueType string) interface{} {
-	switch valueType {
-	case "Bool":
-		return (rand.Int() & 1) == 1
-	case "Int8":
-		return int64(int8(rand.Int()))
-	case "Int16":
-		return int64(int16(rand.Int()))
-	case "Int32":
-		return int64(int32(rand.Int()))
-	case "Int64":
-		return rand.Int63()
-	case "UInt8":
-		return int64(uint8(rand.Int()))
-	case "UInt16":
-		return int64(uint16(rand.Int()))
-	case "UInt32":
-		return int64(rand.Uint32())
-	case "UInt64":
-		return rand.Int63()
-	case "Float":
-		return rand.Float64()
-	case "Time":
-		const (
-			MinTime = int64(0)
-			MaxTime = int64(1892160000000000)
-		)
-		return MinTime + rand.Int63n(MaxTime-MinTime+1)
-	case "TokyoGeoPoint", "WGS84GeoPoint":
-		const (
-			MinLatitude  = 73531000
-			MaxLatitude  = 164006000
-			MinLongitude = 439451000
-			MaxLongitude = 554351000
-		)
-		latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
-		longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
-		return GeoPoint{int32(latitude), int32(longitude)}
-	case "ShortText", "Text", "LongText":
-		return []byte(strconv.Itoa(rand.Int()))
-	default:
-		return nil
-	}
-}
-
-func generateRandomVectorValue(valueType string) interface{} {
-	size := rand.Int() % 10
-	switch valueType {
-	case "Bool":
-		value := make([]bool, size)
-		for i := 0; i < size; i++ {
-			value[i] = (rand.Int() & 1) == 1
-		}
-		return value
-	case "Int8":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = int64(int8(rand.Int()))
-		}
-		return value
-	case "Int16":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = int64(int16(rand.Int()))
-		}
-		return value
-	case "Int32":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = int64(int32(rand.Int()))
-		}
-		return value
-	case "Int64":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = rand.Int63()
-		}
-		return value
-	case "UInt8":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = int64(uint8(rand.Int()))
-		}
-		return value
-	case "UInt16":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = int64(uint16(rand.Int()))
-		}
-		return value
-	case "UInt32":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = int64(rand.Uint32())
-		}
-		return value
-	case "UInt64":
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = rand.Int63()
-		}
-		return value
-	case "Float":
-		value := make([]float64, size)
-		for i := 0; i < size; i++ {
-			value[i] = rand.Float64()
-		}
-		return value
-	case "Time":
-		const (
-			MinTime = int64(0)
-			MaxTime = int64(1892160000000000)
-		)
-		value := make([]int64, size)
-		for i := 0; i < size; i++ {
-			value[i] = MinTime + rand.Int63n(MaxTime-MinTime+1)
-		}
-		return value
-	case "TokyoGeoPoint", "WGS84GeoPoint":
-		const (
-			MinLatitude  = 73531000
-			MaxLatitude  = 164006000
-			MinLongitude = 439451000
-			MaxLongitude = 554351000
-		)
-		value := make([]GeoPoint, size)
-		for i := 0; i < size; i++ {
-			latitude := MinLatitude + rand.Intn(MaxLatitude-MinLatitude+1)
-			longitude := MinLongitude + rand.Intn(MaxLongitude-MinLongitude+1)
-			value[i] = GeoPoint{int32(latitude), int32(longitude)}
-		}
-		return value
-	case "ShortText", "Text", "LongText":
-		value := make([][]byte, size)
-		for i := 0; i < size; i++ {
-			value[i] = []byte(strconv.Itoa(rand.Int()))
-		}
-		return value
-	default:
-		return nil
-	}
-}
-
-func testColumnSetValueForScalar(t *testing.T, valueType string) {
+func testColumnSetValue(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(t, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(t, dirPath, db)
@@ -746,154 +746,135 @@ func testColumnSetValueForScalar(t *testing.T, valueType string) {
 	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
 }
 
-func testColumnSetValueForVector(t *testing.T, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", "[]"+valueType, nil)
-	defer removeTempDB(t, dirPath, db)
-
-	for i := 0; i < 100; i++ {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			t.Fatalf("Table.InsertRow() failed: %v", err)
-		}
-		if err := column.SetValue(id, generateRandomVectorValue(valueType)); err != nil {
-			t.Fatalf("Column.SetValue() failed: %v", err)
-		}
-	}
-
-	bytes, _ := db.Query("select Table --limit 3")
-	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
-}
-
 func TestColumnSetValueForBool(t *testing.T) {
-	testColumnSetValueForScalar(t, "Bool")
+	testColumnSetValue(t, "Bool")
 }
 
 func TestColumnSetValueForInt8(t *testing.T) {
-	testColumnSetValueForScalar(t, "Int8")
+	testColumnSetValue(t, "Int8")
 }
 
 func TestColumnSetValueForInt16(t *testing.T) {
-	testColumnSetValueForScalar(t, "Int16")
+	testColumnSetValue(t, "Int16")
 }
 
 func TestColumnSetValueForInt32(t *testing.T) {
-	testColumnSetValueForScalar(t, "Int32")
+	testColumnSetValue(t, "Int32")
 }
 
 func TestColumnSetValueForInt64(t *testing.T) {
-	testColumnSetValueForScalar(t, "Int64")
+	testColumnSetValue(t, "Int64")
 }
 
 func TestColumnSetValueForUInt8(t *testing.T) {
-	testColumnSetValueForScalar(t, "UInt8")
+	testColumnSetValue(t, "UInt8")
 }
 
 func TestColumnSetValueForUInt16(t *testing.T) {
-	testColumnSetValueForScalar(t, "UInt16")
+	testColumnSetValue(t, "UInt16")
 }
 
 func TestColumnSetValueForUInt32(t *testing.T) {
-	testColumnSetValueForScalar(t, "UInt32")
+	testColumnSetValue(t, "UInt32")
 }
 
 func TestColumnSetValueForUInt64(t *testing.T) {
-	testColumnSetValueForScalar(t, "UInt64")
+	testColumnSetValue(t, "UInt64")
 }
 
 func TestColumnSetValueForFloat(t *testing.T) {
-	testColumnSetValueForScalar(t, "Float")
+	testColumnSetValue(t, "Float")
 }
 
 func TestColumnSetValueForTime(t *testing.T) {
-	testColumnSetValueForScalar(t, "Time")
-}
-
-func TestColumnSetValueForTokyoGeoPoint(t *testing.T) {
-	testColumnSetValueForScalar(t, "TokyoGeoPoint")
-}
-
-func TestColumnSetValueForWGS84GeoPoint(t *testing.T) {
-	testColumnSetValueForScalar(t, "WGS84GeoPoint")
+	testColumnSetValue(t, "Time")
 }
 
 func TestColumnSetValueForShortText(t *testing.T) {
-	testColumnSetValueForScalar(t, "ShortText")
+	testColumnSetValue(t, "ShortText")
 }
 
 func TestColumnSetValueForText(t *testing.T) {
-	testColumnSetValueForScalar(t, "Text")
+	testColumnSetValue(t, "Text")
 }
 
 func TestColumnSetValueForLongText(t *testing.T) {
-	testColumnSetValueForScalar(t, "LongText")
+	testColumnSetValue(t, "LongText")
+}
+
+func TestColumnSetValueForTokyoGeoPoint(t *testing.T) {
+	testColumnSetValue(t, "TokyoGeoPoint")
+}
+
+func TestColumnSetValueForWGS84GeoPoint(t *testing.T) {
+	testColumnSetValue(t, "WGS84GeoPoint")
 }
 
 func TestColumnSetValueForBoolVector(t *testing.T) {
-	testColumnSetValueForVector(t, "Bool")
+	testColumnSetValue(t, "[]Bool")
 }
 
 func TestColumnSetValueForInt8Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "Int8")
+	testColumnSetValue(t, "[]Int8")
 }
 
 func TestColumnSetValueForInt16Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "Int16")
+	testColumnSetValue(t, "[]Int16")
 }
 
 func TestColumnSetValueForInt32Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "Int32")
+	testColumnSetValue(t, "[]Int32")
 }
 
 func TestColumnSetValueForInt64Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "Int64")
+	testColumnSetValue(t, "[]Int64")
 }
 
 func TestColumnSetValueForUInt8Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "UInt8")
+	testColumnSetValue(t, "[]UInt8")
 }
 
 func TestColumnSetValueForUInt16Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "UInt16")
+	testColumnSetValue(t, "[]UInt16")
 }
 
 func TestColumnSetValueForUInt32Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "UInt32")
+	testColumnSetValue(t, "[]UInt32")
 }
 
 func TestColumnSetValueForUInt64Vector(t *testing.T) {
-	testColumnSetValueForVector(t, "UInt64")
+	testColumnSetValue(t, "[]UInt64")
 }
 
 func TestColumnSetValueForFloatVector(t *testing.T) {
-	testColumnSetValueForVector(t, "Float")
+	testColumnSetValue(t, "[]Float")
 }
 
 func TestColumnSetValueForTimeVector(t *testing.T) {
-	testColumnSetValueForVector(t, "Time")
-}
-
-func TestColumnSetValueForTokyoGeoPointVector(t *testing.T) {
-	testColumnSetValueForVector(t, "TokyoGeoPoint")
-}
-
-func TestColumnSetValueForWGS84GeoPointVector(t *testing.T) {
-	testColumnSetValueForVector(t, "WGS84GeoPoint")
+	testColumnSetValue(t, "[]Time")
 }
 
 func TestColumnSetValueForShortTextVector(t *testing.T) {
-	testColumnSetValueForVector(t, "ShortText")
+	testColumnSetValue(t, "[]ShortText")
 }
 
 func TestColumnSetValueForTextVector(t *testing.T) {
-	testColumnSetValueForVector(t, "Text")
+	testColumnSetValue(t, "[]Text")
 }
 
 func TestColumnSetValueForLongTextVector(t *testing.T) {
-	testColumnSetValueForVector(t, "LongText")
+	testColumnSetValue(t, "[]LongText")
 }
 
-func testColumnGetValueForScalar(t *testing.T, valueType string) {
+func TestColumnSetValueForTokyoGeoPointVector(t *testing.T) {
+	testColumnSetValue(t, "[]TokyoGeoPoint")
+}
+
+func TestColumnSetValueForWGS84GeoPointVector(t *testing.T) {
+	testColumnSetValue(t, "[]WGS84GeoPoint")
+}
+
+func testColumnGetValue(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(t, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(t, dirPath, db)
@@ -916,163 +897,139 @@ func testColumnGetValueForScalar(t *testing.T, valueType string) {
 	}
 }
 
-func testColumnGetValueForVector(t *testing.T, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", "[]"+valueType, nil)
-	defer removeTempDB(t, dirPath, db)
-
-	for i := 0; i < 100; i++ {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			t.Fatalf("Table.InsertRow() failed: %v", err)
-		}
-		value := generateRandomVectorValue(valueType)
-		if err := column.SetValue(id, value); err != nil {
-			t.Fatalf("Column.SetValue() failed: %v", err)
-		}
-		if storedValue, err := column.GetValue(id); err != nil {
-			t.Fatalf("Column.GetValue() failed: %v", err)
-		} else if !reflect.DeepEqual(value, storedValue) {
-			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
-				value, storedValue)
-		}
-	}
-
-	bytes, _ := db.Query("select Table --limit 3")
-	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
-}
-
 func TestColumnGetValueForBool(t *testing.T) {
-	testColumnGetValueForScalar(t, "Bool")
+	testColumnGetValue(t, "Bool")
 }
 
 func TestColumnGetValueForInt8(t *testing.T) {
-	testColumnGetValueForScalar(t, "Int8")
+	testColumnGetValue(t, "Int8")
 }
 
 func TestColumnGetValueForInt16(t *testing.T) {
-	testColumnGetValueForScalar(t, "Int16")
+	testColumnGetValue(t, "Int16")
 }
 
 func TestColumnGetValueForInt32(t *testing.T) {
-	testColumnGetValueForScalar(t, "Int32")
+	testColumnGetValue(t, "Int32")
 }
 
 func TestColumnGetValueForInt64(t *testing.T) {
-	testColumnGetValueForScalar(t, "Int64")
+	testColumnGetValue(t, "Int64")
 }
 
 func TestColumnGetValueForUInt8(t *testing.T) {
-	testColumnGetValueForScalar(t, "UInt8")
+	testColumnGetValue(t, "UInt8")
 }
 
 func TestColumnGetValueForUInt16(t *testing.T) {
-	testColumnGetValueForScalar(t, "UInt16")
+	testColumnGetValue(t, "UInt16")
 }
 
 func TestColumnGetValueForUInt32(t *testing.T) {
-	testColumnGetValueForScalar(t, "UInt32")
+	testColumnGetValue(t, "UInt32")
 }
 
 func TestColumnGetValueForUInt64(t *testing.T) {
-	testColumnGetValueForScalar(t, "UInt64")
+	testColumnGetValue(t, "UInt64")
 }
 
 func TestColumnGetValueForFloat(t *testing.T) {
-	testColumnGetValueForScalar(t, "Float")
+	testColumnGetValue(t, "Float")
 }
 
 func TestColumnGetValueForTime(t *testing.T) {
-	testColumnGetValueForScalar(t, "Time")
-}
-
-func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
-	testColumnGetValueForScalar(t, "TokyoGeoPoint")
-}
-
-func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
-	testColumnGetValueForScalar(t, "WGS84GeoPoint")
+	testColumnGetValue(t, "Time")
 }
 
 func TestColumnGetValueForShortText(t *testing.T) {
-	testColumnGetValueForScalar(t, "ShortText")
+	testColumnGetValue(t, "ShortText")
 }
 
 func TestColumnGetValueForText(t *testing.T) {
-	testColumnGetValueForScalar(t, "Text")
+	testColumnGetValue(t, "Text")
 }
 
 func TestColumnGetValueForLongText(t *testing.T) {
-	testColumnGetValueForScalar(t, "LongText")
+	testColumnGetValue(t, "LongText")
+}
+
+func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
+	testColumnGetValue(t, "TokyoGeoPoint")
+}
+
+func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
+	testColumnGetValue(t, "WGS84GeoPoint")
 }
 
 func TestColumnGetValueForBoolVector(t *testing.T) {
-	testColumnGetValueForVector(t, "Bool")
+	testColumnGetValue(t, "[]Bool")
 }
 
 func TestColumnGetValueForInt8Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "Int8")
+	testColumnGetValue(t, "[]Int8")
 }
 
 func TestColumnGetValueForInt16Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "Int16")
+	testColumnGetValue(t, "[]Int16")
 }
 
 func TestColumnGetValueForInt32Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "Int32")
+	testColumnGetValue(t, "[]Int32")
 }
 
 func TestColumnGetValueForInt64Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "Int64")
+	testColumnGetValue(t, "[]Int64")
 }
 
 func TestColumnGetValueForUInt8Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "UInt8")
+	testColumnGetValue(t, "[]UInt8")
 }
 
 func TestColumnGetValueForUInt16Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "UInt16")
+	testColumnGetValue(t, "[]UInt16")
 }
 
 func TestColumnGetValueForUInt32Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "UInt32")
+	testColumnGetValue(t, "[]UInt32")
 }
 
 func TestColumnGetValueForUInt64Vector(t *testing.T) {
-	testColumnGetValueForVector(t, "UInt64")
+	testColumnGetValue(t, "[]UInt64")
 }
 
 func TestColumnGetValueForFloatVector(t *testing.T) {
-	testColumnGetValueForVector(t, "Float")
+	testColumnGetValue(t, "[]Float")
 }
 
 func TestColumnGetValueForTimeVector(t *testing.T) {
-	testColumnGetValueForVector(t, "Time")
-}
-
-func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
-	testColumnGetValueForVector(t, "TokyoGeoPoint")
-}
-
-func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
-	testColumnGetValueForVector(t, "WGS84GeoPoint")
+	testColumnGetValue(t, "[]Time")
 }
 
 func TestColumnGetValueForShortTextVector(t *testing.T) {
-	testColumnGetValueForVector(t, "ShortText")
+	testColumnGetValue(t, "[]ShortText")
 }
 
 func TestColumnGetValueForTextVector(t *testing.T) {
-	testColumnGetValueForVector(t, "Text")
+	testColumnGetValue(t, "[]Text")
 }
 
 func TestColumnGetValueForLongTextVector(t *testing.T) {
-	testColumnGetValueForVector(t, "LongText")
+	testColumnGetValue(t, "[]LongText")
 }
+
+func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
+	testColumnGetValue(t, "[]TokyoGeoPoint")
+}
+
+func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
+	testColumnGetValue(t, "[]WGS84GeoPoint")
+}
+
+// Benchmarks.
 
 var numTestRows = 100000
 
-func benchmarkColumnSetValueForScalar(b *testing.B, valueType string) {
+func benchmarkColumnSetValue(b *testing.B, valueType string) {
 	b.StopTimer()
 	dirPath, _, db, table :=
 		createTempTable(b, "Table", nil)
@@ -1104,111 +1061,79 @@ func benchmarkColumnSetValueForScalar(b *testing.B, valueType string) {
 	}
 }
 
-func benchmarkColumnSetValueForVector(b *testing.B, valueType string) {
-	b.StopTimer()
-	dirPath, _, db, table :=
-		createTempTable(b, "Table", nil)
-	defer removeTempDB(b, dirPath, db)
-	ids := make([]uint32, numTestRows)
-	values := make([]interface{}, numTestRows)
-	for i, _ := range ids {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			b.Fatalf("Table.InsertRow() failed: %s", err)
-		}
-		ids[i] = id
-		values[i] = generateRandomVectorValue(valueType)
-	}
-
-	for i := 0; i < b.N; i++ {
-		column, err := table.CreateColumn(fmt.Sprintf("V%d", i), "[]"+valueType, nil)
-		if err != nil {
-			b.Fatalf("Table.CreateColumn() failed(): %s", err)
-		}
-		b.StartTimer()
-		for i, id := range ids {
-			if err := column.SetValue(id, values[i]); err != nil {
-				b.Fatalf("Column.SetValue() failed: %s", err)
-			}
-			ids[i] = id
-		}
-		b.StopTimer()
-	}
-}
-
 func BenchmarkColumnSetValueForBool(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Bool")
+	benchmarkColumnSetValue(b, "Bool")
 }
 
 func BenchmarkColumnSetValueForInt(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Int64")
+	benchmarkColumnSetValue(b, "Int64")
 }
 
 func BenchmarkColumnSetValueForFloat(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Float")
+	benchmarkColumnSetValue(b, "Float")
 }
 
 func BenchmarkColumnSetValueForTime(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Time")
-}
-
-func BenchmarkColumnSetValueForTokyoGeoPoint(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "TokyoGeoPoint")
-}
-
-func BenchmarkColumnSetValueForWGS84GeoPoint(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "WGS84GeoPoint")
+	benchmarkColumnSetValue(b, "Time")
 }
 
 func BenchmarkColumnSetValueForShortText(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "ShortText")
+	benchmarkColumnSetValue(b, "ShortText")
 }
 
 func BenchmarkColumnSetValueForText(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "Text")
+	benchmarkColumnSetValue(b, "Text")
 }
 
 func BenchmarkColumnSetValueForLongText(b *testing.B) {
-	benchmarkColumnSetValueForScalar(b, "LongText")
+	benchmarkColumnSetValue(b, "LongText")
+}
+
+func BenchmarkColumnSetValueForTokyoGeoPoint(b *testing.B) {
+	benchmarkColumnSetValue(b, "TokyoGeoPoint")
+}
+
+func BenchmarkColumnSetValueForWGS84GeoPoint(b *testing.B) {
+	benchmarkColumnSetValue(b, "WGS84GeoPoint")
 }
 
 func BenchmarkColumnSetValueForBoolVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Bool")
+	benchmarkColumnSetValue(b, "[]Bool")
 }
 
 func BenchmarkColumnSetValueForIntVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Int64")
+	benchmarkColumnSetValue(b, "[]Int64")
 }
 
 func BenchmarkColumnSetValueForFloatVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Float")
+	benchmarkColumnSetValue(b, "[]Float")
 }
 
 func BenchmarkColumnSetValueForTimeVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Time")
-}
-
-func BenchmarkColumnSetValueForTokyoGeoPointVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "TokyoGeoPoint")
-}
-
-func BenchmarkColumnSetValueForWGS84GeoPointVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "WGS84GeoPoint")
+	benchmarkColumnSetValue(b, "[]Time")
 }
 
 func BenchmarkColumnSetValueForShortTextVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "ShortText")
+	benchmarkColumnSetValue(b, "[]ShortText")
 }
 
 func BenchmarkColumnSetValueForTextVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "Text")
+	benchmarkColumnSetValue(b, "[]Text")
 }
 
 func BenchmarkColumnSetValueForLongTextVector(b *testing.B) {
-	benchmarkColumnSetValueForVector(b, "LongText")
+	benchmarkColumnSetValue(b, "[]LongText")
 }
 
-func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
+func BenchmarkColumnSetValueForTokyoGeoPointVector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]TokyoGeoPoint")
+}
+
+func BenchmarkColumnSetValueForWGS84GeoPointVector(b *testing.B) {
+	benchmarkColumnSetValue(b, "[]WGS84GeoPoint")
+}
+
+func benchmarkColumnGetValue(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(b, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(b, dirPath, db)
@@ -1234,105 +1159,79 @@ func benchmarkColumnGetValueForScalar(b *testing.B, valueType string) {
 	}
 }
 
-func benchmarkColumnGetValueForVector(b *testing.B, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(b, "Table", nil, "Value", "[]"+valueType, nil)
-	defer removeTempDB(b, dirPath, db)
-	ids := make([]uint32, numTestRows)
-	for i, _ := range ids {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			b.Fatalf("Table.InsertRow() failed: %s", err)
-		}
-		if err := column.SetValue(id, generateRandomVectorValue(valueType)); err != nil {
-			b.Fatalf("Column.SetValue() failed: %s", err)
-		}
-		ids[i] = id
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		for _, id := range ids {
-			if _, err := column.GetValue(id); err != nil {
-				b.Fatalf("Column.GetValue() failed: %s", err)
-			}
-		}
-	}
-}
-
 func BenchmarkColumnGetValueForBool(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Bool")
+	benchmarkColumnGetValue(b, "Bool")
 }
 
 func BenchmarkColumnGetValueForInt(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Int64")
+	benchmarkColumnGetValue(b, "Int64")
 }
 
 func BenchmarkColumnGetValueForFloat(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Float")
+	benchmarkColumnGetValue(b, "Float")
 }
 
 func BenchmarkColumnGetValueForTime(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Time")
-}
-
-func BenchmarkColumnGetValueForTokyoGeoPoint(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "TokyoGeoPoint")
-}
-
-func BenchmarkColumnGetValueForWGS84GeoPoint(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "WGS84GeoPoint")
+	benchmarkColumnGetValue(b, "Time")
 }
 
 func BenchmarkColumnGetValueForShortText(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "ShortText")
+	benchmarkColumnGetValue(b, "ShortText")
 }
 
 func BenchmarkColumnGetValueForText(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "Text")
+	benchmarkColumnGetValue(b, "Text")
 }
 
 func BenchmarkColumnGetValueForLongText(b *testing.B) {
-	benchmarkColumnGetValueForScalar(b, "LongText")
+	benchmarkColumnGetValue(b, "LongText")
+}
+
+func BenchmarkColumnGetValueForTokyoGeoPoint(b *testing.B) {
+	benchmarkColumnGetValue(b, "TokyoGeoPoint")
+}
+
+func BenchmarkColumnGetValueForWGS84GeoPoint(b *testing.B) {
+	benchmarkColumnGetValue(b, "WGS84GeoPoint")
 }
 
 func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Bool")
+	benchmarkColumnGetValue(b, "[]Bool")
 }
 
 func BenchmarkColumnGetValueForIntVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Int64")
+	benchmarkColumnGetValue(b, "[]Int64")
 }
 
 func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Float")
+	benchmarkColumnGetValue(b, "[]Float")
 }
 
 func BenchmarkColumnGetValueForTimeVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Time")
-}
-
-func BenchmarkColumnGetValueForTokyoGeoPointVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "TokyoGeoPoint")
-}
-
-func BenchmarkColumnGetValueForWGS84GeoPointVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "WGS84GeoPoint")
+	benchmarkColumnGetValue(b, "[]Time")
 }
 
 func BenchmarkColumnGetValueForShortTextVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "ShortText")
+	benchmarkColumnGetValue(b, "[]ShortText")
 }
 
 func BenchmarkColumnGetValueForTextVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "Text")
+	benchmarkColumnGetValue(b, "[]Text")
 }
 
 func BenchmarkColumnGetValueForLongTextVector(b *testing.B) {
-	benchmarkColumnGetValueForVector(b, "LongText")
+	benchmarkColumnGetValue(b, "[]LongText")
 }
 
-func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
+func BenchmarkColumnGetValueForTokyoGeoPointVector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]TokyoGeoPoint")
+}
+
+func BenchmarkColumnGetValueForWGS84GeoPointVector(b *testing.B) {
+	benchmarkColumnGetValue(b, "[]WGS84GeoPoint")
+}
+
+func benchmarkDBSelect(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(b, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(b, dirPath, db)
@@ -1357,102 +1256,74 @@ func benchmarkDBSelectForScalar(b *testing.B, valueType string) {
 	}
 }
 
-func benchmarkDBSelectForVector(b *testing.B, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(b, "Table", nil, "Value", "[]"+valueType, nil)
-	defer removeTempDB(b, dirPath, db)
-	ids := make([]uint32, numTestRows)
-	for i, _ := range ids {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			b.Fatalf("Table.InsertRow() failed: %s", err)
-		}
-		if err := column.SetValue(id, generateRandomVectorValue(valueType)); err != nil {
-			b.Fatalf("Column.SetValue() failed: %s", err)
-		}
-		ids[i] = id
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bytes, err := db.Query("select Table --output_columns Value --limit -1 --cache no")
-		if err != nil {
-			b.Fatalf("DB.Query() failed: %s", err)
-		}
-		if len(bytes) < numTestRows*5 {
-			b.Fatalf("DB.Query() failed: %s", err)
-		}
-	}
-}
-
 func BenchmarkDBSelectForBool(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Bool")
+	benchmarkDBSelect(b, "Bool")
 }
 
 func BenchmarkDBSelectForInt(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Int64")
+	benchmarkDBSelect(b, "Int64")
 }
 
 func BenchmarkDBSelectForFloat(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Float")
+	benchmarkDBSelect(b, "Float")
 }
 
 func BenchmarkDBSelectForTime(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Time")
-}
-
-func BenchmarkDBSelectForTokyoGeoPoint(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "TokyoGeoPoint")
-}
-
-func BenchmarkDBSelectForWGS84GeoPoint(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "WGS84GeoPoint")
+	benchmarkDBSelect(b, "Time")
 }
 
 func BenchmarkDBSelectForShortText(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "ShortText")
+	benchmarkDBSelect(b, "ShortText")
 }
 
 func BenchmarkDBSelectForText(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "Text")
+	benchmarkDBSelect(b, "Text")
 }
 
 func BenchmarkDBSelectForLongText(b *testing.B) {
-	benchmarkDBSelectForScalar(b, "LongText")
+	benchmarkDBSelect(b, "LongText")
+}
+
+func BenchmarkDBSelectForTokyoGeoPoint(b *testing.B) {
+	benchmarkDBSelect(b, "TokyoGeoPoint")
+}
+
+func BenchmarkDBSelectForWGS84GeoPoint(b *testing.B) {
+	benchmarkDBSelect(b, "WGS84GeoPoint")
 }
 
 func BenchmarkDBSelectForBoolVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Bool")
+	benchmarkDBSelect(b, "[]Bool")
 }
 
 func BenchmarkDBSelectForIntVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Int64")
+	benchmarkDBSelect(b, "[]Int64")
 }
 
 func BenchmarkDBSelectForFloatVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Float")
+	benchmarkDBSelect(b, "[]Float")
 }
 
 func BenchmarkDBSelectForTimeVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Time")
-}
-
-func BenchmarkDBSelectForTokyoGeoPointVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "TokyoGeoPoint")
-}
-
-func BenchmarkDBSelectForWGS84GeoPointVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "WGS84GeoPoint")
+	benchmarkDBSelect(b, "[]Time")
 }
 
 func BenchmarkDBSelectForShortTextVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "ShortText")
+	benchmarkDBSelect(b, "[]ShortText")
 }
 
 func BenchmarkDBSelectForTextVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "Text")
+	benchmarkDBSelect(b, "[]Text")
 }
 
 func BenchmarkDBSelectForLongTextVector(b *testing.B) {
-	benchmarkDBSelectForVector(b, "LongText")
+	benchmarkDBSelect(b, "[]LongText")
+}
+
+func BenchmarkDBSelectForTokyoGeoPointVector(b *testing.B) {
+	benchmarkDBSelect(b, "[]TokyoGeoPoint")
+}
+
+func BenchmarkDBSelectForWGS84GeoPointVector(b *testing.B) {
+	benchmarkDBSelect(b, "[]WGS84GeoPoint")
 }
