@@ -185,10 +185,10 @@ func generateRandomKey(keyType string) interface{} {
 		return rand.Float64()
 	case "Time":
 		return generateRandomTime()
-	case "TokyoGeoPoint", "WGS84GeoPoint":
-		return generateRandomGeoPoint()
 	case "ShortText":
 		return generateRandomText()
+	case "TokyoGeoPoint", "WGS84GeoPoint":
+		return generateRandomGeoPoint()
 	default:
 		return nil
 	}
@@ -346,16 +346,16 @@ func TestDBCreateTableWithFloatKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "Float")
 }
 
+func TestDBCreateTableWithShortTextKey(t *testing.T) {
+	testDBCreateTableWithKey(t, "ShortText")
+}
+
 func TestDBCreateTableWithTokyoGeoPointKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "TokyoGeoPoint")
 }
 
 func TestDBCreateTableWithWGS84GeoPointKey(t *testing.T) {
 	testDBCreateTableWithKey(t, "WGS84GeoPoint")
-}
-
-func TestDBCreateTableWithShortTextKey(t *testing.T) {
-	testDBCreateTableWithKey(t, "ShortText")
 }
 
 func TestDBCreateTableWithBoolValue(t *testing.T) {
@@ -398,16 +398,16 @@ func TestDBCreateTableWithTimeRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "Time")
 }
 
+func TestDBCreateTableWithShortTextRefKey(t *testing.T) {
+	testDBCreateTableWithRefKey(t, "ShortText")
+}
+
 func TestDBCreateTableWithTokyoGeoPointRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "TokyoGeoPoint")
 }
 
 func TestDBCreateTableWithWGS84GeoPointRefKey(t *testing.T) {
 	testDBCreateTableWithRefKey(t, "WGS84GeoPoint")
-}
-
-func TestDBCreateTableWithShortTextRefKey(t *testing.T) {
-	testDBCreateTableWithRefKey(t, "ShortText")
 }
 
 func TestDBCreateTableWithBoolRefValue(t *testing.T) {
@@ -426,16 +426,16 @@ func TestDBCreateTableWithTimeRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "Time")
 }
 
+func TestDBCreateTableWithShortTextRefValue(t *testing.T) {
+	testDBCreateTableWithRefValue(t, "ShortText")
+}
+
 func TestDBCreateTableWithTokyoGeoPointRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "TokyoGeoPoint")
 }
 
 func TestDBCreateTableWithWGS84GeoPointRefValue(t *testing.T) {
 	testDBCreateTableWithRefValue(t, "WGS84GeoPoint")
-}
-
-func TestDBCreateTableWithShortTextRefValue(t *testing.T) {
-	testDBCreateTableWithRefValue(t, "ShortText")
 }
 
 func testTableInsertRow(t *testing.T, keyType string) {
@@ -505,16 +505,16 @@ func TestTableInsertRowWithTimeKey(t *testing.T) {
 	testTableInsertRow(t, "Time")
 }
 
+func TestTableInsertRowWithShortTextKey(t *testing.T) {
+	testTableInsertRow(t, "ShortText")
+}
+
 func TestTableInsertRowWithTokyoGeoPointKey(t *testing.T) {
 	testTableInsertRow(t, "TokyoGeoPoint")
 }
 
 func TestTableInsertRowWithWGS84GeoPointKey(t *testing.T) {
 	testTableInsertRow(t, "WGS84GeoPoint")
-}
-
-func TestTableInsertRowWithShortTextKey(t *testing.T) {
-	testTableInsertRow(t, "ShortText")
 }
 
 func testTableCreateScalarColumn(t *testing.T, valueType string) {
@@ -615,14 +615,6 @@ func TestTableCreateColumnForTime(t *testing.T) {
 	testTableCreateScalarColumn(t, "Time")
 }
 
-func TestTableCreateColumnForTokyoGeoPoint(t *testing.T) {
-	testTableCreateScalarColumn(t, "TokyoGeoPoint")
-}
-
-func TestTableCreateColumnForWGS84GeoPoint(t *testing.T) {
-	testTableCreateScalarColumn(t, "WGS84GeoPoint")
-}
-
 func TestTableCreateColumnForShortText(t *testing.T) {
 	testTableCreateScalarColumn(t, "ShortText")
 }
@@ -633,6 +625,14 @@ func TestTableCreateColumnForText(t *testing.T) {
 
 func TestTableCreateColumnForLongText(t *testing.T) {
 	testTableCreateScalarColumn(t, "LongText")
+}
+
+func TestTableCreateColumnForTokyoGeoPoint(t *testing.T) {
+	testTableCreateScalarColumn(t, "TokyoGeoPoint")
+}
+
+func TestTableCreateColumnForWGS84GeoPoint(t *testing.T) {
+	testTableCreateScalarColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForBoolVector(t *testing.T) {
@@ -651,14 +651,6 @@ func TestTableCreateColumnForTimeVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "Time")
 }
 
-func TestTableCreateColumnForTokyoGeoPointVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "TokyoGeoPoint")
-}
-
-func TestTableCreateColumnForWGS84GeoPointVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "WGS84GeoPoint")
-}
-
 func TestTableCreateColumnForShortTextVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "ShortText")
 }
@@ -669,6 +661,14 @@ func TestTableCreateColumnForTextVector(t *testing.T) {
 
 func TestTableCreateColumnForLongTextVector(t *testing.T) {
 	testTableCreateVectorColumn(t, "LongText")
+}
+
+func TestTableCreateColumnForTokyoGeoPointVector(t *testing.T) {
+	testTableCreateVectorColumn(t, "TokyoGeoPoint")
+}
+
+func TestTableCreateColumnForWGS84GeoPointVector(t *testing.T) {
+	testTableCreateVectorColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForRefToBool(t *testing.T) {
@@ -687,16 +687,16 @@ func TestTableCreateColumnForRefToTime(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "Time")
 }
 
+func TestTableCreateColumnForRefToShortText(t *testing.T) {
+	testTableCreateScalarRefColumn(t, "ShortText")
+}
+
 func TestTableCreateColumnForRefToTokyoGeoPoint(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "TokyoGeoPoint")
 }
 
 func TestTableCreateColumnForRefToWGS84GeoPoint(t *testing.T) {
 	testTableCreateScalarRefColumn(t, "WGS84GeoPoint")
-}
-
-func TestTableCreateColumnForRefToShortText(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "ShortText")
 }
 
 func TestTableCreateColumnForRefToBoolVector(t *testing.T) {
@@ -715,16 +715,16 @@ func TestTableCreateColumnForRefToTimeVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "Time")
 }
 
+func TestTableCreateColumnForRefToShortTextVector(t *testing.T) {
+	testTableCreateVectorRefColumn(t, "ShortText")
+}
+
 func TestTableCreateColumnForRefToTokyoGeoPointVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "TokyoGeoPoint")
 }
 
 func TestTableCreateColumnForRefToWGS84GeoPointVector(t *testing.T) {
 	testTableCreateVectorRefColumn(t, "WGS84GeoPoint")
-}
-
-func TestTableCreateColumnForRefToShortTextVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "ShortText")
 }
 
 func testColumnSetValue(t *testing.T, valueType string) {

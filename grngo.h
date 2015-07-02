@@ -76,12 +76,12 @@ grngo_row_info grngo_table_insert_time(grn_ctx *ctx, grn_obj *table,
 // grngo_table_insert_float() inserts a row with Float key.
 grngo_row_info grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
                                         double key);
-// grngo_table_insert_geo_point() inserts a row with GeoPoint key.
-grngo_row_info grngo_table_insert_geo_point(grn_ctx *ctx, grn_obj *table,
-                                            grn_geo_point key);
 // grngo_table_insert_text() inserts a row with Text key.
 grngo_row_info grngo_table_insert_text(grn_ctx *ctx, grn_obj *table,
                                        const grngo_text *key);
+// grngo_table_insert_geo_point() inserts a row with GeoPoint key.
+grngo_row_info grngo_table_insert_geo_point(grn_ctx *ctx, grn_obj *table,
+                                            grn_geo_point key);
 
 // grngo_column_set_bool() assigns a Bool value.
 grn_bool grngo_column_set_bool(grn_ctx *ctx, grn_obj *column,
@@ -108,13 +108,13 @@ grn_bool grngo_column_set_time(grn_ctx *ctx, grn_obj *column,
 // grngo_column_set_float() assigns a Float value.
 grn_bool grngo_column_set_float(grn_ctx *ctx, grn_obj *column,
                                 grn_id id, double value);
+// grngo_column_set_text() assigns a Text value.
+grn_bool grngo_column_set_text(grn_ctx *ctx, grn_obj *column,
+                               grn_id id, const grngo_text *value);
 // grngo_column_set_geo_point() assigns a GeoPoint value.
 grn_bool grngo_column_set_geo_point(grn_ctx *ctx, grn_obj *column,
                                     grn_builtin_type data_type,
                                     grn_id id, grn_geo_point value);
-// grngo_column_set_text() assigns a Text value.
-grn_bool grngo_column_set_text(grn_ctx *ctx, grn_obj *column,
-                               grn_id id, const grngo_text *value);
 // grngo_column_set_bool_vector() assigns a Bool vector.
 grn_bool grngo_column_set_bool_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id,
@@ -151,16 +151,16 @@ grn_bool grngo_column_set_time_vector(grn_ctx *ctx, grn_obj *column,
 grn_bool grngo_column_set_float_vector(grn_ctx *ctx, grn_obj *column,
                                        grn_id id,
                                        const grngo_vector *value);
-// grngo_column_set_geo_point_vector() assigns a GeoPoint vector.
-grn_bool grngo_column_set_geo_point_vector(grn_ctx *ctx, grn_obj *column,
-                                           grn_builtin_type data_type,
-                                           grn_id id,
-                                           const grngo_vector *value);
 // grngo_column_set_text_vector() assigns a Text vector.
 // value must refer to an array of grngo_text.
 grn_bool grngo_column_set_text_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id,
                                       const grngo_vector *value);
+// grngo_column_set_geo_point_vector() assigns a GeoPoint vector.
+grn_bool grngo_column_set_geo_point_vector(grn_ctx *ctx, grn_obj *column,
+                                           grn_builtin_type data_type,
+                                           grn_id id,
+                                           const grngo_vector *value);
 
 // grngo_column_get_X_vector() sets *(X *)(value.ptr)[i] if value->size >=
 // the actual vector size.
@@ -178,12 +178,12 @@ grn_bool grngo_column_get_int(grn_ctx *ctx, grn_obj *column,
 // grngo_column_get_float() gets a stored Float value.
 grn_bool grngo_column_get_float(grn_ctx *ctx, grn_obj *column,
                                 grn_id id, double *value);
-// grngo_column_get_geo_point() gets a stored GeoPoint value.
-grn_bool grngo_column_get_geo_point(grn_ctx *ctx, grn_obj *column,
-                                    grn_id id, grn_geo_point *value);
 // grngo_column_get_text() gets a stored Text value.
 grn_bool grngo_column_get_text(grn_ctx *ctx, grn_obj *column,
                                grn_id id, grngo_text *value);
+// grngo_column_get_geo_point() gets a stored GeoPoint value.
+grn_bool grngo_column_get_geo_point(grn_ctx *ctx, grn_obj *column,
+                                    grn_id id, grn_geo_point *value);
 // grngo_column_get_bool_vector() gets a stored Bool vector.
 grn_bool grngo_column_get_bool_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id, grngo_vector *value);
@@ -194,12 +194,12 @@ grn_bool grngo_column_get_int_vector(grn_ctx *ctx, grn_obj *column,
 // grngo_column_get_float_vector() gets a stored Float vector.
 grn_bool grngo_column_get_float_vector(grn_ctx *ctx, grn_obj *column,
                                        grn_id id, grngo_vector *value);
-// grngo_column_get_geo_point_vector() gets a stored GeoPoint vector.
-grn_bool grngo_column_get_geo_point_vector(grn_ctx *ctx, grn_obj *column,
-                                           grn_id id, grngo_vector *value);
 // grngo_column_get_text_vector() gets a stored Text vector.
 // value must refer to an array of grngo_text.
 grn_bool grngo_column_get_text_vector(grn_ctx *ctx, grn_obj *column,
                                       grn_id id, grngo_vector *value);
+// grngo_column_get_geo_point_vector() gets a stored GeoPoint vector.
+grn_bool grngo_column_get_geo_point_vector(grn_ctx *ctx, grn_obj *column,
+                                           grn_id id, grngo_vector *value);
 
 #endif  // GRNGO_H

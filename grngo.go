@@ -749,21 +749,6 @@ func (table *Table) insertFloat(key float64) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
-// insertGeoPoint inserts a row with GeoPoint key.
-func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
-	switch table.keyType {
-	case TokyoGeoPoint, WGS84GeoPoint:
-	default:
-		return false, NilID, newInvalidKeyTypeError(table.keyType, LazyGeoPoint)
-	}
-	grnKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
-	rowInfo := C.grngo_table_insert_geo_point(table.db.ctx, table.obj, grnKey)
-	if rowInfo.id == C.GRN_ID_NIL {
-		return false, NilID, fmt.Errorf("grngo_table_insert_geo_point() failed")
-	}
-	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
-}
-
 // insertText inserts a row with Text key.
 func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	if table.keyType != ShortText {
@@ -781,6 +766,21 @@ func (table *Table) insertText(key []byte) (bool, uint32, error) {
 	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
 }
 
+// insertGeoPoint inserts a row with GeoPoint key.
+func (table *Table) insertGeoPoint(key GeoPoint) (bool, uint32, error) {
+	switch table.keyType {
+	case TokyoGeoPoint, WGS84GeoPoint:
+	default:
+		return false, NilID, newInvalidKeyTypeError(table.keyType, LazyGeoPoint)
+	}
+	grnKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
+	rowInfo := C.grngo_table_insert_geo_point(table.db.ctx, table.obj, grnKey)
+	if rowInfo.id == C.GRN_ID_NIL {
+		return false, NilID, fmt.Errorf("grngo_table_insert_geo_point() failed")
+	}
+	return rowInfo.inserted == C.GRN_TRUE, uint32(rowInfo.id), nil
+}
+
 // InsertRow finds or inserts a row.
 func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err error) {
 	switch value := key.(type) {
@@ -792,10 +792,10 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 		return table.insertInt(value)
 	case float64:
 		return table.insertFloat(value)
-	case GeoPoint:
-		return table.insertGeoPoint(value)
 	case []byte:
 		return table.insertText(value)
+	case GeoPoint:
+		return table.insertGeoPoint(value)
 	default:
 		return false, NilID, fmt.Errorf(
 			"unsupported key type: typeName = <%s>", reflect.TypeOf(key).Name())
@@ -1089,25 +1089,6 @@ func (column *Column) setFloat(id uint32, value float64) error {
 	return nil
 }
 
-// setGeoPoint assigns a GeoPoint value.
-func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
-	switch column.valueType {
-	case TokyoGeoPoint, WGS84GeoPoint:
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, false)
-	}
-	if column.isVector {
-		return fmt.Errorf("value type conflict")
-	}
-	grnValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
-	if ok := C.grngo_column_set_geo_point(column.table.db.ctx, column.obj,
-		C.grn_builtin_type(column.valueType),
-		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_geo_point() failed")
-	}
-	return nil
-}
-
 // setText assigns a Text value.
 func (column *Column) setText(id uint32, value []byte) error {
 	switch column.valueType {
@@ -1126,6 +1107,25 @@ func (column *Column) setText(id uint32, value []byte) error {
 	if ok := C.grngo_column_set_text(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
 		return fmt.Errorf("grngo_column_set_text() failed")
+	}
+	return nil
+}
+
+// setGeoPoint assigns a GeoPoint value.
+func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
+	switch column.valueType {
+	case TokyoGeoPoint, WGS84GeoPoint:
+	default:
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, false)
+	}
+	if column.isVector {
+		return fmt.Errorf("value type conflict")
+	}
+	grnValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
+	if ok := C.grngo_column_set_geo_point(column.table.db.ctx, column.obj,
+		C.grn_builtin_type(column.valueType),
+		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
+		return fmt.Errorf("grngo_column_set_geo_point() failed")
 	}
 	return nil
 }
@@ -1211,29 +1211,6 @@ func (column *Column) setFloatVector(id uint32, value []float64) error {
 	return nil
 }
 
-// setGeoPointVector assigns a GeoPoint vector.
-func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
-	if !column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
-	}
-	switch column.valueType {
-	case TokyoGeoPoint, WGS84GeoPoint:
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
-	}
-	var grnVector C.grngo_vector
-	if len(value) != 0 {
-		grnVector.ptr = unsafe.Pointer(&value[0])
-		grnVector.size = C.size_t(len(value))
-	}
-	if ok := C.grngo_column_set_geo_point_vector(column.table.db.ctx,
-		column.obj, C.grn_builtin_type(column.valueType),
-		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_geo_point_vector() failed")
-	}
-	return nil
-}
-
 // setTextVector assigns a Text vector.
 func (column *Column) setTextVector(id uint32, value [][]byte) error {
 	if !column.isVector {
@@ -1263,6 +1240,29 @@ func (column *Column) setTextVector(id uint32, value [][]byte) error {
 	return nil
 }
 
+// setGeoPointVector assigns a GeoPoint vector.
+func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
+	if !column.isVector {
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
+	}
+	switch column.valueType {
+	case TokyoGeoPoint, WGS84GeoPoint:
+	default:
+		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
+	}
+	var grnVector C.grngo_vector
+	if len(value) != 0 {
+		grnVector.ptr = unsafe.Pointer(&value[0])
+		grnVector.size = C.size_t(len(value))
+	}
+	if ok := C.grngo_column_set_geo_point_vector(column.table.db.ctx,
+		column.obj, C.grn_builtin_type(column.valueType),
+		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
+		return fmt.Errorf("grngo_column_set_geo_point_vector() failed")
+	}
+	return nil
+}
+
 // SetValue assigns a value.
 func (column *Column) SetValue(id uint32, value interface{}) error {
 	switch v := value.(type) {
@@ -1272,20 +1272,20 @@ func (column *Column) SetValue(id uint32, value interface{}) error {
 		return column.setInt(id, v)
 	case float64:
 		return column.setFloat(id, v)
-	case GeoPoint:
-		return column.setGeoPoint(id, v)
 	case []byte:
 		return column.setText(id, v)
+	case GeoPoint:
+		return column.setGeoPoint(id, v)
 	case []bool:
 		return column.setBoolVector(id, v)
 	case []int64:
 		return column.setIntVector(id, v)
 	case []float64:
 		return column.setFloatVector(id, v)
-	case []GeoPoint:
-		return column.setGeoPointVector(id, v)
 	case [][]byte:
 		return column.setTextVector(id, v)
+	case []GeoPoint:
+		return column.setGeoPointVector(id, v)
 	default:
 		return fmt.Errorf("unsupported value type: name = <%s>", reflect.TypeOf(value).Name())
 	}
@@ -1322,16 +1322,6 @@ func (column *Column) getFloat(id uint32) (interface{}, error) {
 	return float64(grnValue), nil
 }
 
-// getGeoPoint gets a GeoPoint value.
-func (column *Column) getGeoPoint(id uint32) (interface{}, error) {
-	var grnValue C.grn_geo_point
-	if ok := C.grngo_column_get_geo_point(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grngo_column_get_geo_point() failed")
-	}
-	return GeoPoint{int32(grnValue.latitude), int32(grnValue.longitude)}, nil
-}
-
 // getText gets a Text value.
 func (column *Column) getText(id uint32) (interface{}, error) {
 	var grnValue C.grngo_text
@@ -1349,6 +1339,16 @@ func (column *Column) getText(id uint32) (interface{}, error) {
 		return nil, fmt.Errorf("grngo_column_get_text() failed")
 	}
 	return value, nil
+}
+
+// getGeoPoint gets a GeoPoint value.
+func (column *Column) getGeoPoint(id uint32) (interface{}, error) {
+	var grnValue C.grn_geo_point
+	if ok := C.grngo_column_get_geo_point(column.table.db.ctx, column.obj,
+		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
+		return nil, fmt.Errorf("grngo_column_get_geo_point() failed")
+	}
+	return GeoPoint{int32(grnValue.latitude), int32(grnValue.longitude)}, nil
 }
 
 // getBoolVector gets a BoolVector.
@@ -1414,25 +1414,6 @@ func (column *Column) getFloatVector(id uint32) (interface{}, error) {
 	return value, nil
 }
 
-// getGeoPointVector gets a GeoPointVector.
-func (column *Column) getGeoPointVector(id uint32) (interface{}, error) {
-	var grnValue C.grngo_vector
-	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grngo_column_get_geo_point_vector() failed")
-	}
-	if grnValue.size == 0 {
-		return make([]GeoPoint, 0), nil
-	}
-	value := make([]GeoPoint, int(grnValue.size))
-	grnValue.ptr = unsafe.Pointer(&value[0])
-	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grngo_column_get_geo_point_vector() failed")
-	}
-	return value, nil
-}
-
 // getTextVector gets a TextVector.
 func (column *Column) getTextVector(id uint32) (interface{}, error) {
 	var grnVector C.grngo_vector
@@ -1459,6 +1440,25 @@ func (column *Column) getTextVector(id uint32) (interface{}, error) {
 	if ok := C.grngo_column_get_text_vector(column.table.db.ctx, column.obj,
 		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
 		return nil, fmt.Errorf("grngo_column_get_text_vector() failed")
+	}
+	return value, nil
+}
+
+// getGeoPointVector gets a GeoPointVector.
+func (column *Column) getGeoPointVector(id uint32) (interface{}, error) {
+	var grnValue C.grngo_vector
+	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
+		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
+		return nil, fmt.Errorf("grngo_column_get_geo_point_vector() failed")
+	}
+	if grnValue.size == 0 {
+		return make([]GeoPoint, 0), nil
+	}
+	value := make([]GeoPoint, int(grnValue.size))
+	grnValue.ptr = unsafe.Pointer(&value[0])
+	if ok := C.grngo_column_get_geo_point_vector(column.table.db.ctx, column.obj,
+		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
+		return nil, fmt.Errorf("grngo_column_get_geo_point_vector() failed")
 	}
 	return value, nil
 }
