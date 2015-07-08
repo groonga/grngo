@@ -339,6 +339,12 @@ func (db *DB) Close() error {
 // that.
 func (db *DB) Refresh() error {
 	for _, table := range db.tables {
+		nameBytes := []byte(table.name)
+		cName := (*C.char)(unsafe.Pointer(&nameBytes[0]))
+		tableObj := C.grngo_find_table(db.ctx, cName, C.int(len(nameBytes)))
+		if tableObj != table.obj {
+			continue
+		}
 		for _, column := range table.columns {
 			nameBytes := []byte(column.name)
 			cName := (*C.char)(unsafe.Pointer(&nameBytes[0]))
