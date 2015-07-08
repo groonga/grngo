@@ -340,7 +340,12 @@ func (db *DB) Close() error {
 func (db *DB) Refresh() error {
 	for _, table := range db.tables {
 		for _, column := range table.columns {
-			C.grn_obj_unlink(db.ctx, column.obj)
+			nameBytes := []byte(column.name)
+			cName := (*C.char)(unsafe.Pointer(&nameBytes[0]))
+			columnObj := C.grn_obj_column(db.ctx, table.obj, cName, C.uint(len(nameBytes)))
+			if columnObj == column.obj {
+				C.grn_obj_unlink(db.ctx, column.obj)
+			}
 		}
 		C.grn_obj_unlink(db.ctx, table.obj)
 	}
