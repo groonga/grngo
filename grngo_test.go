@@ -273,17 +273,26 @@ func TestOpenDB(t *testing.T) {
 func TestDBRefresh(t *testing.T) {
 	dirPath, _, db, _, _ := createTempColumn(t, "Table", nil, "Value", "Bool", nil)
 	defer removeTempDB(t, dirPath, db)
-	if err := db.Refresh(); err != nil {
-		t.Fatalf("DB.Refresh() failed: %v", err)
-	}
 	if _, err := db.Query("column_remove Table Value"); err != nil {
 		t.Fatalf("DB.Query() failed: %v", err)
+	}
+	if err := db.Refresh(); err != nil {
+		t.Fatalf("DB.Refresh() failed: %v", err)
 	}
 	if _, err := db.FindTable("Table"); err != nil {
 		t.Fatalf("DB.FindTable() failed: %v", err)
 	}
 	if _, err := db.FindColumn("Table", "Column"); err == nil {
 		t.Fatalf("DB.FindColumn() succeeded")
+	}
+	if _, err := db.Query("table_remove Table"); err != nil {
+		t.Fatalf("DB.Query() failed: %v", err)
+	}
+	if err := db.Refresh(); err != nil {
+		t.Fatalf("DB.Refresh() failed: %v", err)
+	}
+	if _, err := db.FindTable("Table"); err == nil {
+		t.Fatalf("DB.FindTable() succeeded: %v", err)
 	}
 }
 
