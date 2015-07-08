@@ -344,6 +344,7 @@ func (db *DB) Refresh() error {
 		}
 		C.grn_obj_unlink(db.ctx, table.obj)
 	}
+	db.tables = make(map[string]*Table)
 	return nil
 }
 
