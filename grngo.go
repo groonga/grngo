@@ -177,6 +177,31 @@ func (rc C.grn_rc) String() string {
 	}
 }
 
+// newGrnError returns an error related to a Groonga or Grngo operation.
+func newGrnError(opName string, rc *C.grn_rc, ctx *C.grn_ctx) error {
+	switch {
+	case rc == nil:
+		if ctx == nil {
+			return fmt.Errorf("%s failed", opName)
+		}
+		if ctx.rc == C.GRN_SUCCESS {
+			return fmt.Errorf("%s failed: ctx.rc = %s (%d)", opName, ctx.rc, ctx.rc)
+		}
+		msg := C.GoString(&ctx.errbuf[0])
+		return fmt.Errorf("%s failed: ctx.rc = %s (%d), ctx.errbuf = %s",
+			opName, ctx.rc, ctx.rc, msg)
+	case ctx == nil:
+		return fmt.Errorf("%s failed: rc = %s (%d)", opName, *rc, *rc)
+	case ctx.rc == C.GRN_SUCCESS:
+		return fmt.Errorf("%s failed: rc = %s (%d), ctx.rc = %s (%d)",
+			opName, *rc, *rc, ctx.rc, ctx.rc)
+	default:
+		msg := C.GoString(&ctx.errbuf[0])
+		return fmt.Errorf("%s failed: rc = %s (%d), ctx.rc = %s (%d), ctx.errbuf = %s",
+			opName, *rc, *rc, ctx.rc, ctx.rc, msg)
+	}
+}
+
 // newInvalidKeyTypeError returns an error for data type conflict.
 func newInvalidKeyTypeError(expected, actual DataType) error {
 	return fmt.Errorf("invalid data type: expected = %s, actual = %s", expected, actual)
