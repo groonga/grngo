@@ -396,7 +396,7 @@ func GrnInit() error {
 	if grnInitCount == 0 {
 		if !grnInitFinDisabled {
 			if rc := C.grn_init(); rc != C.GRN_SUCCESS {
-				return fmt.Errorf("grn_init() failed: rc = %d", rc)
+				return newGrnError("grn_init()", &rc, nil)
 			}
 		}
 	}
@@ -416,7 +416,7 @@ func GrnFin() error {
 	case 1:
 		if !grnInitFinDisabled {
 			if rc := C.grn_fin(); rc != C.GRN_SUCCESS {
-				return fmt.Errorf("grn_fin() failed: rc = %d", rc)
+				return newGrnError("grn_fin()", &rc, nil)
 			}
 		}
 	}
@@ -432,7 +432,7 @@ func openGrnCtx() (*C.grn_ctx, error) {
 	ctx := C.grn_ctx_open(0)
 	if ctx == nil {
 		GrnFin()
-		return nil, fmt.Errorf("grn_ctx_open() failed")
+		return nil, newGrnError("grn_ctx_open()", nil, nil)
 	}
 	return ctx, nil
 }
@@ -442,7 +442,7 @@ func closeGrnCtx(ctx *C.grn_ctx) error {
 	rc := C.grn_ctx_close(ctx)
 	GrnFin()
 	if rc != C.GRN_SUCCESS {
-		return fmt.Errorf("grn_ctx_close() failed: rc = %d", rc)
+		return newGrnError("grn_ctx_close()", &rc, nil)
 	}
 	return nil
 }
@@ -478,9 +478,8 @@ func CreateDB(path string) (*DB, error) {
 	}
 	obj := C.grn_db_create(ctx, cPath, nil)
 	if obj == nil {
-		errMsg := C.GoString(&ctx.errbuf[0])
-		closeGrnCtx(ctx)
-		return nil, fmt.Errorf("grn_db_create() failed: err = %s", errMsg)
+		defer closeGrnCtx(ctx)
+		return nil, newGrnError("grn_db_create()", nil, ctx)
 	}
 	return newDB(ctx, obj), nil
 }
@@ -499,9 +498,8 @@ func OpenDB(path string) (*DB, error) {
 	defer C.free(unsafe.Pointer(cPath))
 	obj := C.grn_db_open(ctx, cPath)
 	if obj == nil {
-		errMsg := C.GoString(&ctx.errbuf[0])
-		closeGrnCtx(ctx)
-		return nil, fmt.Errorf("grn_db_open() failed: err = %s", errMsg)
+		defer closeGrnCtx(ctx)
+		return nil, newGrnError("grn_db_open()", nil, ctx)
 	}
 	return newDB(ctx, obj), nil
 }
@@ -510,8 +508,8 @@ func OpenDB(path string) (*DB, error) {
 func (db *DB) Close() error {
 	rc := C.grn_obj_close(db.ctx, db.obj)
 	if rc != C.GRN_SUCCESS {
-		closeGrnCtx(db.ctx)
-		return fmt.Errorf("grn_obj_close() failed: rc = %d", rc)
+		defer closeGrnCtx(db.ctx)
+		return newGrnError("grn_obj_close()", &rc, db.ctx)
 	}
 	return closeGrnCtx(db.ctx)
 }
@@ -553,14 +551,9 @@ func (db *DB) Send(command string) error {
 	if len(commandBytes) != 0 {
 		cCommand = (*C.char)(unsafe.Pointer(&commandBytes[0]))
 	}
-	rc := C.grn_ctx_send(db.ctx, cCommand, C.uint(len(commandBytes)), 0)
-	switch {
-	case rc != C.GRN_SUCCESS:
-		errMsg := C.GoString(&db.ctx.errbuf[0])
-		return fmt.Errorf("grn_ctx_send() failed: rc = %d, err = %s", rc, errMsg)
-	case db.ctx.rc != C.GRN_SUCCESS:
-		errMsg := C.GoString(&db.ctx.errbuf[0])
-		return fmt.Errorf("grn_ctx_send() failed: ctx.rc = %d, err = %s", db.ctx.rc, errMsg)
+	C.grn_ctx_send(db.ctx, cCommand, C.uint(len(commandBytes)), 0)
+	if db.ctx.rc != C.GRN_SUCCESS {
+		return newGrnError("grn_ctx_send()", nil, db.ctx)
 	}
 	return nil
 }
@@ -601,15 +594,9 @@ func (db *DB) Recv() ([]byte, error) {
 	var resultBuffer *C.char
 	var resultLength C.uint
 	var flags C.int
-	rc := C.grn_ctx_recv(db.ctx, &resultBuffer, &resultLength, &flags)
-	switch {
-	case rc != C.GRN_SUCCESS:
-		errMsg := C.GoString(&db.ctx.errbuf[0])
-		return nil, fmt.Errorf(
-			"grn_ctx_recv() failed: rc = %d, err = %s", rc, errMsg)
-	case db.ctx.rc != C.GRN_SUCCESS:
-		errMsg := C.GoString(&db.ctx.errbuf[0])
-		return nil, fmt.Errorf("grn_ctx_recv() failed: ctx.rc = %d, err = %s", db.ctx.rc, errMsg)
+	C.grn_ctx_recv(db.ctx, &resultBuffer, &resultLength, &flags)
+	if db.ctx.rc != C.GRN_SUCCESS {
+		return nil, newGrnError("grn_ctx_recv()", nil, db.ctx)
 	}
 	result := C.GoBytes(unsafe.Pointer(resultBuffer), C.int(resultLength))
 	return result, nil
@@ -1098,7 +1085,7 @@ func (table *Table) findColumn(name string) (*Column, error) {
 	}
 	obj := C.grn_obj_column(table.db.ctx, table.obj, cName, C.uint(len(name)))
 	if obj == nil {
-		return nil, fmt.Errorf("grn_obj_column() failed: table = %+v, name = <%s>", table, name)
+		return nil, newGrnError("grn_obj_column()", nil, table.db.ctx)
 	}
 	var valueType DataType
 	var valueTable *Table
