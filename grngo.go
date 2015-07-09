@@ -333,10 +333,6 @@ func (db *DB) Close() error {
 // If a table or column is renamed or removed, the maps may cause a name
 // resolution error. In such a case, you should use Refresh or reopen the
 // Groonga database to resolve it.
-//
-// Also, if you remove a table or column with Send, SendEx, Query, or QueryEx,
-// you should call Refresh just before or reopen the database immediately after
-// that.
 func (db *DB) Refresh() error {
 	for _, table := range db.tables {
 		nameBytes := []byte(table.name)
