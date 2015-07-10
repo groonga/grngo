@@ -738,14 +738,13 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	if rc != C.GRN_SUCCESS {
 		return nil, newGrnError("grngo_find_table()", &rc, db.ctx)
 	}
+	// Check the key type.
 	var keyInfo C.grngo_table_type_info
 	rc = C.grngo_table_get_key_info(db.ctx, obj, &keyInfo)
 	if rc != C.GRN_SUCCESS {
 		return nil, newGrnError("grngo_table_get_key_info()", &rc, db.ctx)
 	}
-	// Check the key type.
 	keyType := DataType(keyInfo.data_type)
-	// Find the destination table if the key is table reference.
 	var keyTable *Table
 	if keyInfo.ref_table != nil {
 		defer C.grn_obj_unlink(db.ctx, keyInfo.ref_table)
@@ -762,14 +761,13 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		}
 		keyType = keyTable.keyType
 	}
+	// Check the value type.
 	var valueInfo C.grngo_table_type_info
 	rc = C.grngo_table_get_value_info(db.ctx, obj, &valueInfo)
 	if rc != C.GRN_SUCCESS {
 		return nil, newGrnError("grngo_table_get_value_info()", &rc, db.ctx)
 	}
-	// Check the value type.
 	valueType := DataType(valueInfo.data_type)
-	// Find the destination table if the value is table reference.
 	var valueTable *Table
 	if valueInfo.ref_table != nil {
 		defer C.grn_obj_unlink(db.ctx, valueInfo.ref_table)
