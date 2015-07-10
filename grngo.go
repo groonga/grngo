@@ -733,9 +733,10 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if keyType == Void {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
 		}
-		cKeyTableName := C.grngo_table_get_name(db.ctx, keyInfo.ref_table)
-		if cKeyTableName == nil {
-			return nil, fmt.Errorf("grngo_table_get_name() failed")
+		var cKeyTableName *C.char
+		rc := C.grngo_table_get_name(db.ctx, keyInfo.ref_table, &cKeyTableName)
+		if rc != C.GRN_SUCCESS {
+			return nil, newGrnError("grngo_table_get_name()", &rc, db.ctx)
 		}
 		defer C.free(unsafe.Pointer(cKeyTableName))
 		var err error
@@ -756,9 +757,10 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if valueType == Void {
 			return nil, fmt.Errorf("reference to void: name = <%s>", name)
 		}
-		cValueTableName := C.grngo_table_get_name(db.ctx, valueInfo.ref_table)
-		if cValueTableName == nil {
-			return nil, fmt.Errorf("grngo_table_get_name() failed")
+		var cValueTableName *C.char
+		rc := C.grngo_table_get_name(db.ctx, valueInfo.ref_table, &cValueTableName)
+		if rc != C.GRN_SUCCESS {
+			return nil, newGrnError("grngo_table_get_name()", &rc, db.ctx)
 		}
 		defer C.free(unsafe.Pointer(cValueTableName))
 		var err error
@@ -1120,9 +1122,10 @@ func (table *Table) findColumn(name string) (*Column, error) {
 			if valueType == Void {
 				return nil, fmt.Errorf("reference to void: name = <%s>", name)
 			}
-			cValueTableName := C.grngo_table_get_name(table.db.ctx, valueInfo.ref_table)
-			if cValueTableName == nil {
-				return nil, fmt.Errorf("grngo_table_get_name() failed")
+			var cValueTableName *C.char
+			rc := C.grngo_table_get_name(table.db.ctx, valueInfo.ref_table, &cValueTableName)
+			if rc != C.GRN_SUCCESS {
+				return nil, newGrnError("grngo_table_get_name()", &rc, table.db.ctx)
 			}
 			defer C.free(unsafe.Pointer(cValueTableName))
 			var err error

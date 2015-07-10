@@ -32,6 +32,40 @@ grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
   }
 }
 
+grn_rc grngo_table_get_name(grn_ctx *ctx, grn_obj *table, char **name) {
+  if (!ctx || !table || !name) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  switch (table->header.type) {
+    case GRN_TABLE_HASH_KEY:
+    case GRN_TABLE_PAT_KEY:
+    case GRN_TABLE_DAT_KEY:
+    case GRN_TABLE_NO_KEY: {
+      break;
+    }
+    default: {
+      // The object is not a table.
+      return GRN_INVALID_FORMAT;
+    }
+  }
+  char buf[GRN_TABLE_MAX_KEY_SIZE];
+  int len = grn_obj_name(ctx, table, buf, GRN_TABLE_MAX_KEY_SIZE);
+  if (len <= 0) {
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  char *table_name = (char *)malloc(len + 1);
+  if (!table_name) {
+    return GRN_NO_MEMORY_AVAILABLE;
+  }
+  memcpy(table_name, buf, len);
+  table_name[len] = '\0';
+  *name = table_name;
+  return GRN_SUCCESS;
+}
+
 // grngo_init_type_info() initializes the members of type_info.
 // The initialized type info specifies a valid Void type.
 static void grngo_init_type_info(grngo_type_info *type_info) {
@@ -139,36 +173,6 @@ grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
   }
   value_info->data_type = key_info.data_type;
   return GRN_TRUE;
-}
-
-char *grngo_table_get_name(grn_ctx *ctx, grn_obj *table) {
-  if (!table) {
-    return NULL;
-  }
-  switch (table->header.type) {
-    case GRN_TABLE_HASH_KEY:
-    case GRN_TABLE_PAT_KEY:
-    case GRN_TABLE_DAT_KEY:
-    case GRN_TABLE_NO_KEY: {
-      break;
-    }
-    default: {
-      // The object is not a table.
-      return NULL;
-    }
-  }
-  char buf[GRN_TABLE_MAX_KEY_SIZE];
-  int len = grn_obj_name(ctx, table, buf, GRN_TABLE_MAX_KEY_SIZE);
-  if (len <= 0) {
-    return NULL;
-  }
-  char *table_name = (char *)malloc(len + 1);
-  if (!table_name) {
-    return NULL;
-  }
-  memcpy(table_name, buf, len);
-  table_name[len] = '\0';
-  return table_name;
 }
 
 // grngo_table_insert_row() calls grn_table_add() and converts the result.

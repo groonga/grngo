@@ -19,6 +19,10 @@ typedef struct {
 // grngo_find_table finds a table.
 grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
                         grn_obj **table);
+// grngo_table_get_name gets the name (zero-terminated) of a table.
+// The address of the name is written to **name.
+// Note that the name must be freed by free().
+grn_rc grngo_table_get_name(grn_ctx *ctx, grn_obj *table, char **name);
 
 typedef struct {
   grn_builtin_type data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
@@ -37,11 +41,6 @@ grn_bool grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
 // grngo_column_get_value_info() gets information of the column value.
 grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
                                      grngo_type_info *value_info);
-
-// grngo_table_get_name() returns the name of table.
-// On success, a non-NULL pointer is returned and it must be freed by free().
-// On failure, NULL is returned.
-char *grngo_table_get_name(grn_ctx *ctx, grn_obj *table);
 
 typedef struct {
   grn_id   id;       // Row ID, GRN_ID_NIL means the info is invalid.
