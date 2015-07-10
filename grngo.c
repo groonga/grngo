@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-#define GRNGO_MAX_DATA_TYPE_ID GRN_DB_WGS84_GEO_POINT
+#define GRNGO_MAX_BUILTIN_TYPE_ID GRN_DB_WGS84_GEO_POINT
 
 grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
                         grn_obj **table) {
@@ -49,46 +49,50 @@ grn_rc grngo_table_get_name(grn_ctx *ctx, grn_obj *table, char **name) {
   return GRN_SUCCESS;
 }
 
+static void grngo_table_type_info_init(grngo_table_type_info *type_info) {
+  type_info->data_type = GRN_DB_VOID;
+  type_info->ref_table = NULL;
+}
+
+grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
+                                grngo_table_type_info *key_info) {
+  if (!ctx || !table || !grn_obj_is_table(ctx, table) || !key_info) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grngo_table_type_info_init(key_info);
+  switch (table->header.type) {
+    case GRN_TABLE_HASH_KEY:
+    case GRN_TABLE_PAT_KEY:
+    case GRN_TABLE_DAT_KEY: {
+      if (table->header.domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+        key_info->data_type = table->header.domain;
+        return GRN_SUCCESS;
+      }
+      grn_obj *ref_table = grn_ctx_at(ctx, table->header.domain);
+      if (!ref_table || !grn_obj_is_table(ctx, ref_table)) {
+        if (ctx->rc != GRN_SUCCESS) {
+          return ctx->rc;
+        }
+        return GRN_UNKNOWN_ERROR;
+      }
+      key_info->ref_table = ref_table;
+      return GRN_SUCCESS;
+    }
+    case GRN_TABLE_NO_KEY: {
+      return GRN_SUCCESS;
+    }
+    default: {
+      return GRN_UNKNOWN_ERROR;
+    }
+  }
+}
+
 // grngo_init_type_info() initializes the members of type_info.
 // The initialized type info specifies a valid Void type.
 static void grngo_init_type_info(grngo_type_info *type_info) {
   type_info->data_type = GRN_DB_VOID;
   type_info->dimension = 0;
   type_info->ref_table = NULL;
-}
-
-grn_bool grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
-                                  grngo_type_info *key_info) {
-  grngo_init_type_info(key_info);
-  while (table) {
-    switch (table->header.type) {
-      case GRN_TABLE_HASH_KEY:
-      case GRN_TABLE_PAT_KEY:
-      case GRN_TABLE_DAT_KEY: {
-        if (table->header.domain <= GRNGO_MAX_DATA_TYPE_ID) {
-          key_info->data_type = table->header.domain;
-          return GRN_TRUE;
-        }
-        table = grn_ctx_at(ctx, table->header.domain);
-        if (!table) {
-          return GRN_FALSE;
-        }
-        if (!key_info->ref_table) {
-          key_info->ref_table = table;
-        }
-        break;
-      }
-      case GRN_TABLE_NO_KEY: {
-        // GRN_DB_VOID, if the table has no key.
-        return GRN_TRUE;
-      }
-      default: {
-        // The object is not a table.
-        return GRN_FALSE;
-      }
-    }
-  }
-  return GRN_FALSE;
 }
 
 grn_bool grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
@@ -103,13 +107,13 @@ grn_bool grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
     case GRN_TABLE_DAT_KEY:
     case GRN_TABLE_NO_KEY: {
       grn_id range = grn_obj_get_range(ctx, table);
-      if (range <= GRNGO_MAX_DATA_TYPE_ID) {
+      if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
         value_info->data_type = range;
         return GRN_TRUE;
       }
       value_info->ref_table = grn_ctx_at(ctx, range);
-      grngo_type_info key_info;
-      if (!grngo_table_get_key_info(ctx, value_info->ref_table, &key_info)) {
+      grngo_table_type_info key_info;
+      if (grngo_table_get_key_info(ctx, value_info->ref_table, &key_info) != GRN_SUCCESS) {
         return GRN_FALSE;
       }
       value_info->data_type = key_info.data_type;
@@ -145,13 +149,13 @@ grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
     }
   }
   grn_id range = grn_obj_get_range(ctx, column);
-  if (range <= GRNGO_MAX_DATA_TYPE_ID) {
+  if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
     value_info->data_type = range;
     return GRN_TRUE;
   }
   value_info->ref_table = grn_ctx_at(ctx, range);
-  grngo_type_info key_info;
-  if (!grngo_table_get_key_info(ctx, value_info->ref_table, &key_info)) {
+  grngo_table_type_info key_info;
+  if (grngo_table_get_key_info(ctx, value_info->ref_table, &key_info) != GRN_SUCCESS) {
     return GRN_FALSE;
   }
   value_info->data_type = key_info.data_type;

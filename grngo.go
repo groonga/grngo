@@ -720,19 +720,17 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	if rc != C.GRN_SUCCESS {
 		return nil, newGrnError("grngo_find_table()", &rc, db.ctx)
 	}
-	var keyInfo C.grngo_type_info
-	if ok := C.grngo_table_get_key_info(db.ctx, obj, &keyInfo); ok != C.GRN_TRUE {
-		return nil, fmt.Errorf("grngo_table_get_key_info() failed: name = <%s>",
-			name)
+	var keyInfo C.grngo_table_type_info
+	rc = C.grngo_table_get_key_info(db.ctx, obj, &keyInfo)
+	if rc != C.GRN_SUCCESS {
+		return nil, newGrnError("grngo_table_get_key_info()", &rc, db.ctx)
 	}
 	// Check the key type.
 	keyType := DataType(keyInfo.data_type)
 	// Find the destination table if the key is table reference.
 	var keyTable *Table
 	if keyInfo.ref_table != nil {
-		if keyType == Void {
-			return nil, fmt.Errorf("reference to void: name = <%s>", name)
-		}
+		defer C.grn_obj_unlink(db.ctx, keyInfo.ref_table)
 		var cKeyTableName *C.char
 		rc := C.grngo_table_get_name(db.ctx, keyInfo.ref_table, &cKeyTableName)
 		if rc != C.GRN_SUCCESS {
@@ -744,6 +742,11 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if err != nil {
 			return nil, err
 		}
+		finalTable := keyTable
+		for finalTable.keyTable != nil {
+			finalTable = finalTable.keyTable
+		}
+		keyType = finalTable.keyType
 	}
 	var valueInfo C.grngo_type_info
 	if ok := C.grngo_table_get_value_info(db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {

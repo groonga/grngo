@@ -26,15 +26,23 @@ grn_rc grngo_table_get_name(grn_ctx *ctx, grn_obj *table, char **name);
 
 typedef struct {
   grn_builtin_type data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
+                               // If the type is table reference, GRN_DB_VOID
+                               // is stored.
+  grn_obj          *ref_table; // The referenced table of table reference.
+} grngo_table_type_info;
+
+typedef struct {
+  grn_builtin_type data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
                                // If the type is table reference, the key type
                                // of the referenced table is stored.
   int              dimension;  // Vector depth, 0 means the type is scalar.
   grn_obj          *ref_table; // The referenced table of table reference.
 } grngo_type_info;
 
-// grngo_table_get_key_info() gets information of the table key.
-grn_bool grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
-                                  grngo_type_info *key_info);
+// grngo_table_get_key_info gets information of the table key (_key).
+grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
+                                grngo_table_type_info *key_info);
+
 // grngo_table_get_value_info() gets information of the table value.
 grn_bool grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
                                     grngo_type_info *value_info);
