@@ -337,9 +337,9 @@ type TableOptions struct {
 
 // NewTableOptions returns a new TableOptions with the default settings.
 func NewTableOptions() *TableOptions {
-	var options TableOptions
+	options := new(TableOptions)
 	options.Flags = TableHashKey
-	return &options
+	return options
 }
 
 // -- ColumnOptions --
@@ -367,8 +367,9 @@ type ColumnOptions struct {
 
 // NewColumnOptions returns a new ColumnOptions with the default settings.
 func NewColumnOptions() *ColumnOptions {
-	var options ColumnOptions
-	return &options
+	options := new(ColumnOptions)
+	options.Flags = CompressNone
+	return options
 }
 
 // -- Groonga --
@@ -458,7 +459,11 @@ type DB struct {
 
 // newDB returns a new DB.
 func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
-	return &DB{ctx, obj, make(map[string]*Table)}
+	db := new(DB)
+	db.ctx = ctx
+	db.obj = obj
+	db.tables = make(map[string]*Table)
+	return db
 }
 
 // CreateDB creates a Groonga database and returns a new DB associated with it.
