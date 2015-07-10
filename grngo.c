@@ -84,43 +84,34 @@ grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
   }
 }
 
+grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
+                                  grngo_table_type_info *value_info) {
+  if (!ctx || !table || !grn_obj_is_table(ctx, table) || !value_info) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grngo_table_type_info_init(value_info);
+  grn_id range = grn_obj_get_range(ctx, table);
+  if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+    value_info->data_type = range;
+    return GRN_SUCCESS;
+  }
+  grn_obj *ref_table = grn_ctx_at(ctx, range);
+  if (!ref_table || !grn_obj_is_table(ctx, ref_table)) {
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  value_info->ref_table = ref_table;
+  return GRN_SUCCESS;
+}
+
 // grngo_init_type_info() initializes the members of type_info.
 // The initialized type info specifies a valid Void type.
 static void grngo_init_type_info(grngo_type_info *type_info) {
   type_info->data_type = GRN_DB_VOID;
   type_info->dimension = 0;
   type_info->ref_table = NULL;
-}
-
-grn_bool grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
-                                    grngo_type_info *value_info) {
-  grngo_init_type_info(value_info);
-  if (!table) {
-    return GRN_FALSE;
-  }
-  switch (table->header.type) {
-    case GRN_TABLE_HASH_KEY:
-    case GRN_TABLE_PAT_KEY:
-    case GRN_TABLE_DAT_KEY:
-    case GRN_TABLE_NO_KEY: {
-      grn_id range = grn_obj_get_range(ctx, table);
-      if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
-        value_info->data_type = range;
-        return GRN_TRUE;
-      }
-      value_info->ref_table = grn_ctx_at(ctx, range);
-      grngo_table_type_info key_info;
-      if (grngo_table_get_key_info(ctx, value_info->ref_table, &key_info) != GRN_SUCCESS) {
-        return GRN_FALSE;
-      }
-      value_info->data_type = key_info.data_type;
-      return GRN_TRUE;
-    }
-    default: {
-      // The object is not a table.
-      return GRN_FALSE;
-    }
-  }
 }
 
 grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,

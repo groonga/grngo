@@ -42,10 +42,10 @@ typedef struct {
 // grngo_table_get_key_info gets information of the table key (_key).
 grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
                                 grngo_table_type_info *key_info);
+// grngo_table_get_value_info gets information of the table value (_value).
+grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
+                                  grngo_table_type_info *value_info);
 
-// grngo_table_get_value_info() gets information of the table value.
-grn_bool grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
-                                    grngo_type_info *value_info);
 // grngo_column_get_value_info() gets information of the column value.
 grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
                                      grngo_type_info *value_info);
