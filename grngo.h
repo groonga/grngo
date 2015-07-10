@@ -40,9 +40,14 @@ typedef struct {
 } grngo_type_info;
 
 // grngo_table_get_key_info gets information of the table key (_key).
+//
+// Note that key_info->ref_table should be unlinked by grn_obj_unlink() if it
+// is not NULL.
 grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
                                 grngo_table_type_info *key_info);
 // grngo_table_get_value_info gets information of the table value (_value).
+// Note that value_info->ref_table should be unlinked by grn_obj_unlink() if it
+// is not NULL.
 grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
                                   grngo_table_type_info *value_info);
 
