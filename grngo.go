@@ -632,18 +632,14 @@ func (db *DB) QueryEx(name string, options map[string]string) (
 	return db.Recv()
 }
 
-// CreateTable creates a Groonga table and returns a new Table associated with
-// it.
+// createTableOptionsMap creates an options map for table_create.
 //
-// If options is nil, the default parameters are used.
-//
-// See http://groonga.org/docs/reference/commands/table_create.html for details.
-func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
-	if options == nil {
-		options = NewTableOptions()
-	}
+// See http://groonga.org/docs/reference/commands/table_create.html#parameters for details.
+func (db *DB) createTableOptionsMap(name string, options *TableOptions) (map[string]string, error) {
 	optionsMap := make(map[string]string)
+	// http://groonga.org/docs/reference/commands/table_create.html#name
 	optionsMap["name"] = name
+	// http://groonga.org/docs/reference/commands/table_create.html#flags
 	if options.KeyType == "" {
 		optionsMap["flags"] = "TABLE_NO_KEY"
 	} else {
@@ -663,6 +659,7 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 	if (options.Flags & KeyWithSIS) == KeyWithSIS {
 		optionsMap["flags"] += "|KEY_WITH_SIS"
 	}
+	// http://groonga.org/docs/reference/commands/table_create.html#key-type
 	switch options.KeyType {
 	case "":
 	case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
@@ -675,6 +672,7 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 		}
 		optionsMap["key_type"] = options.KeyType
 	}
+	// http://groonga.org/docs/reference/commands/table_create.html#value-type
 	switch options.ValueType {
 	case "":
 	case "Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
@@ -686,14 +684,34 @@ func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
 		}
 		optionsMap["value_type"] = options.ValueType
 	}
+	// http://groonga.org/docs/reference/commands/table_create.html#default-tokenizer
 	if options.DefaultTokenizer != "" {
 		optionsMap["default_tokenizer"] = options.DefaultTokenizer
 	}
+	// http://groonga.org/docs/reference/commands/table_create.html#normalizer
 	if options.Normalizer != "" {
 		optionsMap["normalizer"] = options.Normalizer
 	}
+	// http://groonga.org/docs/reference/commands/table_create.html#token-filters
 	if len(options.TokenFilters) != 0 {
 		optionsMap["token_filters"] = strings.Join(options.TokenFilters, ",")
+	}
+	return optionsMap, nil
+}
+
+// CreateTable creates a Groonga table and returns a new Table associated with
+// it.
+//
+// If options is nil, the default parameters are used.
+//
+// See http://groonga.org/docs/reference/commands/table_create.html for details.
+func (db *DB) CreateTable(name string, options *TableOptions) (*Table, error) {
+	if options == nil {
+		options = NewTableOptions()
+	}
+	optionsMap, err := db.createTableOptionsMap(name, options)
+	if err != nil {
+		return nil, err
 	}
 	bytes, err := db.QueryEx("table_create", optionsMap)
 	if err != nil {
@@ -1019,24 +1037,10 @@ func (table *Table) GetValue(columnName string, id uint32) (interface{}, error) 
 	return column.GetValue(id)
 }
 
-// CreateColumn creates a Groonga column and returns a new Column associated
-// with it.
+// createColumnOptionsMap creates an options map for column_create.
 //
-// If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
-// as the type parameter.
-// If valueType contains a dot ('.'), COLUMN_INDEX is enabled and valueType is
-// split by the first dot. Then, the former part is used as the type parameter
-// and the latter part is used as the source parameter.
-// Otherwise, COLUMN_SCALAR is enabled and valueType is used as the type
-// parameter.
-//
-// If options is nil, the default parameters are used.
-//
-// See http://groonga.org/docs/reference/commands/column_create.html for details.
-func (table *Table) CreateColumn(name string, valueType string, options *ColumnOptions) (*Column, error) {
-	if options == nil {
-		options = NewColumnOptions()
-	}
+// See http://groonga.org/docs/reference/commands/column_create.html#parameters for details.
+func (table *Table) createColumnOptionsMap(name string, valueType string, options *ColumnOptions) (map[string]string, error) {
 	optionsMap := make(map[string]string)
 	optionsMap["table"] = table.name
 	optionsMap["name"] = name
@@ -1078,6 +1082,31 @@ func (table *Table) CreateColumn(name string, valueType string, options *ColumnO
 	}
 	if (options.Flags & WithPosition) == WithPosition {
 		optionsMap["flags"] += "|WITH_POSITION"
+	}
+	return optionsMap, nil
+}
+
+// CreateColumn creates a Groonga column and returns a new Column associated
+// with it.
+//
+// If valueType starts with "[]", COLUMN_VECTOR is enabled and the rest is used
+// as the type parameter.
+// If valueType contains a dot ('.'), COLUMN_INDEX is enabled and valueType is
+// split by the first dot. Then, the former part is used as the type parameter
+// and the latter part is used as the source parameter.
+// Otherwise, COLUMN_SCALAR is enabled and valueType is used as the type
+// parameter.
+//
+// If options is nil, the default parameters are used.
+//
+// See http://groonga.org/docs/reference/commands/column_create.html for details.
+func (table *Table) CreateColumn(name string, valueType string, options *ColumnOptions) (*Column, error) {
+	if options == nil {
+		options = NewColumnOptions()
+	}
+	optionsMap, err := table.createColumnOptionsMap(name, valueType, options)
+	if err != nil {
+		return nil, err
 	}
 	bytes, err := table.db.QueryEx("column_create", optionsMap)
 	if err != nil {
