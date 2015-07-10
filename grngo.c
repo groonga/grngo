@@ -16,37 +16,20 @@ grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
     }
     return GRN_UNKNOWN_ERROR;
   }
-  switch (obj->header.type) {
-    case GRN_TABLE_HASH_KEY:
-    case GRN_TABLE_PAT_KEY:
-    case GRN_TABLE_DAT_KEY:
-    case GRN_TABLE_NO_KEY: {
-      *table = obj;
-      return GRN_SUCCESS;
-    }
-    default: {
-      // The object is not a table.
-      grn_obj_unlink(ctx, obj);
-      return GRN_INVALID_FORMAT;
-    }
+  if (!grn_obj_is_table(ctx, obj)) {
+    grn_obj_unlink(ctx, obj);
+    return GRN_INVALID_FORMAT;
   }
+  *table = obj;
+  return GRN_SUCCESS;
 }
 
 grn_rc grngo_table_get_name(grn_ctx *ctx, grn_obj *table, char **name) {
   if (!ctx || !table || !name) {
     return GRN_INVALID_ARGUMENT;
   }
-  switch (table->header.type) {
-    case GRN_TABLE_HASH_KEY:
-    case GRN_TABLE_PAT_KEY:
-    case GRN_TABLE_DAT_KEY:
-    case GRN_TABLE_NO_KEY: {
-      break;
-    }
-    default: {
-      // The object is not a table.
-      return GRN_INVALID_FORMAT;
-    }
+  if (!grn_obj_is_table(ctx, table)) {
+    return GRN_INVALID_FORMAT;
   }
   char buf[GRN_TABLE_MAX_KEY_SIZE];
   int len = grn_obj_name(ctx, table, buf, GRN_TABLE_MAX_KEY_SIZE);
