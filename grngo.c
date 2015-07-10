@@ -4,21 +4,30 @@
 
 #define GRNGO_MAX_DATA_TYPE_ID GRN_DB_WGS84_GEO_POINT
 
-grn_obj *grngo_find_table(grn_ctx *ctx, const char *name, int name_len) {
+grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
+                        grn_obj **table) {
+  if (!ctx || !name || !table) {
+    return GRN_INVALID_ARGUMENT;
+  }
   grn_obj *obj = grn_ctx_get(ctx, name, name_len);
   if (!obj) {
-    return NULL;
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
   }
   switch (obj->header.type) {
     case GRN_TABLE_HASH_KEY:
     case GRN_TABLE_PAT_KEY:
     case GRN_TABLE_DAT_KEY:
     case GRN_TABLE_NO_KEY: {
-      return obj;
+      *table = obj;
+      return GRN_SUCCESS;
     }
     default: {
       // The object is not a table.
-      return NULL;
+      grn_obj_unlink(ctx, obj);
+      return GRN_INVALID_FORMAT;
     }
   }
 }

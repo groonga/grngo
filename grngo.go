@@ -528,7 +528,8 @@ func (db *DB) Refresh() error {
 	for _, table := range db.tables {
 		nameBytes := []byte(table.name)
 		cName := (*C.char)(unsafe.Pointer(&nameBytes[0]))
-		tableObj := C.grngo_find_table(db.ctx, cName, C.int(len(nameBytes)))
+		var tableObj *C.grn_obj
+		C.grngo_find_table(db.ctx, cName, C.size_t(len(nameBytes)), &tableObj)
 		if tableObj != table.obj {
 			continue
 		}
@@ -714,9 +715,10 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	if len(nameBytes) != 0 {
 		cName = (*C.char)(unsafe.Pointer(&nameBytes[0]))
 	}
-	obj := C.grngo_find_table(db.ctx, cName, C.int(len(nameBytes)))
-	if obj == nil {
-		return nil, fmt.Errorf("table not found: name = <%s>", name)
+	var obj *C.grn_obj
+	rc := C.grngo_find_table(db.ctx, cName, C.size_t(len(nameBytes)), &obj)
+	if rc != C.GRN_SUCCESS {
+		return nil, newGrnError("grngo_find_table()", &rc, db.ctx)
 	}
 	var keyInfo C.grngo_type_info
 	if ok := C.grngo_table_get_key_info(db.ctx, obj, &keyInfo); ok != C.GRN_TRUE {

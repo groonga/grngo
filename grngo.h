@@ -16,10 +16,9 @@ typedef struct {
   size_t size;
 } grngo_vector;
 
-// grngo_find_table() finds a table with the given name.
-// If found, an object associated with the table is returned.
-// If not found, NULL is returned.
-grn_obj *grngo_find_table(grn_ctx *ctx, const char *name, int name_len);
+// grngo_find_table finds a table.
+grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
+                        grn_obj **table);
 
 typedef struct {
   grn_builtin_type data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
