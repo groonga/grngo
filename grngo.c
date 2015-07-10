@@ -57,31 +57,22 @@ grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
     return GRN_INVALID_ARGUMENT;
   }
   grngo_table_type_info_init(key_info);
-  switch (table->header.type) {
-    case GRN_TABLE_HASH_KEY:
-    case GRN_TABLE_PAT_KEY:
-    case GRN_TABLE_DAT_KEY: {
-      if (table->header.domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
-        key_info->data_type = table->header.domain;
-        return GRN_SUCCESS;
-      }
-      grn_obj *ref_table = grn_ctx_at(ctx, table->header.domain);
-      if (!ref_table || !grn_obj_is_table(ctx, ref_table)) {
-        if (ctx->rc != GRN_SUCCESS) {
-          return ctx->rc;
-        }
-        return GRN_UNKNOWN_ERROR;
-      }
-      key_info->ref_table = ref_table;
-      return GRN_SUCCESS;
-    }
-    case GRN_TABLE_NO_KEY: {
-      return GRN_SUCCESS;
-    }
-    default: {
-      return GRN_UNKNOWN_ERROR;
-    }
+  if (table->header.type == GRN_TABLE_NO_KEY) {
+    return GRN_SUCCESS;
   }
+  if (table->header.domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+    key_info->data_type = table->header.domain;
+    return GRN_SUCCESS;
+  }
+  grn_obj *ref_table = grn_ctx_at(ctx, table->header.domain);
+  if (!ref_table || !grn_obj_is_table(ctx, ref_table)) {
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  key_info->ref_table = ref_table;
+  return GRN_SUCCESS;
 }
 
 grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
