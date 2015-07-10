@@ -25,11 +25,8 @@ grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
 }
 
 grn_rc grngo_table_get_name(grn_ctx *ctx, grn_obj *table, char **name) {
-  if (!ctx || !table || !name) {
+  if (!ctx || !table || !grn_obj_is_table(ctx, table) || !name) {
     return GRN_INVALID_ARGUMENT;
-  }
-  if (!grn_obj_is_table(ctx, table)) {
-    return GRN_INVALID_FORMAT;
   }
   char buf[GRN_TABLE_MAX_KEY_SIZE];
   int len = grn_obj_name(ctx, table, buf, GRN_TABLE_MAX_KEY_SIZE);
