@@ -760,11 +760,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if err != nil {
 			return nil, err
 		}
-		finalTable := keyTable
-		for finalTable.keyTable != nil {
-			finalTable = finalTable.keyTable
-		}
-		keyType = finalTable.keyType
+		keyType = keyTable.keyType
 	}
 	var valueInfo C.grngo_table_type_info
 	rc = C.grngo_table_get_value_info(db.ctx, obj, &valueInfo)
@@ -788,11 +784,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 		if err != nil {
 			return nil, err
 		}
-		finalTable := valueTable
-		for finalTable.keyTable != nil {
-			finalTable = finalTable.keyTable
-		}
-		valueType = finalTable.keyType
+		valueType = valueTable.keyType
 	}
 	table := newTable(db, obj, name, keyType, keyTable, valueType, valueTable)
 	db.tables[name] = table
