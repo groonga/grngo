@@ -1,5 +1,6 @@
 #include "grngo.h"
 
+#include <math.h>
 #include <string.h>
 
 #define GRNGO_MAX_BUILTIN_TYPE_ID GRN_DB_WGS84_GEO_POINT
@@ -141,83 +142,127 @@ grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
   return GRN_TRUE;
 }
 
-// grngo_table_insert_row() calls grn_table_add() and converts the result.
-static grngo_row_info grngo_table_insert_row(
-    grn_ctx *ctx, grn_obj *table, const void *key_ptr, size_t key_size) {
-  grngo_row_info row_info;
-  int inserted;
-  row_info.id = grn_table_add(ctx, table, key_ptr, key_size, &inserted);
-  row_info.inserted = inserted ? GRN_TRUE : GRN_FALSE;
-  return row_info;
+// grngo_table_insert_row calls grn_table_add to insert a row.
+static grn_rc grngo_table_insert_row(grn_ctx *ctx, grn_obj *table,
+                                     const void *key, size_t key_size,
+                                     grn_bool *inserted, grn_id *id) {
+  if (!ctx || !table || !grn_obj_is_table(ctx, table) ||
+      (!key && (key_size != 0)) || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  int tmp_inserted;
+  grn_id tmp_id = grn_table_add(ctx, table, key, key_size, &tmp_inserted);
+  if (tmp_id == GRN_ID_NIL) {
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  *inserted = (grn_bool)tmp_inserted;
+  *id = tmp_id;
+  return GRN_SUCCESS;
 }
 
-grngo_row_info grngo_table_insert_void(grn_ctx *ctx, grn_obj *table) {
-  return grngo_table_insert_row(ctx, table, NULL, 0);
+grn_rc grngo_table_insert_void(grn_ctx *ctx, grn_obj *table,
+                               grn_bool *inserted, grn_id *id) {
+  return grngo_table_insert_row(ctx, table, NULL, 0, inserted, id);
 }
 
-grngo_row_info grngo_table_insert_bool(grn_ctx *ctx, grn_obj *table,
-                                       grn_bool key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+grn_rc grngo_table_insert_bool(grn_ctx *ctx, grn_obj *table,
+                               grn_bool key, grn_bool *inserted, grn_id *id) {
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key), inserted, id);
 }
 
-grngo_row_info grngo_table_insert_int8(grn_ctx *ctx, grn_obj *table,
-                                       int8_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+grn_rc grngo_table_insert_int(grn_ctx *ctx, grn_obj *table,
+                              grn_builtin_type builtin_type,
+                              int64_t key, grn_bool *inserted, grn_id *id) {
+  switch (builtin_type) {
+    case GRN_DB_INT8: {
+      if ((key < INT8_MIN) || (key > INT8_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      int8_t tmp_key = (int8_t)key;
+      return grngo_table_insert_row(ctx, table, &tmp_key, sizeof(tmp_key),
+                                    inserted, id);
+    }
+    case GRN_DB_INT16: {
+      if ((key < INT16_MIN) || (key > INT16_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      int16_t tmp_key = (int16_t)key;
+      return grngo_table_insert_row(ctx, table, &tmp_key, sizeof(tmp_key),
+                                    inserted, id);
+    }
+    case GRN_DB_INT32: {
+      if ((key < INT32_MIN) || (key > INT32_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      int32_t tmp_key = (int32_t)key;
+      return grngo_table_insert_row(ctx, table, &tmp_key, sizeof(tmp_key),
+                                    inserted, id);
+    }
+    case GRN_DB_INT64:
+    case GRN_DB_TIME: {
+      return grngo_table_insert_row(ctx, table, &key, sizeof(key), inserted, id);
+    }
+    case GRN_DB_UINT8: {
+      if ((key < 0) || (key > (int64_t)UINT8_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      uint8_t tmp_key = (uint8_t)key;
+      return grngo_table_insert_row(ctx, table, &tmp_key, sizeof(tmp_key),
+                                    inserted, id);
+    }
+    case GRN_DB_UINT16: {
+      if ((key < 0) || (key > (int64_t)UINT16_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      uint16_t tmp_key = (uint16_t)key;
+      return grngo_table_insert_row(ctx, table, &tmp_key, sizeof(tmp_key),
+                                    inserted, id);
+    }
+    case GRN_DB_UINT32: {
+      if ((key < 0) || (key > (int64_t)UINT32_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      uint32_t tmp_key = (uint32_t)key;
+      return grngo_table_insert_row(ctx, table, &tmp_key, sizeof(tmp_key),
+                                    inserted, id);
+    }
+    case GRN_DB_UINT64: {
+      if (key < 0) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      return grngo_table_insert_row(ctx, table, &key, sizeof(key),
+                                    inserted, id);
+    }
+    default: {
+      return GRN_INVALID_ARGUMENT;
+    }
+  }
 }
 
-grngo_row_info grngo_table_insert_int16(grn_ctx *ctx, grn_obj *table,
-                                        int16_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+grn_rc grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
+                                double key, grn_bool *inserted, grn_id *id) {
+  if (isnan(key)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  return grngo_table_insert_row(ctx, table, &key, sizeof(key), inserted, id);
 }
 
-grngo_row_info grngo_table_insert_int32(grn_ctx *ctx, grn_obj *table,
-                                        int32_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+grn_rc grngo_table_insert_text(grn_ctx *ctx, grn_obj *table,
+                               const grngo_text *key,
+                               grn_bool *inserted, grn_id *id) {
+  if (!key || (!key->ptr && (key->size != 0))) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  return grngo_table_insert_row(ctx, table, key->ptr, key->size, inserted, id);
 }
 
-grngo_row_info grngo_table_insert_int64(grn_ctx *ctx, grn_obj *table,
-                                        int64_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_uint8(grn_ctx *ctx, grn_obj *table,
-                                        uint8_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_uint16(grn_ctx *ctx, grn_obj *table,
-                                         uint16_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_uint32(grn_ctx *ctx, grn_obj *table,
-                                         uint32_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_uint64(grn_ctx *ctx, grn_obj *table,
-                                         uint64_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_time(grn_ctx *ctx, grn_obj *table,
-                                       int64_t key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
-                                        double key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
-}
-
-grngo_row_info grngo_table_insert_text(grn_ctx *ctx, grn_obj *table,
-                                       const grngo_text *key) {
-  return grngo_table_insert_row(ctx, table, key->ptr, key->size);
-}
-
-grngo_row_info grngo_table_insert_geo_point(grn_ctx *ctx, grn_obj *table,
-                                            grn_geo_point key) {
-  return grngo_table_insert_row(ctx, table, &key, sizeof(key));
+grn_rc grngo_table_insert_geo_point(grn_ctx *ctx, grn_obj *table,
+                                    const grn_geo_point *key,
+                                    grn_bool *inserted, grn_id *id) {
+  return grngo_table_insert_row(ctx, table, key, sizeof(*key), inserted, id);
 }
 
 grn_bool grngo_column_set_bool(grn_ctx *ctx, grn_obj *column,
