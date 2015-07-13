@@ -854,9 +854,9 @@ type Table struct {
 	db         *DB                // The owner DB.
 	obj        *C.grn_obj         // The associated table.
 	name       string             // The table name.
-	keyType    DataType           // The built-in data type of keys.
+	keyType    DataType           // The output type of keys.
 	keyTable   *Table             // Keys' reference table or nil if not available.
-	valueType  DataType           // The built-in data type of values.
+	valueType  DataType           // The output type of values.
 	valueTable *Table             // Values' reference table or nil if not available.
 	columns    map[string]*Column // A cache to find columns by name.
 }
