@@ -55,27 +55,31 @@ grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
 grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
                                      grngo_type_info *value_info);
 
+typedef struct {
+  grn_rc   rc;       // rc stores a return code.
+  grn_bool inserted; // inserted stores whether a row was inserted or not.
+  grn_id   id;       // id stores the ID of an inserted or found row.
+                     // GRN_ID_NIL means that an operation failed.
+} grngo_table_insertion_result;
+
 // grngo_table_insert_void inserts an empty row.
-grn_rc grngo_table_insert_void(grn_ctx *ctx, grn_obj *table,
-                               grn_bool *inserted, grn_id *id);
+grngo_table_insertion_result grngo_table_insert_void(
+    grn_ctx *ctx, grn_obj *table);
 // grngo_table_insert_bool inserts a row with a Bool key.
-grn_rc grngo_table_insert_bool(grn_ctx *ctx, grn_obj *table,
-                               grn_bool key, grn_bool *inserted, grn_id *id);
+grngo_table_insertion_result grngo_table_insert_bool(
+    grn_ctx *ctx, grn_obj *table, grn_bool key);
 // grngo_table_insert_int inserts a row with an (U)IntXX key.
-grn_rc grngo_table_insert_int(grn_ctx *ctx, grn_obj *table,
-                              grn_builtin_type builtin_type,
-                              int64_t key, grn_bool *inserted, grn_id *id);
+grngo_table_insertion_result grngo_table_insert_int(
+    grn_ctx *ctx, grn_obj *table, grn_builtin_type builtin_type, int64_t key);
 // grngo_table_insert_float inserts a row with a Float key.
-grn_rc grngo_table_insert_float(grn_ctx *ctx, grn_obj *table,
-                                double key, grn_bool *inserted, grn_id *id);
+grngo_table_insertion_result grngo_table_insert_float(
+    grn_ctx *ctx, grn_obj *table, double key);
 // grngo_table_insert_text inserts a row with a ShortText key.
-grn_rc grngo_table_insert_text(grn_ctx *ctx, grn_obj *table,
-                               const grngo_text *key,
-                               grn_bool *inserted, grn_id *id);
+grngo_table_insertion_result grngo_table_insert_text(
+    grn_ctx *ctx, grn_obj *table, const grngo_text *key);
 // grngo_table_insert_geo_point inserts a row with a (Tokyo/WGS84)GeoPoint key.
-grn_rc grngo_table_insert_geo_point(grn_ctx *ctx, grn_obj *table,
-                                    const grn_geo_point *key,
-                                    grn_bool *inserted, grn_id *id);
+grngo_table_insertion_result grngo_table_insert_geo_point(
+    grn_ctx *ctx, grn_obj *table, const grn_geo_point *key);
 
 // grngo_column_set_bool() assigns a Bool value.
 grn_bool grngo_column_set_bool(grn_ctx *ctx, grn_obj *column,

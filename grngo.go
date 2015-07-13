@@ -877,19 +877,13 @@ func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType, keyTable *T
 
 // InsertRow finds or inserts a row.
 func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err error) {
-	var rc C.grn_rc = C.GRN_SUCCESS
-	var tmpInserted C.grn_bool
-	var tmpID C.grn_id
-	var opName string
+	var result C.grngo_table_insertion_result
 	switch key := key.(type) {
 	case nil:
 		if table.keyType != Void {
 			return false, NilID, newInvalidKeyTypeError(table.keyType, Void)
 		}
-		rc = C.grngo_table_insert_void(table.db.ctx, table.obj, &tmpInserted, &tmpID)
-		if rc != C.GRN_SUCCESS {
-			opName = "grngo_table_insert_void()"
-		}
+		result = C.grngo_table_insert_void(table.db.ctx, table.obj)
 	case bool:
 		if table.keyType != Bool {
 			return false, NilID, newInvalidKeyTypeError(table.keyType, Bool)
@@ -898,29 +892,20 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 		if key {
 			tmpKey = C.grn_bool(C.GRN_TRUE)
 		}
-		rc =  C.grngo_table_insert_bool(table.db.ctx, table.obj, tmpKey, &tmpInserted, &tmpID)
-		if rc != C.GRN_SUCCESS {
-			opName = "grngo_table_insert_bool()"
-		}
+		result = C.grngo_table_insert_bool(table.db.ctx, table.obj, tmpKey)
 	case int64:
 		switch table.keyType {
 		case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Time:
 		default:
 			return false, NilID, newInvalidKeyTypeError(table.keyType, LazyInt)
 		}
-		rc =  C.grngo_table_insert_int(table.db.ctx, table.obj, C.grn_builtin_type(table.keyType), C.int64_t(key), &tmpInserted, &tmpID)
-		if rc != C.GRN_SUCCESS {
-			opName = "grngo_table_insert_int()"
-		}
+		result = C.grngo_table_insert_int(table.db.ctx, table.obj, C.grn_builtin_type(table.keyType), C.int64_t(key))
 	case float64:
 		if table.keyType != Float {
 			return false, NilID, newInvalidKeyTypeError(table.keyType, Float)
 		}
 		tmpKey := C.double(key)
-		rc =  C.grngo_table_insert_float(table.db.ctx, table.obj, tmpKey, &tmpInserted, &tmpID)
-		if rc != C.GRN_SUCCESS {
-			opName = "grngo_table_insert_float()"
-		}
+		result = C.grngo_table_insert_float(table.db.ctx, table.obj, tmpKey)
 	case []byte:
 		if table.keyType != ShortText {
 			return false, NilID, newInvalidKeyTypeError(table.keyType, Text)
@@ -930,27 +915,21 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 			tmpKey.ptr = (*C.char)(unsafe.Pointer(&key[0]))
 			tmpKey.size = C.size_t(len(key))
 		}
-		rc =  C.grngo_table_insert_text(table.db.ctx, table.obj, &tmpKey, &tmpInserted, &tmpID)
-		if rc != C.GRN_SUCCESS {
-			opName = "grngo_table_insert_text()"
-		}
+		result = C.grngo_table_insert_text(table.db.ctx, table.obj, &tmpKey)
 	case GeoPoint:
 		if (table.keyType != TokyoGeoPoint) && (table.keyType != WGS84GeoPoint) {
 			return false, NilID, newInvalidKeyTypeError(table.keyType, LazyGeoPoint)
 		}
 		tmpKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
-		rc =  C.grngo_table_insert_geo_point(table.db.ctx, table.obj, &tmpKey, &tmpInserted, &tmpID)
-		if rc != C.GRN_SUCCESS {
-			opName = "grngo_table_insert_geo_point()"
-		}
+		result = C.grngo_table_insert_geo_point(table.db.ctx, table.obj, &tmpKey)
 	default:
 		return false, NilID, fmt.Errorf(
 			"unsupported key type: typeName = <%s>", reflect.TypeOf(key).Name())
 	}
-	if rc != C.GRN_SUCCESS {
-		return false, NilID, newGrnError(opName, &rc, table.db.ctx)
+	if result.rc != C.GRN_SUCCESS {
+		return false, NilID, newGrnError("grngo_table_insert_*()", &result.rc, table.db.ctx)
 	}
-	return tmpInserted == C.GRN_TRUE, uint32(tmpID), nil
+	return result.inserted == C.GRN_TRUE, uint32(result.id), nil
 }
 
 // SetValue assigns a value.
