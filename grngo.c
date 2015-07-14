@@ -98,20 +98,18 @@ grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
   return GRN_SUCCESS;
 }
 
-// grngo_init_type_info() initializes the members of type_info.
-// The initialized type info specifies a valid Void type.
-static void grngo_init_type_info(grngo_type_info *type_info) {
+static void grngo_column_type_info_init(grngo_column_type_info *type_info) {
   type_info->data_type = GRN_DB_VOID;
-  type_info->dimension = 0;
+  type_info->is_vector = GRN_FALSE;
   type_info->ref_table = NULL;
 }
 
-grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
-                                     grngo_type_info *value_info) {
-  grngo_init_type_info(value_info);
-  if (!column) {
-    return GRN_FALSE;
+grn_rc grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
+                                   grngo_column_type_info *value_info) {
+  if (!ctx || !column || !value_info) {
+    return GRN_INVALID_ARGUMENT;
   }
+  grngo_column_type_info_init(value_info);
   switch (column->header.type) {
     case GRN_COLUMN_FIX_SIZE: {
       break;
@@ -119,27 +117,28 @@ grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
     case GRN_COLUMN_VAR_SIZE: {
       grn_obj_flags type = column->header.flags & GRN_OBJ_COLUMN_TYPE_MASK;
       if (type == GRN_OBJ_COLUMN_VECTOR) {
-        ++value_info->dimension;
+        value_info->is_vector = GRN_TRUE;
       }
       break;
     }
     default: {
-      // The object is not a data column.
-      return GRN_FALSE;
+      return GRN_INVALID_ARGUMENT;
     }
   }
   grn_id range = grn_obj_get_range(ctx, column);
   if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
     value_info->data_type = range;
-    return GRN_TRUE;
+    return GRN_SUCCESS;
   }
-  value_info->ref_table = grn_ctx_at(ctx, range);
-  grngo_table_type_info key_info;
-  if (grngo_table_get_key_info(ctx, value_info->ref_table, &key_info) != GRN_SUCCESS) {
-    return GRN_FALSE;
+  grn_obj *ref_table = grn_ctx_at(ctx, range);
+  if (!ref_table || !grn_obj_is_table(ctx, ref_table)) {
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
   }
-  value_info->data_type = key_info.data_type;
-  return GRN_TRUE;
+  value_info->ref_table = ref_table;
+  return GRN_SUCCESS;
 }
 
 // grngo_table_insertion_error generates an error result.

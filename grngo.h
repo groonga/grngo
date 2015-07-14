@@ -31,29 +31,33 @@ typedef struct {
   grn_obj          *ref_table; // The referenced table of table reference.
 } grngo_table_type_info;
 
-typedef struct {
-  grn_builtin_type data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
-                               // If the type is table reference, the key type
-                               // of the referenced table is stored.
-  int              dimension;  // Vector depth, 0 means the type is scalar.
-  grn_obj          *ref_table; // The referenced table of table reference.
-} grngo_type_info;
-
-// grngo_table_get_key_info gets information of the table key (_key).
+// grngo_table_get_key_info gets information of the table keys (_key).
 //
 // Note that key_info->ref_table should be unlinked by grn_obj_unlink() if it
 // is not NULL.
 grn_rc grngo_table_get_key_info(grn_ctx *ctx, grn_obj *table,
                                 grngo_table_type_info *key_info);
-// grngo_table_get_value_info gets information of the table value (_value).
+// grngo_table_get_value_info gets information of the table values (_value).
+//
 // Note that value_info->ref_table should be unlinked by grn_obj_unlink() if it
 // is not NULL.
 grn_rc grngo_table_get_value_info(grn_ctx *ctx, grn_obj *table,
                                   grngo_table_type_info *value_info);
 
-// grngo_column_get_value_info() gets information of the column value.
-grn_bool grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
-                                     grngo_type_info *value_info);
+typedef struct {
+  grn_builtin_type data_type;  // Data type (GRN_DB_VOID, GRN_DB_BOOL, etc.).
+                               // If the type is table reference, GRN_DB_VOID
+                               // is stored.
+  grn_bool         is_vector;  // Whether or not the data type is vector.
+  grn_obj          *ref_table; // The referenced table of table reference.
+} grngo_column_type_info;
+
+// grngo_column_get_value_info() gets information of the column values.
+//
+// Note that value_info->ref_table should be unlinked by grn_obj_unlink() if it
+// is not NULL.
+grn_rc grngo_column_get_value_info(grn_ctx *ctx, grn_obj *column,
+                                   grngo_column_type_info *value_info);
 
 typedef struct {
   grn_rc   rc;       // rc stores a return code.

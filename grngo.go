@@ -1058,19 +1058,16 @@ func (table *Table) findColumn(name string) (*Column, error) {
 		valueType = table.valueType
 		valueTable = table.valueTable
 	default:
-		var valueInfo C.grngo_type_info
-		if ok := C.grngo_column_get_value_info(table.db.ctx, obj, &valueInfo); ok != C.GRN_TRUE {
-			return nil, fmt.Errorf("grngo_column_get_value_info() failed: name = <%s>",
-				name)
-		}
 		// Check the value type.
+		var valueInfo C.grngo_column_type_info
+		rc := C.grngo_column_get_value_info(table.db.ctx, obj, &valueInfo)
+		if rc != C.GRN_SUCCESS {
+			return nil, newGrnError("grngo_column_get_value_info", &rc, table.db.ctx)
+		}
 		valueType = DataType(valueInfo.data_type)
-		isVector = valueInfo.dimension > 0
-		// Find the destination table if the value is table reference.
+		isVector = valueInfo.is_vector == C.GRN_TRUE
 		if valueInfo.ref_table != nil {
-			if valueType == Void {
-				return nil, fmt.Errorf("reference to void: name = <%s>", name)
-			}
+			defer C.grn_obj_unlink(table.db.ctx, valueInfo.ref_table)
 			var cValueTableName *C.char
 			rc := C.grngo_table_get_name(table.db.ctx, valueInfo.ref_table, &cValueTableName)
 			if rc != C.GRN_SUCCESS {
@@ -1082,6 +1079,7 @@ func (table *Table) findColumn(name string) (*Column, error) {
 			if err != nil {
 				return nil, err
 			}
+			valueType = valueTable.keyType
 		}
 	}
 	column := newColumn(table, obj, name, valueType, isVector, valueTable)
