@@ -14,7 +14,7 @@ import (
 
 // -- Errors --
 
-func (rc C.grn_rc) String() string {
+func rcString(rc C.grn_rc) string {
 	switch rc {
 	case C.GRN_SUCCESS:
 		return "GRN_SUCCESS"
@@ -185,20 +185,21 @@ func newGrnError(opName string, rc *C.grn_rc, ctx *C.grn_ctx) error {
 			return fmt.Errorf("%s failed", opName)
 		}
 		if ctx.rc == C.GRN_SUCCESS {
-			return fmt.Errorf("%s failed: ctx.rc = %s (%d)", opName, ctx.rc, ctx.rc)
+			return fmt.Errorf("%s failed: ctx.rc = %s (%d)",
+				opName, rcString(ctx.rc), ctx.rc)
 		}
 		msg := C.GoString(&ctx.errbuf[0])
 		return fmt.Errorf("%s failed: ctx.rc = %s (%d), ctx.errbuf = %s",
-			opName, ctx.rc, ctx.rc, msg)
+			opName, rcString(ctx.rc), ctx.rc, msg)
 	case ctx == nil:
 		return fmt.Errorf("%s failed: rc = %s (%d)", opName, *rc, *rc)
 	case ctx.rc == C.GRN_SUCCESS:
 		return fmt.Errorf("%s failed: rc = %s (%d), ctx.rc = %s (%d)",
-			opName, *rc, *rc, ctx.rc, ctx.rc)
+			opName, *rc, *rc, rcString(ctx.rc), ctx.rc)
 	default:
 		msg := C.GoString(&ctx.errbuf[0])
 		return fmt.Errorf("%s failed: rc = %s (%d), ctx.rc = %s (%d), ctx.errbuf = %s",
-			opName, *rc, *rc, ctx.rc, ctx.rc, msg)
+			opName, *rc, *rc, rcString(ctx.rc), ctx.rc, msg)
 	}
 }
 
