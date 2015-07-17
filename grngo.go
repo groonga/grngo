@@ -195,11 +195,11 @@ func newGrnError(opName string, rc *C.grn_rc, ctx *C.grn_ctx) error {
 		return fmt.Errorf("%s failed: rc = %s (%d)", opName, *rc, *rc)
 	case ctx.rc == C.GRN_SUCCESS:
 		return fmt.Errorf("%s failed: rc = %s (%d), ctx.rc = %s (%d)",
-			opName, *rc, *rc, rcString(ctx.rc), ctx.rc)
+			opName, rcString(*rc), *rc, rcString(ctx.rc), ctx.rc)
 	default:
 		msg := C.GoString(&ctx.errbuf[0])
 		return fmt.Errorf("%s failed: rc = %s (%d), ctx.rc = %s (%d), ctx.errbuf = %s",
-			opName, *rc, *rc, rcString(ctx.rc), ctx.rc, msg)
+			opName, rcString(*rc), *rc, rcString(ctx.rc), ctx.rc, msg)
 	}
 }
 
