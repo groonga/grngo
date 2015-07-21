@@ -876,7 +876,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
   switch (column->value_type) {
     case GRN_DB_SHORT_TEXT: {
       for (i = 0; i < value.size; i++) {
-        if (values[i].size > GRNGO_MAX_SHORT_TEXT_LEN) {
+        if (!GRNGO_TEST_SHORT_TEXT(values[i])) {
           return GRN_INVALID_ARGUMENT;
         }
       }
@@ -885,7 +885,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
     }
     case GRN_DB_TEXT: {
       for (i = 0; i < value.size; i++) {
-        if (values[i].size > GRNGO_MAX_TEXT_LEN) {
+        if (!GRNGO_TEST_TEXT(values[i])) {
           return GRN_INVALID_ARGUMENT;
         }
       }
@@ -894,7 +894,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
     }
     case GRN_DB_LONG_TEXT: {
       for (i = 0; i < value.size; i++) {
-        if (values[i].size > GRNGO_MAX_LONG_TEXT_LEN) {
+        if (!GRNGO_TEST_LONG_TEXT(values[i])) {
           return GRN_INVALID_ARGUMENT;
         }
       }
