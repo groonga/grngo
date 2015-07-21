@@ -634,6 +634,16 @@ grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
   return rc;
 }
 
+#define GRNGO_SET_INT_CASE_BLOCK(type)\
+  case GRN_DB_ ## type: {\
+    if (!GRNGO_TEST_ ## type(value)) {\
+      return GRN_INVALID_ARGUMENT;\
+    }\
+    GRN_ ## type ## _INIT(&obj, 0);\
+    GRNGO_DB_TYPE(type) db_value = (GRNGO_DB_TYPE(type))value;\
+    rc = grn_bulk_write(ctx, &obj, (const char *)&db_value, sizeof(db_value));\
+    break;\
+  }
 grn_rc
 grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
   if (!column) {
@@ -644,81 +654,28 @@ grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
+  grn_rc rc;
   switch (column->value_type) {
-    case GRN_DB_INT8: {
-      if ((value < INT8_MIN) || (value > INT8_MAX)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_INT8_INIT(&obj, 0);
-      GRN_INT8_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_INT16: {
-      if ((value < INT16_MIN) || (value > INT16_MAX)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_INT16_INIT(&obj, 0);
-      GRN_INT16_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_INT32: {
-      if ((value < INT32_MIN) || (value > INT32_MAX)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_INT32_INIT(&obj, 0);
-      GRN_INT32_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_INT64: {
-      GRN_INT64_INIT(&obj, 0);
-      GRN_INT64_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_UINT8: {
-      if ((value < 0) || (value > (int64_t)UINT8_MAX)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_UINT8_INIT(&obj, 0);
-      GRN_UINT8_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_UINT16: {
-      if ((value < 0) || (value > (int64_t)UINT16_MAX)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_UINT16_INIT(&obj, 0);
-      GRN_UINT16_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_UINT32: {
-      if ((value < 0) || (value > (int64_t)UINT32_MAX)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_UINT32_INIT(&obj, 0);
-      GRN_UINT32_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_UINT64: {
-      if (value < 0) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_UINT64_INIT(&obj, 0);
-      GRN_UINT64_SET(ctx, &obj, value);
-      break;
-    }
-    case GRN_DB_TIME: {
-      GRN_TIME_INIT(&obj, 0);
-      GRN_TIME_SET(ctx, &obj, value);
-      break;
-    }
+    GRNGO_SET_INT_CASE_BLOCK(INT8)
+    GRNGO_SET_INT_CASE_BLOCK(INT16)
+    GRNGO_SET_INT_CASE_BLOCK(INT32)
+    GRNGO_SET_INT_CASE_BLOCK(INT64)
+    GRNGO_SET_INT_CASE_BLOCK(UINT8)
+    GRNGO_SET_INT_CASE_BLOCK(UINT16)
+    GRNGO_SET_INT_CASE_BLOCK(UINT32)
+    GRNGO_SET_INT_CASE_BLOCK(UINT64)
+    GRNGO_SET_INT_CASE_BLOCK(TIME)
     default: {
       return GRN_INVALID_ARGUMENT;
     }
   }
-  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
+#undef GRNGO_SET_INT_CASE_BLOCK
 
 grn_rc
 grngo_set_float(grngo_column *column, grn_id id, double value) {
