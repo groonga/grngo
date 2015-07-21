@@ -3,7 +3,987 @@
 #include <math.h>
 #include <string.h>
 
+// -- miscellaneous --
+
 #define GRNGO_MAX_BUILTIN_TYPE_ID GRN_DB_WGS84_GEO_POINT
+
+#define GRNGO_MAX_SHORT_TEXT_LEN 4095
+#define GRNGO_MAX_TEXT_LEN       65535
+#define GRNGO_MAX_LONG_TEXT_LEN  2147484647
+
+#define GRNGO_BOOL_DB_TYPE      grn_bool
+#define GRNGO_INT8_DB_TYPE      int8_t
+#define GRNGO_INT16_DB_TYPE     int16_t
+#define GRNGO_INT32_DB_TYPE     int32_t
+#define GRNGO_INT64_DB_TYPE     int64_t
+#define GRNGO_UINT8_DB_TYPE     uint8_t
+#define GRNGO_UINT16_DB_TYPE    uint16_t
+#define GRNGO_UINT32_DB_TYPE    uint32_t
+#define GRNGO_UINT64_DB_TYPE    uint64_t
+#define GRNGO_FLOAT_DB_TYPE     double
+#define GRNGO_TIME_DB_TYPE      int64_t
+#define GRNGO_TEXT_DB_TYPE      grngo_text
+#define GRNGO_GEO_POINT_DB_TYPE grngo_geo_point
+
+#define GRNGO_DB_TYPE(type) GRNGO_ ## type ## _DB_TYPE
+
+#define GRNGO_BOOL_C_TYPE      grn_bool
+#define GRNGO_INT8_C_TYPE      int64_t
+#define GRNGO_INT16_C_TYPE     int64_t
+#define GRNGO_INT32_C_TYPE     int64_t
+#define GRNGO_INT64_C_TYPE     int64_t
+#define GRNGO_UINT8_C_TYPE     int64_t
+#define GRNGO_UINT16_C_TYPE    int64_t
+#define GRNGO_UINT32_C_TYPE    int64_t
+#define GRNGO_UINT64_C_TYPE    int64_t
+#define GRNGO_FLOAT_C_TYPE     double
+#define GRNGO_TIME_C_TYPE      int64_t
+#define GRNGO_TEXT_C_TYPE      grngo_text
+#define GRNGO_GEO_POINT_C_TYPE grngo_geo_point
+
+#define GRNGO_C_TYPE(type)  GRNGO_ ## type ## _C_TYPE
+
+#define GRNGO_TEST_BOOL(value)       (1)
+#define GRNGO_TEST_INT8(value)       \
+  (((value) >= INT8_MIN) && ((value) <= INT8_MAX))
+#define GRNGO_TEST_INT16(value)      \
+  (((value) >= INT16_MIN) && ((value) <= INT16_MAX))
+#define GRNGO_TEST_INT32(value)      \
+  (((value) >= INT32_MIN) && ((value) <= INT32_MAX))
+#define GRNGO_TEST_INT64(value)      (1)
+#define GRNGO_TEST_UINT8(value)      \
+  (((value) >= 0) && ((value) <= (int64_t)UINT8_MAX))
+#define GRNGO_TEST_UINT16(value)     \
+  (((value) >= 0) && ((value) <= (int64_t)UINT16_MAX))
+#define GRNGO_TEST_UINT32(value)     \
+  (((value) >= 0) && ((value) <= (int64_t)UINT32_MAX))
+#define GRNGO_TEST_UINT64(value)     ((value) >= 0)
+#define GRNGO_TEST_TIME(value)       (1)
+#define GRNGO_TEST_FLOAT(value)      (!isnan(value))
+#define GRNGO_TEST_SHORT_TEXT(value) \
+  (((value).ptr && ((value).size < GRNGO_MAX_SHORT_TEXT_LEN)) ||\
+   (!(value).ptr && !(value).size))
+#define GRNGO_TEST_TEXT(value)       \
+  (((value).ptr && ((value).size < GRNGO_MAX_TEXT_LEN)) ||\
+   (!(value).ptr && !(value).size))
+#define GRNGO_TEST_LONG_TEXT(value)  \
+  (((value).ptr && ((value).size < GRNGO_MAX_LONG_TEXT_LEN)) ||\
+   (!(value).ptr && !(value).size))
+#define GRNGO_TEST_GEO_POINT(value)  \
+  (((value).latitude  >= ( -90 * 60 * 60 * 1000)) &&\
+   ((value).latitude  <= (  90 * 60 * 60 * 1000)) &&\
+   ((value).longitude >= (-180 * 60 * 60 * 1000)) &&\
+   ((value).longitude <= ( 180 * 60 * 60 * 1000)))
+#define GRNGO_TEST_VECTOR(value)     \
+  ((value.ptr) || (!(value).ptr && !(value).size))
+
+static void *
+_grngo_malloc(grngo_db *db, size_t size,
+              const char *file, int line, const char *func) {
+  void *buf = malloc(size);
+  if (!buf && db) {
+    // TODO: Error!
+  }
+  return buf;
+}
+#define GRNGO_MALLOC(db, size)\
+  _grngo_malloc(db, size, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+static void *
+_grngo_realloc(grngo_db *db, void *ptr, size_t size,
+               const char *file, int line, const char *func) {
+  void *buf = realloc(ptr, size);
+  if (!buf && db) {
+    // TODO: Error!
+  }
+  return buf;
+}
+#define GRNGO_REALLOC(db, ptr, size)\
+  _grngo_realloc(db, ptr, size, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+static void
+_grngo_free(grngo_db *db, void *buf,
+            const char *file, int line, const char *func) {
+  free(buf);
+}
+#define GRNGO_FREE(db, buf)\
+  _grngo_free(db, buf, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+// -- grngo_db --
+
+static grngo_db *
+_grngo_new_db(void) {
+  grngo_db *db = (grngo_db *)GRNGO_MALLOC(NULL, sizeof(*db));
+  if (!db) {
+    return NULL;
+  }
+  memset(db, 0, sizeof(*db));
+  db->ctx = NULL;
+  db->obj = NULL;
+  db->estr = db->estr_buf;
+  return db;
+}
+
+static void
+_grngo_delete_db(grngo_db *db) {
+  if (db->obj) {
+    grn_obj_close(db->ctx, db->obj);
+  }
+  if (db->ctx) {
+    grn_ctx_close(db->ctx);
+  }
+  GRNGO_FREE(NULL, db);
+}
+
+static grn_rc
+_grngo_create_db(grngo_db *db, const char *path) {
+  db->ctx = grn_ctx_open(0);
+  if (!db->ctx) {
+    return GRN_NO_MEMORY_AVAILABLE;
+  }
+  db->obj = grn_db_create(db->ctx, path, NULL);
+  if (!db->obj) {
+    if (db->ctx->rc != GRN_SUCCESS) {
+      return db->ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  return GRN_SUCCESS;
+}
+
+static grn_rc
+_grngo_open_db(grngo_db *db, const char *path) {
+  db->ctx = grn_ctx_open(0);
+  if (!db->ctx) {
+    return GRN_NO_MEMORY_AVAILABLE;
+  }
+  db->obj = grn_db_open(db->ctx, path);
+  if (!db->obj) {
+    if (db->ctx->rc != GRN_SUCCESS) {
+      return db->ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  return GRN_SUCCESS;
+}
+
+grn_rc
+grngo_create_db(const char *path, size_t path_len, grngo_db **db) {
+  if ((!path && path_len) || !db) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  // Create a zero-terminated path.
+  char *path_cstr = NULL;
+  if (path) {
+    path_cstr = GRNGO_MALLOC(NULL, path_len + 1);
+    if (!path_cstr) {
+      return GRN_NO_MEMORY_AVAILABLE;
+    }
+    memcpy(path_cstr, path, path_len);
+    path_cstr[path_len] = '\0';
+  }
+  // Create a DB.
+  grngo_db *new_db = _grngo_new_db();
+  grn_rc rc = new_db ? GRN_SUCCESS : GRN_NO_MEMORY_AVAILABLE;
+  if (rc == GRN_SUCCESS) {
+    rc = _grngo_create_db(new_db, path_cstr);
+    if (rc == GRN_SUCCESS) {
+      *db = new_db;
+    } else {
+      _grngo_delete_db(new_db);
+    }
+  }
+  GRNGO_FREE(NULL, path_cstr);
+  return rc;
+}
+
+grn_rc
+grngo_open_db(const char *path, size_t path_len, grngo_db **db) {
+  if ((!path && path_len) || !db) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  // Create a zero-terminated path.
+  char *path_cstr = NULL;
+  if (path) {
+    path_cstr = GRNGO_MALLOC(NULL, path_len + 1);
+    if (!path_cstr) {
+      return GRN_NO_MEMORY_AVAILABLE;
+    }
+    memcpy(path_cstr, path, path_len);
+    path_cstr[path_len] = '\0';
+  }
+  // Open a DB.
+  grngo_db *new_db = _grngo_new_db();
+  grn_rc rc = new_db ? GRN_SUCCESS : GRN_NO_MEMORY_AVAILABLE;
+  if (rc == GRN_SUCCESS) {
+    rc = _grngo_open_db(new_db, path_cstr);
+    if (rc == GRN_SUCCESS) {
+      *db = new_db;
+    } else {
+      _grngo_delete_db(new_db);
+    }
+  }
+  GRNGO_FREE(NULL, path_cstr);
+  return rc;
+}
+
+void
+grngo_close_db(grngo_db *db) {
+  if (db) {
+    _grngo_delete_db(db);
+  }
+}
+
+// -- grngo_table --
+
+static grngo_table *
+_grngo_new_table(grngo_db *db) {
+  grngo_table *table = (grngo_table *)GRNGO_MALLOC(db, sizeof(*table));
+  if (!table) {
+    return NULL;
+  }
+  memset(table, 0, sizeof(*table));
+  table->db = db;
+  table->obj = NULL;
+  return table;
+}
+
+static void
+_grngo_delete_table(grngo_table *table) {
+  if (table->obj) {
+    grn_obj_unlink(table->db->ctx, table->obj);
+  }
+  GRNGO_FREE(table->db, table);
+}
+
+static grn_rc
+_grngo_set_key_type(grngo_table *table, grn_obj *obj) {
+  grn_id domain = obj->header.domain;
+  if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+    table->key_type = domain;
+    return GRN_SUCCESS;
+  }
+  for ( ; ; ) {
+    obj = grn_ctx_at(table->db->ctx, domain);
+    if (!obj) {
+      if (table->db->ctx->rc != GRN_SUCCESS) {
+        return table->db->ctx->rc;
+      }
+      return GRN_UNKNOWN_ERROR;
+    }
+    domain = obj->header.domain;
+    grn_obj_unlink(table->db->ctx, obj);
+    if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+      table->key_type = domain;
+      break;
+    }
+  }
+  return GRN_SUCCESS;
+}
+
+static grn_rc
+_grngo_open_table(grngo_table *table, const char *name, size_t name_len) {
+  grn_obj *obj = grn_ctx_get(table->db->ctx, name, name_len);
+  if (!obj) {
+    if (table->db->ctx->rc != GRN_SUCCESS) {
+      return table->db->ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  if (!grn_obj_is_table(table->db->ctx, obj)) {
+    grn_obj_unlink(table->db->ctx, obj);
+    return GRN_INVALID_FORMAT;
+  }
+  table->obj = obj;
+  return _grngo_set_key_type(table, obj);
+}
+
+grn_rc
+grngo_open_table(grngo_db *db, const char *name, size_t name_len,
+                 grngo_table **table) {
+  if (!db || !name || (name_len == 0) || !table) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grngo_table *new_table = _grngo_new_table(db);
+  grn_rc rc = new_table ? GRN_SUCCESS : GRN_NO_MEMORY_AVAILABLE;
+  if (rc == GRN_SUCCESS) {
+    rc = _grngo_open_table(new_table, name, name_len);
+    if (rc == GRN_SUCCESS) {
+      *table = new_table;
+    } else {
+      _grngo_delete_table(new_table);
+    }
+  }
+  return rc;
+}
+
+void
+grngo_close_table(grngo_table *table) {
+  if (table) {
+    _grngo_delete_table(table);
+  }
+}
+
+static grn_rc
+_grngo_insert_row(grngo_table *table, const void *key, size_t key_size,
+                  grn_bool *inserted, grn_id *id) {
+  int tmp_inserted;
+  grn_id tmp_id = grn_table_add(table->db->ctx, table->obj, key, key_size,
+                                &tmp_inserted);
+  if (tmp_id == GRN_ID_NIL) {
+    if (table->db->ctx->rc != GRN_SUCCESS) {
+      return table->db->ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  *inserted = (grn_bool)tmp_inserted;
+  *id = tmp_id;
+  return GRN_SUCCESS;
+}
+
+grn_rc
+grngo_insert_void(grngo_table *table, grn_bool *inserted, grn_id *id) {
+  if (!table || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  if (table->key_type != GRN_DB_VOID) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  return _grngo_insert_row(table, NULL, 0, inserted, id);
+}
+
+grn_rc
+grngo_insert_bool(grngo_table *table, grn_bool key,
+                  grn_bool *inserted, grn_id *id) {
+  if (!table || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  if ((table->key_type != GRN_DB_BOOL) || !GRNGO_TEST_BOOL(key)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  return _grngo_insert_row(table, &key, sizeof(key), inserted, id);
+}
+
+#define GRNGO_INSERT_INT_CASE_BLOCK(type)\
+  case GRN_DB_ ## type: {\
+    if (!GRNGO_TEST_ ## type(key)) {\
+      return GRN_INVALID_ARGUMENT;\
+    }\
+    GRNGO_DB_TYPE(type) tmp_key = (GRNGO_DB_TYPE(type))key;\
+    return _grngo_insert_row(table, &tmp_key, sizeof(tmp_key), inserted, id);\
+  }
+grn_rc
+grngo_insert_int(grngo_table *table, int64_t key,
+                 grn_bool *inserted, grn_id *id) {
+  if (!table || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  switch (table->key_type) {
+    GRNGO_INSERT_INT_CASE_BLOCK(INT8)
+    GRNGO_INSERT_INT_CASE_BLOCK(INT16)
+    GRNGO_INSERT_INT_CASE_BLOCK(INT32)
+    GRNGO_INSERT_INT_CASE_BLOCK(INT64)
+    GRNGO_INSERT_INT_CASE_BLOCK(UINT8)
+    GRNGO_INSERT_INT_CASE_BLOCK(UINT16)
+    GRNGO_INSERT_INT_CASE_BLOCK(UINT32)
+    GRNGO_INSERT_INT_CASE_BLOCK(UINT64)
+    GRNGO_INSERT_INT_CASE_BLOCK(TIME)
+    default: {
+      return GRN_INVALID_ARGUMENT;
+    }
+  }
+}
+#undef GRNGO_INSERT_INT_CASE_BLOCK
+
+grn_rc
+grngo_insert_float(grngo_table *table, double key,
+                   grn_bool *inserted, grn_id *id) {
+  if (!table || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  if ((table->key_type != GRN_DB_FLOAT) || !GRNGO_TEST_FLOAT(key)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  return _grngo_insert_row(table, &key, sizeof(key), inserted, id);
+}
+
+grn_rc
+grngo_insert_text(grngo_table *table, grngo_text key,
+                  grn_bool *inserted, grn_id *id) {
+  if (!table || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  if ((table->key_type != GRN_DB_SHORT_TEXT) || !GRNGO_TEST_SHORT_TEXT(key)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  return _grngo_insert_row(table, key.ptr, key.size, inserted, id);
+}
+
+grn_rc
+grngo_insert_geo_point(grngo_table *table, grn_geo_point key,
+                       grn_bool *inserted, grn_id *id) {
+  if (!table || !inserted || !id) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  switch (table->key_type) {
+    case GRN_DB_TOKYO_GEO_POINT:
+    case GRN_DB_WGS84_GEO_POINT: {
+      if (!GRNGO_TEST_GEO_POINT(key)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      break;
+    }
+    default: {
+      return GRN_INVALID_ARGUMENT;
+    }
+  }
+  return _grngo_insert_row(table, &key, sizeof(key), inserted, id);
+}
+
+// -- grngo_column --
+
+static grngo_column *
+_grngo_new_column(grngo_table *table) {
+  grngo_column *column = (grngo_column *)GRNGO_MALLOC(table->db,
+                                                      sizeof(*column));
+  if (!column) {
+    return NULL;
+  }
+  memset(column, 0, sizeof(*column));
+  column->db = table->db;
+  column->table = table;
+  column->objs = NULL;
+  return column;
+}
+
+static void
+_grngo_delete_column(grngo_column *column) {
+  if (column->objs) {
+    size_t i;
+    for (i = 0; i < column->num_objs; i++) {
+      grn_obj_unlink(column->db->ctx, column->objs[i]);
+    }
+    GRNGO_FREE(column->db, column->objs);
+  }
+  GRNGO_FREE(column->db, column);
+}
+
+static grn_rc
+_grngo_open_column_obj(grngo_db *db, grn_obj *table,
+                       const char *name, size_t name_len, grn_obj **obj) {
+  grn_obj *new_obj;
+  if ((name_len == GRN_COLUMN_NAME_VALUE_LEN) &&
+      !memcmp(name, GRN_COLUMN_NAME_VALUE, name_len)) {
+    new_obj = grn_ctx_at(db->ctx, grn_obj_id(db->ctx, table));
+  } else {
+    new_obj = grn_obj_column(db->ctx, table, name, name_len);
+  }
+  if (!new_obj) {
+    if (db->ctx->rc != GRN_SUCCESS) {
+      return db->ctx->rc;
+    }
+    return GRN_UNKNOWN_ERROR;
+  }
+  *obj = new_obj;
+  return GRN_SUCCESS;
+}
+
+static grn_rc
+_grngo_push_column(grngo_column *column, grn_obj **table,
+                   const char *name, size_t name_len) {
+  grn_obj *obj;
+  grn_rc rc = _grngo_open_column_obj(column->db, *table, name, name_len, &obj);
+  if (rc != GRN_SUCCESS) {
+    return rc;
+  }
+  switch (obj->header.type) {
+    case GRN_COLUMN_VAR_SIZE: {
+      grn_obj_flags type = obj->header.flags & GRN_OBJ_COLUMN_TYPE_MASK;
+      if (type == GRN_OBJ_COLUMN_VECTOR) {
+        column->dimension++;
+      }
+    }
+    case GRN_TABLE_HASH_KEY:
+    case GRN_TABLE_PAT_KEY:
+    case GRN_TABLE_NO_KEY:
+    case GRN_ACCESSOR:
+    case GRN_COLUMN_FIX_SIZE: {
+      grn_id range = grn_obj_get_range(column->db->ctx, obj);
+      if (range == GRN_DB_VOID) {
+        grn_obj_unlink(column->db->ctx, obj);
+        return GRN_INVALID_ARGUMENT;
+      } else if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+        column->value_type = range;
+        *table = NULL;
+      } else {
+        grn_obj *range_obj = grn_ctx_at(column->db->ctx, range);
+        if (!grn_obj_is_table(column->db->ctx, range_obj)) {
+          grn_obj_unlink(column->db->ctx, range_obj);
+          return GRN_INVALID_ARGUMENT;
+        }
+        *table = range_obj;
+      }
+      break;
+    }
+    default: {
+      grn_obj_unlink(column->db->ctx, obj);
+      return GRN_INVALID_ARGUMENT;
+    }
+  }
+  size_t new_size = sizeof(grn_obj *) * (column->num_objs + 1);
+  grn_obj **new_objs = (grn_obj **)GRNGO_REALLOC(column->db, column->objs,
+                                                 new_size);
+  if (!new_objs) {
+    return GRN_NO_MEMORY_AVAILABLE;
+  }
+  column->objs = new_objs;
+  column->num_objs++;
+  return GRN_SUCCESS;
+}
+
+static grn_rc
+_grngo_open_column(grngo_table *table, grngo_column *column,
+                   const char *name, size_t name_len) {
+  grn_obj *owner = table->obj;
+  while (name_len) {
+    if (!owner) {
+      return GRN_INVALID_ARGUMENT;
+    }
+    const char *token = name;
+    size_t token_len = 0;
+    while (name_len) {
+      name_len--;
+      if (*name++ == '.') {
+        break;
+      }
+      token_len++;
+    }
+    grn_rc rc = _grngo_push_column(column, &owner, token, token_len);
+    if (rc != GRN_SUCCESS) {
+      return rc;
+    }
+  }
+  if (column->num_objs == 1) {
+    switch (column->objs[0]->header.type) {
+      case GRN_TABLE_HASH_KEY:
+      case GRN_TABLE_PAT_KEY:
+      case GRN_TABLE_NO_KEY:
+      case GRN_COLUMN_FIX_SIZE:
+      case GRN_COLUMN_VAR_SIZE: {
+        column->writable = GRN_TRUE;
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+  while (owner) {
+    grn_rc rc = _grngo_push_column(column, &owner, GRN_COLUMN_NAME_KEY,
+                                   GRN_COLUMN_NAME_KEY_LEN);
+    if (rc != GRN_SUCCESS) {
+      return rc;
+    }
+  }
+  return GRN_SUCCESS;
+}
+
+grn_rc
+grngo_open_column(grngo_table *table, const char *name, size_t name_len,
+                  grngo_column **column) {
+  if (!table || !name || (name_len == 0) || !column) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grngo_column *new_column = _grngo_new_column(table);
+  grn_rc rc = new_column ? GRN_SUCCESS : GRN_NO_MEMORY_AVAILABLE;
+  if (rc == GRN_SUCCESS) {
+    rc = _grngo_open_column(table, new_column, name, name_len);
+    if (rc == GRN_SUCCESS) {
+      *column = new_column;
+    } else {
+      _grngo_delete_column(new_column);
+    }
+  }
+  return rc;
+}
+
+grn_rc
+grngo_close_column(grngo_column *column) {
+  if (column) {
+    _grngo_delete_column(column);
+  }
+}
+
+grn_rc
+grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
+  if (!column || !GRNGO_TEST_BOOL(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  GRN_BOOL_INIT(&obj, 0);
+  GRN_BOOL_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
+  if (!column) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  switch (column->value_type) {
+    case GRN_DB_INT8: {
+      if ((value < INT8_MIN) || (value > INT8_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_INT8_INIT(&obj, 0);
+      GRN_INT8_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_INT16: {
+      if ((value < INT16_MIN) || (value > INT16_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_INT16_INIT(&obj, 0);
+      GRN_INT16_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_INT32: {
+      if ((value < INT32_MIN) || (value > INT32_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_INT32_INIT(&obj, 0);
+      GRN_INT32_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_INT64: {
+      GRN_INT64_INIT(&obj, 0);
+      GRN_INT64_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_UINT8: {
+      if ((value < 0) || (value > (int64_t)UINT8_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_UINT8_INIT(&obj, 0);
+      GRN_UINT8_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_UINT16: {
+      if ((value < 0) || (value > (int64_t)UINT16_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_UINT16_INIT(&obj, 0);
+      GRN_UINT16_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_UINT32: {
+      if ((value < 0) || (value > (int64_t)UINT32_MAX)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_UINT32_INIT(&obj, 0);
+      GRN_UINT32_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_UINT64: {
+      if (value < 0) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_UINT64_INIT(&obj, 0);
+      GRN_UINT64_SET(ctx, &obj, value);
+      break;
+    }
+    case GRN_DB_TIME: {
+      GRN_TIME_INIT(&obj, 0);
+      GRN_TIME_SET(ctx, &obj, value);
+      break;
+    }
+    default: {
+      return GRN_INVALID_ARGUMENT;
+    }
+  }
+  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_float(grngo_column *column, grn_id id, double value) {
+  if (!column || !GRNGO_TEST_FLOAT(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  GRN_FLOAT_INIT(&obj, 0);
+  GRN_FLOAT_SET(ctx, &obj, value);
+  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
+  if (!column) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  switch (column->value_type) {
+    case GRN_DB_SHORT_TEXT: {
+      if (!GRNGO_TEST_SHORT_TEXT(value)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_SHORT_TEXT_INIT(&obj, 0);
+      break;
+    }
+    case GRN_DB_TEXT: {
+      if (!GRNGO_TEST_TEXT(value)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_TEXT_INIT(&obj, 0);
+      break;
+    }
+    case GRN_DB_LONG_TEXT: {
+      if (!GRNGO_TEST_LONG_TEXT(value)) {
+        return GRN_INVALID_ARGUMENT;
+      }
+      GRN_LONG_TEXT_INIT(&obj, 0);
+      break;
+    }
+  }
+  GRN_TEXT_SET(ctx, &obj, value.ptr, value.size);
+  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
+  if (!column || !GRNGO_TEST_GEO_POINT(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  switch (column->value_type) {
+    case GRN_DB_TOKYO_GEO_POINT: {
+      GRN_TOKYO_GEO_POINT_INIT(&obj, 0);
+      break;
+    }
+    case GRN_DB_WGS84_GEO_POINT: {
+      GRN_WGS84_GEO_POINT_INIT(&obj, 0);
+      break;
+    }
+    default: {
+      return GRN_UNKNOWN_ERROR;
+    }
+  }
+  GRN_GEO_POINT_SET(ctx, &obj, value.latitude, value.longitude);
+  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_bool_vector(grngo_column *column, grn_id id, grngo_vector value) {
+  if (!column || !GRNGO_TEST_VECTOR(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  GRN_BOOL_INIT(&obj, GRN_OBJ_VECTOR);
+  grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)value.ptr,
+                             sizeof(grn_bool) * value.size);
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+#define GRNGO_SET_INT_VECTOR_CASE_BLOCK(type)\
+  case GRN_DB_ ## type: {\
+    for (i = 0; i < value.size; i++) {\
+      if (!GRNGO_TEST_ ## type(values[i])) {\
+        return GRN_INVALID_ARGUMENT;\
+      }\
+    }\
+    GRN_ ## type ## _INIT(&obj, GRN_OBJ_VECTOR);\
+    rc = grn_bulk_resize(ctx, &obj, sizeof(GRNGO_DB_TYPE(type)) * value.size);\
+    if (rc != GRN_SUCCESS) {\
+      break;\
+    }\
+    GRNGO_DB_TYPE(type) *head = (GRNGO_DB_TYPE(type) *)GRN_BULK_HEAD(&obj);\
+    for (i = 0; i < value.size; i++) {\
+      head[i] = (GRNGO_DB_TYPE(type))values[i];\
+    }\
+    break;\
+  }
+grn_rc
+grngo_set_int_vector(grngo_column *column, grn_id id, grngo_vector value) {
+  if (!column || !GRNGO_TEST_VECTOR(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  size_t i;
+  const int64_t *values = (const int64_t *)value.ptr;
+  grn_rc rc = GRN_SUCCESS;
+  switch (column->value_type) {
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(INT8)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(INT16)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(INT32)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(INT64)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT8)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT16)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT32)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT64)
+    default: {
+      return GRN_INVALID_ARGUMENT;
+    }
+  }
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+#undef GRNGO_SET_INT_VECTOR_CASE_BLOCK
+
+grn_rc
+grngo_set_float_vector(grngo_column *column, grn_id id, grngo_vector value) {
+  if (!column || !GRNGO_TEST_VECTOR(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  GRN_FLOAT_INIT(&obj, GRN_OBJ_VECTOR);
+  grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)value.ptr,
+                             sizeof(double) * value.size);
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
+  if (!column || !GRNGO_TEST_VECTOR(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  size_t i;
+  const grngo_text *values = (const grngo_text *)value.ptr;
+  switch (column->value_type) {
+    case GRN_DB_SHORT_TEXT: {
+      for (i = 0; i < value.size; i++) {
+        if (values[i].size > GRNGO_MAX_SHORT_TEXT_LEN) {
+          return GRN_INVALID_ARGUMENT;
+        }
+      }
+      GRN_SHORT_TEXT_INIT(&obj, GRN_OBJ_VECTOR);
+      break;
+    }
+    case GRN_DB_TEXT: {
+      for (i = 0; i < value.size; i++) {
+        if (values[i].size > GRNGO_MAX_TEXT_LEN) {
+          return GRN_INVALID_ARGUMENT;
+        }
+      }
+      GRN_TEXT_INIT(&obj, GRN_OBJ_VECTOR);
+      break;
+    }
+    case GRN_DB_LONG_TEXT: {
+      for (i = 0; i < value.size; i++) {
+        if (values[i].size > GRNGO_MAX_LONG_TEXT_LEN) {
+          return GRN_INVALID_ARGUMENT;
+        }
+      }
+      GRN_LONG_TEXT_INIT(&obj, GRN_OBJ_VECTOR);
+      break;
+    }
+  }
+  grn_rc rc = GRN_SUCCESS;
+  for (i = 0; i < value.size; i++) {
+    rc = grn_vector_add_element(ctx, &obj, (const char *)values[i].ptr,
+                                values[i].size, 0, obj.header.domain);
+    if (rc != GRN_SUCCESS) {
+      break;
+    }
+  }
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+grn_rc
+grngo_set_geo_point_vector(grngo_column *column, grn_id id,
+                           grngo_vector value) {
+  if (!column || !GRNGO_TEST_VECTOR(value)) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_obj obj;
+  switch (column->value_type) {
+    case GRN_DB_TOKYO_GEO_POINT: {
+      GRN_TOKYO_GEO_POINT_INIT(&obj, GRN_OBJ_VECTOR);
+      break;
+    }
+    case GRN_DB_WGS84_GEO_POINT: {
+      GRN_WGS84_GEO_POINT_INIT(&obj, GRN_OBJ_VECTOR);
+      break;
+    }
+    default: {
+      return GRN_UNKNOWN_ERROR;
+    }
+  }
+  grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)value.ptr,
+                             sizeof(grn_geo_point) * value.size);
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
+  GRN_OBJ_FIN(ctx, &obj);
+  return rc;
+}
+
+// -- old... --
 
 grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,
                         grn_obj **table) {
