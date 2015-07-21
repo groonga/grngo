@@ -696,6 +696,14 @@ grngo_set_float(grngo_column *column, grn_id id, double value) {
   return rc;
 }
 
+#define GRNGO_SET_TEXT_CASE_BLOCK(type)\
+  case GRN_DB_ ## type: {\
+    if (!GRNGO_TEST_ ## type(value)) {\
+      return GRN_INVALID_ARGUMENT;\
+    }\
+    GRN_ ## type ## _INIT(&obj, 0);\
+    break;\
+  }
 grn_rc
 grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
   if (!column) {
@@ -707,26 +715,11 @@ grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
   }
   grn_obj obj;
   switch (column->value_type) {
-    case GRN_DB_SHORT_TEXT: {
-      if (!GRNGO_TEST_SHORT_TEXT(value)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_SHORT_TEXT_INIT(&obj, 0);
-      break;
-    }
-    case GRN_DB_TEXT: {
-      if (!GRNGO_TEST_TEXT(value)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_TEXT_INIT(&obj, 0);
-      break;
-    }
-    case GRN_DB_LONG_TEXT: {
-      if (!GRNGO_TEST_LONG_TEXT(value)) {
-        return GRN_INVALID_ARGUMENT;
-      }
-      GRN_LONG_TEXT_INIT(&obj, 0);
-      break;
+    GRNGO_SET_TEXT_CASE_BLOCK(SHORT_TEXT)
+    GRNGO_SET_TEXT_CASE_BLOCK(TEXT)
+    GRNGO_SET_TEXT_CASE_BLOCK(LONG_TEXT)
+    default: {
+      return GRN_UNKNOWN_ERROR;
     }
   }
   grn_rc rc = grn_bulk_write(ctx, &obj, value.ptr, value.size);
@@ -736,6 +729,7 @@ grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
+#undef GRNGO_SET_TEXT_CASE_BLOCK
 
 grn_rc
 grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
@@ -861,6 +855,16 @@ grngo_set_float_vector(grngo_column *column, grn_id id, grngo_vector value) {
   return rc;
 }
 
+#define GRNGO_SET_TEXT_VECTOR_CASE_BLOCK(type)\
+  case GRN_DB_ ## type: {\
+    for (i = 0; i < value.size; i++) {\
+      if (!GRNGO_TEST_ ## type(values[i])) {\
+        return GRN_INVALID_ARGUMENT;\
+      }\
+    }\
+    GRN_ ## type ## _INIT(&obj, GRN_OBJ_VECTOR);\
+    break;\
+  }
 grn_rc
 grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
   if (!column || !GRNGO_TEST_VECTOR(value)) {
@@ -874,32 +878,11 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
   size_t i;
   const grngo_text *values = (const grngo_text *)value.ptr;
   switch (column->value_type) {
-    case GRN_DB_SHORT_TEXT: {
-      for (i = 0; i < value.size; i++) {
-        if (!GRNGO_TEST_SHORT_TEXT(values[i])) {
-          return GRN_INVALID_ARGUMENT;
-        }
-      }
-      GRN_SHORT_TEXT_INIT(&obj, GRN_OBJ_VECTOR);
-      break;
-    }
-    case GRN_DB_TEXT: {
-      for (i = 0; i < value.size; i++) {
-        if (!GRNGO_TEST_TEXT(values[i])) {
-          return GRN_INVALID_ARGUMENT;
-        }
-      }
-      GRN_TEXT_INIT(&obj, GRN_OBJ_VECTOR);
-      break;
-    }
-    case GRN_DB_LONG_TEXT: {
-      for (i = 0; i < value.size; i++) {
-        if (!GRNGO_TEST_LONG_TEXT(values[i])) {
-          return GRN_INVALID_ARGUMENT;
-        }
-      }
-      GRN_LONG_TEXT_INIT(&obj, GRN_OBJ_VECTOR);
-      break;
+    GRNGO_SET_TEXT_VECTOR_CASE_BLOCK(SHORT_TEXT)
+    GRNGO_SET_TEXT_VECTOR_CASE_BLOCK(TEXT)
+    GRNGO_SET_TEXT_VECTOR_CASE_BLOCK(LONG_TEXT)
+    default: {
+      return GRN_UNKNOWN_ERROR;
     }
   }
   grn_rc rc = GRN_SUCCESS;
@@ -916,6 +899,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
+#undef GRNGO_SET_TEXT_VECTOR_CASE_BLOCK
 
 grn_rc
 grngo_set_geo_point_vector(grngo_column *column, grn_id id,
