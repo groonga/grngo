@@ -828,6 +828,7 @@ grngo_set_int_vector(grngo_column *column, grn_id id, grngo_vector value) {
     GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT16)
     GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT32)
     GRNGO_SET_INT_VECTOR_CASE_BLOCK(UINT64)
+    GRNGO_SET_INT_VECTOR_CASE_BLOCK(TIME)
     default: {
       return GRN_INVALID_ARGUMENT;
     }
