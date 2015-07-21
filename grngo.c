@@ -626,8 +626,10 @@ grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
   }
   grn_obj obj;
   GRN_BOOL_INIT(&obj, 0);
-  GRN_BOOL_SET(ctx, &obj, value);
-  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)&value, sizeof(value));
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
@@ -729,8 +731,10 @@ grngo_set_float(grngo_column *column, grn_id id, double value) {
   }
   grn_obj obj;
   GRN_FLOAT_INIT(&obj, 0);
-  GRN_FLOAT_SET(ctx, &obj, value);
-  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)&value, sizeof(value));
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
@@ -768,8 +772,10 @@ grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
       break;
     }
   }
-  GRN_TEXT_SET(ctx, &obj, value.ptr, value.size);
-  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  grn_rc rc = grn_bulk_write(ctx, &obj, value.ptr, value.size);
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
@@ -797,8 +803,10 @@ grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
       return GRN_UNKNOWN_ERROR;
     }
   }
-  GRN_GEO_POINT_SET(ctx, &obj, value.latitude, value.longitude);
-  grn_rc rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)&value, sizeof(value));
+  if (rc == GRN_SUCCESS) {
+    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+  }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
 }
