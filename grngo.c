@@ -120,7 +120,7 @@ _grngo_new_db(void) {
   memset(db, 0, sizeof(*db));
   db->ctx = NULL;
   db->obj = NULL;
-  db->estr = db->estr_buf;
+  db->estr = NULL;
   return db;
 }
 
@@ -141,6 +141,7 @@ _grngo_create_db(grngo_db *db, const char *path) {
   if (!db->ctx) {
     return GRN_NO_MEMORY_AVAILABLE;
   }
+  db->estr = db->ctx->errbuf;
   db->obj = grn_db_create(db->ctx, path, NULL);
   if (!db->obj) {
     if (db->ctx->rc != GRN_SUCCESS) {
