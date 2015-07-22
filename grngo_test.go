@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"reflect"
+//	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -1051,156 +1051,156 @@ func TestColumnSetValueForWGS84GeoPointVector(t *testing.T) {
 	testColumnSetValue(t, "[]WGS84GeoPoint")
 }
 
-func testColumnGetValue(t *testing.T, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", valueType, nil)
-	defer removeTempDB(t, dirPath, db)
+//func testColumnGetValue(t *testing.T, valueType string) {
+//	dirPath, _, db, table, column :=
+//		createTempColumn(t, "Table", nil, "Value", valueType, nil)
+//	defer removeTempDB(t, dirPath, db)
 
-	for i := 0; i < 100; i++ {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			t.Fatalf("Table.InsertRow() failed: %v", err)
-		}
-		value := generateRandomValue(valueType)
-		if err := column.SetValue(id, value); err != nil {
-			t.Fatalf("Column.SetValue() failed: %v", err)
-		}
-		if storedValue, err := column.GetValue(id); err != nil {
-			t.Fatalf("Column.GetValue() failed: %v", err)
-		} else if !reflect.DeepEqual(value, storedValue) {
-			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
-				value, storedValue)
-		}
-	}
-}
+//	for i := 0; i < 100; i++ {
+//		_, id, err := table.InsertRow(nil)
+//		if err != nil {
+//			t.Fatalf("Table.InsertRow() failed: %v", err)
+//		}
+//		value := generateRandomValue(valueType)
+//		if err := column.SetValue(id, value); err != nil {
+//			t.Fatalf("Column.SetValue() failed: %v", err)
+//		}
+//		if storedValue, err := column.GetValue(id); err != nil {
+//			t.Fatalf("Column.GetValue() failed: %v", err)
+//		} else if !reflect.DeepEqual(value, storedValue) {
+//			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+//				value, storedValue)
+//		}
+//	}
+//}
 
-func TestColumnGetValueForBool(t *testing.T) {
-	testColumnGetValue(t, "Bool")
-}
+//func TestColumnGetValueForBool(t *testing.T) {
+//	testColumnGetValue(t, "Bool")
+//}
 
-func TestColumnGetValueForInt8(t *testing.T) {
-	testColumnGetValue(t, "Int8")
-}
+//func TestColumnGetValueForInt8(t *testing.T) {
+//	testColumnGetValue(t, "Int8")
+//}
 
-func TestColumnGetValueForInt16(t *testing.T) {
-	testColumnGetValue(t, "Int16")
-}
+//func TestColumnGetValueForInt16(t *testing.T) {
+//	testColumnGetValue(t, "Int16")
+//}
 
-func TestColumnGetValueForInt32(t *testing.T) {
-	testColumnGetValue(t, "Int32")
-}
+//func TestColumnGetValueForInt32(t *testing.T) {
+//	testColumnGetValue(t, "Int32")
+//}
 
-func TestColumnGetValueForInt64(t *testing.T) {
-	testColumnGetValue(t, "Int64")
-}
+//func TestColumnGetValueForInt64(t *testing.T) {
+//	testColumnGetValue(t, "Int64")
+//}
 
-func TestColumnGetValueForUInt8(t *testing.T) {
-	testColumnGetValue(t, "UInt8")
-}
+//func TestColumnGetValueForUInt8(t *testing.T) {
+//	testColumnGetValue(t, "UInt8")
+//}
 
-func TestColumnGetValueForUInt16(t *testing.T) {
-	testColumnGetValue(t, "UInt16")
-}
+//func TestColumnGetValueForUInt16(t *testing.T) {
+//	testColumnGetValue(t, "UInt16")
+//}
 
-func TestColumnGetValueForUInt32(t *testing.T) {
-	testColumnGetValue(t, "UInt32")
-}
+//func TestColumnGetValueForUInt32(t *testing.T) {
+//	testColumnGetValue(t, "UInt32")
+//}
 
-func TestColumnGetValueForUInt64(t *testing.T) {
-	testColumnGetValue(t, "UInt64")
-}
+//func TestColumnGetValueForUInt64(t *testing.T) {
+//	testColumnGetValue(t, "UInt64")
+//}
 
-func TestColumnGetValueForFloat(t *testing.T) {
-	testColumnGetValue(t, "Float")
-}
+//func TestColumnGetValueForFloat(t *testing.T) {
+//	testColumnGetValue(t, "Float")
+//}
 
-func TestColumnGetValueForTime(t *testing.T) {
-	testColumnGetValue(t, "Time")
-}
+//func TestColumnGetValueForTime(t *testing.T) {
+//	testColumnGetValue(t, "Time")
+//}
 
-func TestColumnGetValueForShortText(t *testing.T) {
-	testColumnGetValue(t, "ShortText")
-}
+//func TestColumnGetValueForShortText(t *testing.T) {
+//	testColumnGetValue(t, "ShortText")
+//}
 
-func TestColumnGetValueForText(t *testing.T) {
-	testColumnGetValue(t, "Text")
-}
+//func TestColumnGetValueForText(t *testing.T) {
+//	testColumnGetValue(t, "Text")
+//}
 
-func TestColumnGetValueForLongText(t *testing.T) {
-	testColumnGetValue(t, "LongText")
-}
+//func TestColumnGetValueForLongText(t *testing.T) {
+//	testColumnGetValue(t, "LongText")
+//}
 
-func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
-	testColumnGetValue(t, "TokyoGeoPoint")
-}
+//func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
+//	testColumnGetValue(t, "TokyoGeoPoint")
+//}
 
-func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
-	testColumnGetValue(t, "WGS84GeoPoint")
-}
+//func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
+//	testColumnGetValue(t, "WGS84GeoPoint")
+//}
 
-func TestColumnGetValueForBoolVector(t *testing.T) {
-	testColumnGetValue(t, "[]Bool")
-}
+//func TestColumnGetValueForBoolVector(t *testing.T) {
+//	testColumnGetValue(t, "[]Bool")
+//}
 
-func TestColumnGetValueForInt8Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int8")
-}
+//func TestColumnGetValueForInt8Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]Int8")
+//}
 
-func TestColumnGetValueForInt16Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int16")
-}
+//func TestColumnGetValueForInt16Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]Int16")
+//}
 
-func TestColumnGetValueForInt32Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int32")
-}
+//func TestColumnGetValueForInt32Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]Int32")
+//}
 
-func TestColumnGetValueForInt64Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int64")
-}
+//func TestColumnGetValueForInt64Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]Int64")
+//}
 
-func TestColumnGetValueForUInt8Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt8")
-}
+//func TestColumnGetValueForUInt8Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]UInt8")
+//}
 
-func TestColumnGetValueForUInt16Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt16")
-}
+//func TestColumnGetValueForUInt16Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]UInt16")
+//}
 
-func TestColumnGetValueForUInt32Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt32")
-}
+//func TestColumnGetValueForUInt32Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]UInt32")
+//}
 
-func TestColumnGetValueForUInt64Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt64")
-}
+//func TestColumnGetValueForUInt64Vector(t *testing.T) {
+//	testColumnGetValue(t, "[]UInt64")
+//}
 
-func TestColumnGetValueForFloatVector(t *testing.T) {
-	testColumnGetValue(t, "[]Float")
-}
+//func TestColumnGetValueForFloatVector(t *testing.T) {
+//	testColumnGetValue(t, "[]Float")
+//}
 
-func TestColumnGetValueForTimeVector(t *testing.T) {
-	testColumnGetValue(t, "[]Time")
-}
+//func TestColumnGetValueForTimeVector(t *testing.T) {
+//	testColumnGetValue(t, "[]Time")
+//}
 
-func TestColumnGetValueForShortTextVector(t *testing.T) {
-	testColumnGetValue(t, "[]ShortText")
-}
+//func TestColumnGetValueForShortTextVector(t *testing.T) {
+//	testColumnGetValue(t, "[]ShortText")
+//}
 
-func TestColumnGetValueForTextVector(t *testing.T) {
-	testColumnGetValue(t, "[]Text")
-}
+//func TestColumnGetValueForTextVector(t *testing.T) {
+//	testColumnGetValue(t, "[]Text")
+//}
 
-func TestColumnGetValueForLongTextVector(t *testing.T) {
-	testColumnGetValue(t, "[]LongText")
-}
+//func TestColumnGetValueForLongTextVector(t *testing.T) {
+//	testColumnGetValue(t, "[]LongText")
+//}
 
-func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
-	testColumnGetValue(t, "[]TokyoGeoPoint")
-}
+//func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
+//	testColumnGetValue(t, "[]TokyoGeoPoint")
+//}
 
-func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
-	testColumnGetValue(t, "[]WGS84GeoPoint")
-}
+//func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
+//	testColumnGetValue(t, "[]WGS84GeoPoint")
+//}
 
 // Benchmarks.
 
@@ -1366,159 +1366,159 @@ func BenchmarkColumnSetValueForWGS84GeoPointVector(b *testing.B) {
 	benchmarkColumnSetValue(b, "[]WGS84GeoPoint")
 }
 
-func benchmarkColumnGetValue(b *testing.B, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(b, "Table", nil, "Value", valueType, nil)
-	defer removeTempDB(b, dirPath, db)
-	ids := make([]uint32, numTestRows)
-	for i, _ := range ids {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			b.Fatalf("Table.InsertRow() failed: %s", err)
-		}
-		if err := column.SetValue(id, generateRandomValue(valueType)); err != nil {
-			b.Fatalf("Column.SetValue() failed: %s", err)
-		}
-		ids[i] = id
-	}
+//func benchmarkColumnGetValue(b *testing.B, valueType string) {
+//	dirPath, _, db, table, column :=
+//		createTempColumn(b, "Table", nil, "Value", valueType, nil)
+//	defer removeTempDB(b, dirPath, db)
+//	ids := make([]uint32, numTestRows)
+//	for i, _ := range ids {
+//		_, id, err := table.InsertRow(nil)
+//		if err != nil {
+//			b.Fatalf("Table.InsertRow() failed: %s", err)
+//		}
+//		if err := column.SetValue(id, generateRandomValue(valueType)); err != nil {
+//			b.Fatalf("Column.SetValue() failed: %s", err)
+//		}
+//		ids[i] = id
+//	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		for _, id := range ids {
-			if _, err := column.GetValue(id); err != nil {
-				b.Fatalf("Column.GetValue() failed: %s", err)
-			}
-		}
-	}
-}
+//	b.ResetTimer()
+//	for i := 0; i < b.N; i++ {
+//		for _, id := range ids {
+//			if _, err := column.GetValue(id); err != nil {
+//				b.Fatalf("Column.GetValue() failed: %s", err)
+//			}
+//		}
+//	}
+//}
 
-func BenchmarkColumnGetValueForBool(b *testing.B) {
-	benchmarkColumnGetValue(b, "Bool")
-}
+//func BenchmarkColumnGetValueForBool(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Bool")
+//}
 
-func BenchmarkColumnGetValueForInt8(b *testing.B) {
-	benchmarkColumnGetValue(b, "Int8")
-}
+//func BenchmarkColumnGetValueForInt8(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Int8")
+//}
 
-func BenchmarkColumnGetValueForInt16(b *testing.B) {
-	benchmarkColumnGetValue(b, "Int16")
-}
+//func BenchmarkColumnGetValueForInt16(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Int16")
+//}
 
-func BenchmarkColumnGetValueForInt32(b *testing.B) {
-	benchmarkColumnGetValue(b, "Int32")
-}
+//func BenchmarkColumnGetValueForInt32(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Int32")
+//}
 
-func BenchmarkColumnGetValueForInt64(b *testing.B) {
-	benchmarkColumnGetValue(b, "Int64")
-}
+//func BenchmarkColumnGetValueForInt64(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Int64")
+//}
 
-func BenchmarkColumnGetValueForUInt8(b *testing.B) {
-	benchmarkColumnGetValue(b, "UInt8")
-}
+//func BenchmarkColumnGetValueForUInt8(b *testing.B) {
+//	benchmarkColumnGetValue(b, "UInt8")
+//}
 
-func BenchmarkColumnGetValueForUInt16(b *testing.B) {
-	benchmarkColumnGetValue(b, "UInt16")
-}
+//func BenchmarkColumnGetValueForUInt16(b *testing.B) {
+//	benchmarkColumnGetValue(b, "UInt16")
+//}
 
-func BenchmarkColumnGetValueForUInt32(b *testing.B) {
-	benchmarkColumnGetValue(b, "UInt32")
-}
+//func BenchmarkColumnGetValueForUInt32(b *testing.B) {
+//	benchmarkColumnGetValue(b, "UInt32")
+//}
 
-func BenchmarkColumnGetValueForUInt64(b *testing.B) {
-	benchmarkColumnGetValue(b, "UInt64")
-}
+//func BenchmarkColumnGetValueForUInt64(b *testing.B) {
+//	benchmarkColumnGetValue(b, "UInt64")
+//}
 
-func BenchmarkColumnGetValueForFloat(b *testing.B) {
-	benchmarkColumnGetValue(b, "Float")
-}
+//func BenchmarkColumnGetValueForFloat(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Float")
+//}
 
-func BenchmarkColumnGetValueForTime(b *testing.B) {
-	benchmarkColumnGetValue(b, "Time")
-}
+//func BenchmarkColumnGetValueForTime(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Time")
+//}
 
-func BenchmarkColumnGetValueForShortText(b *testing.B) {
-	benchmarkColumnGetValue(b, "ShortText")
-}
+//func BenchmarkColumnGetValueForShortText(b *testing.B) {
+//	benchmarkColumnGetValue(b, "ShortText")
+//}
 
-func BenchmarkColumnGetValueForText(b *testing.B) {
-	benchmarkColumnGetValue(b, "Text")
-}
+//func BenchmarkColumnGetValueForText(b *testing.B) {
+//	benchmarkColumnGetValue(b, "Text")
+//}
 
-func BenchmarkColumnGetValueForLongText(b *testing.B) {
-	benchmarkColumnGetValue(b, "LongText")
-}
+//func BenchmarkColumnGetValueForLongText(b *testing.B) {
+//	benchmarkColumnGetValue(b, "LongText")
+//}
 
-func BenchmarkColumnGetValueForTokyoGeoPoint(b *testing.B) {
-	benchmarkColumnGetValue(b, "TokyoGeoPoint")
-}
+//func BenchmarkColumnGetValueForTokyoGeoPoint(b *testing.B) {
+//	benchmarkColumnGetValue(b, "TokyoGeoPoint")
+//}
 
-func BenchmarkColumnGetValueForWGS84GeoPoint(b *testing.B) {
-	benchmarkColumnGetValue(b, "WGS84GeoPoint")
-}
+//func BenchmarkColumnGetValueForWGS84GeoPoint(b *testing.B) {
+//	benchmarkColumnGetValue(b, "WGS84GeoPoint")
+//}
 
-func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Bool")
-}
+//func BenchmarkColumnGetValueForBoolVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Bool")
+//}
 
-func BenchmarkColumnGetValueForInt8Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Int8")
-}
+//func BenchmarkColumnGetValueForInt8Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Int8")
+//}
 
-func BenchmarkColumnGetValueForInt16Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Int16")
-}
+//func BenchmarkColumnGetValueForInt16Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Int16")
+//}
 
-func BenchmarkColumnGetValueForInt32Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Int32")
-}
+//func BenchmarkColumnGetValueForInt32Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Int32")
+//}
 
-func BenchmarkColumnGetValueForInt64Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Int64")
-}
+//func BenchmarkColumnGetValueForInt64Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Int64")
+//}
 
-func BenchmarkColumnGetValueForUInt8Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]UInt8")
-}
+//func BenchmarkColumnGetValueForUInt8Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]UInt8")
+//}
 
-func BenchmarkColumnGetValueForUInt16Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]UInt16")
-}
+//func BenchmarkColumnGetValueForUInt16Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]UInt16")
+//}
 
-func BenchmarkColumnGetValueForUInt32Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]UInt32")
-}
+//func BenchmarkColumnGetValueForUInt32Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]UInt32")
+//}
 
-func BenchmarkColumnGetValueForUInt64Vector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]UInt64")
-}
+//func BenchmarkColumnGetValueForUInt64Vector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]UInt64")
+//}
 
-func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Float")
-}
+//func BenchmarkColumnGetValueForFloatVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Float")
+//}
 
-func BenchmarkColumnGetValueForTimeVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Time")
-}
+//func BenchmarkColumnGetValueForTimeVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Time")
+//}
 
-func BenchmarkColumnGetValueForShortTextVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]ShortText")
-}
+//func BenchmarkColumnGetValueForShortTextVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]ShortText")
+//}
 
-func BenchmarkColumnGetValueForTextVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]Text")
-}
+//func BenchmarkColumnGetValueForTextVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]Text")
+//}
 
-func BenchmarkColumnGetValueForLongTextVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]LongText")
-}
+//func BenchmarkColumnGetValueForLongTextVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]LongText")
+//}
 
-func BenchmarkColumnGetValueForTokyoGeoPointVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]TokyoGeoPoint")
-}
+//func BenchmarkColumnGetValueForTokyoGeoPointVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]TokyoGeoPoint")
+//}
 
-func BenchmarkColumnGetValueForWGS84GeoPointVector(b *testing.B) {
-	benchmarkColumnGetValue(b, "[]WGS84GeoPoint")
-}
+//func BenchmarkColumnGetValueForWGS84GeoPointVector(b *testing.B) {
+//	benchmarkColumnGetValue(b, "[]WGS84GeoPoint")
+//}
 
 func benchmarkDBSelect(b *testing.B, valueType string) {
 	dirPath, _, db, table, column :=
