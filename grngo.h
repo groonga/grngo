@@ -37,6 +37,9 @@ grn_rc grngo_create_db(const char *path, size_t path_len, grngo_db **db);
 grn_rc grngo_open_db(const char *path, size_t path_len, grngo_db **db);
 void grngo_close_db(grngo_db *db);
 
+grn_rc grngo_send(grngo_db *db, const char *cmd, size_t cmd_len);
+grn_rc grngo_recv(grngo_db *db, char **res, unsigned int *res_len);
+
 // -- grngo_table --
 
 typedef struct {
@@ -75,7 +78,7 @@ typedef struct {
 
 grn_rc grngo_open_column(grngo_table *tbl, const char *name, size_t name_len,
                          grngo_column **column);
-grn_rc grngo_close_column(grngo_column *column);
+void grngo_close_column(grngo_column *column);
 
 grn_rc grngo_set_bool(grngo_column *column, grn_id id, grn_bool value);
 grn_rc grngo_set_int(grngo_column *column, grn_id id, int64_t value);

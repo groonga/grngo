@@ -610,7 +610,7 @@ func TestTableInsertRowWithWGS84GeoPointKey(t *testing.T) {
 	testTableInsertRow(t, "WGS84GeoPoint")
 }
 
-func testTableCreateScalarColumn(t *testing.T, valueType string) {
+func testTableCreateColumn(t *testing.T, valueType string) {
 	dirPath, _, db, table, _ :=
 		createTempColumn(t, "Table", nil, "Value", valueType, nil)
 	defer removeTempDB(t, dirPath, db)
@@ -627,281 +627,273 @@ func testTableCreateScalarColumn(t *testing.T, valueType string) {
 	}
 }
 
-func testTableCreateVectorColumn(t *testing.T, valueType string) {
-	dirPath, _, db, table, _ :=
-		createTempColumn(t, "Table", nil, "Value", "[]"+valueType, nil)
-	defer removeTempDB(t, dirPath, db)
-
-	if column, err := table.FindColumn("_id"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("_id: %+v", column)
-	}
-	if column, err := table.FindColumn("Value"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value: %+v", column)
-	}
-}
-
-func testTableCreateScalarRefColumn(t *testing.T, keyType string) {
-	options := NewTableOptions()
-	options.KeyType = keyType
-	dirPath, _, db, table, _ :=
-		createTempColumn(t, "Table", options, "Value", "Table", nil)
-	defer removeTempDB(t, dirPath, db)
-
-	if column, err := table.FindColumn("Value"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value: %+v", column)
-	}
-	if column, err := table.FindColumn("Value._id"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value._id: %+v", column)
-	}
-	if column, err := table.FindColumn("Value._key"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value._key: %+v", column)
-	}
-}
-
-func testTableCreateVectorRefColumn(t *testing.T, keyType string) {
-	tableOptions := NewTableOptions()
-	tableOptions.KeyType = keyType
-	dirPath, _, db, table, _ :=
-		createTempColumn(t, "Table", tableOptions, "Value", "[]Table", nil)
-	defer removeTempDB(t, dirPath, db)
-
-	if column, err := table.FindColumn("Value"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value: %+v", column)
-	}
-	if column, err := table.FindColumn("Value._id"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value._id: %+v", column)
-	}
-	if column, err := table.FindColumn("Value._key"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value._key: %+v", column)
-	}
-}
-
 func TestTableCreateColumnForBool(t *testing.T) {
-	testTableCreateScalarColumn(t, "Bool")
+	testTableCreateColumn(t, "Bool")
 }
 
 func TestTableCreateColumnForInt8(t *testing.T) {
-	testTableCreateScalarColumn(t, "Int8")
+	testTableCreateColumn(t, "Int8")
 }
 
 func TestTableCreateColumnForInt16(t *testing.T) {
-	testTableCreateScalarColumn(t, "Int16")
+	testTableCreateColumn(t, "Int16")
 }
 
 func TestTableCreateColumnForInt32(t *testing.T) {
-	testTableCreateScalarColumn(t, "Int32")
+	testTableCreateColumn(t, "Int32")
 }
 
 func TestTableCreateColumnForInt64(t *testing.T) {
-	testTableCreateScalarColumn(t, "Int64")
+	testTableCreateColumn(t, "Int64")
 }
 
 func TestTableCreateColumnForUInt8(t *testing.T) {
-	testTableCreateScalarColumn(t, "UInt8")
+	testTableCreateColumn(t, "UInt8")
 }
 
 func TestTableCreateColumnForUInt16(t *testing.T) {
-	testTableCreateScalarColumn(t, "UInt16")
+	testTableCreateColumn(t, "UInt16")
 }
 
 func TestTableCreateColumnForUInt32(t *testing.T) {
-	testTableCreateScalarColumn(t, "UInt32")
+	testTableCreateColumn(t, "UInt32")
 }
 
 func TestTableCreateColumnForUInt64(t *testing.T) {
-	testTableCreateScalarColumn(t, "UInt64")
+	testTableCreateColumn(t, "UInt64")
 }
 
 func TestTableCreateColumnForFloat(t *testing.T) {
-	testTableCreateScalarColumn(t, "Float")
+	testTableCreateColumn(t, "Float")
 }
 
 func TestTableCreateColumnForTime(t *testing.T) {
-	testTableCreateScalarColumn(t, "Time")
+	testTableCreateColumn(t, "Time")
 }
 
 func TestTableCreateColumnForShortText(t *testing.T) {
-	testTableCreateScalarColumn(t, "ShortText")
+	testTableCreateColumn(t, "ShortText")
 }
 
 func TestTableCreateColumnForText(t *testing.T) {
-	testTableCreateScalarColumn(t, "Text")
+	testTableCreateColumn(t, "Text")
 }
 
 func TestTableCreateColumnForLongText(t *testing.T) {
-	testTableCreateScalarColumn(t, "LongText")
+	testTableCreateColumn(t, "LongText")
 }
 
 func TestTableCreateColumnForTokyoGeoPoint(t *testing.T) {
-	testTableCreateScalarColumn(t, "TokyoGeoPoint")
+	testTableCreateColumn(t, "TokyoGeoPoint")
 }
 
 func TestTableCreateColumnForWGS84GeoPoint(t *testing.T) {
-	testTableCreateScalarColumn(t, "WGS84GeoPoint")
+	testTableCreateColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForBoolVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Bool")
+	testTableCreateColumn(t, "[]Bool")
 }
 
 func TestTableCreateColumnForInt8Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Int8")
+	testTableCreateColumn(t, "[]Int8")
 }
 
 func TestTableCreateColumnForInt16Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Int16")
+	testTableCreateColumn(t, "[]Int16")
 }
 
 func TestTableCreateColumnForInt32Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Int32")
+	testTableCreateColumn(t, "[]Int32")
 }
 
 func TestTableCreateColumnForInt64Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Int64")
+	testTableCreateColumn(t, "[]Int64")
 }
 
 func TestTableCreateColumnForUInt8Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "UInt8")
+	testTableCreateColumn(t, "[]UInt8")
 }
 
 func TestTableCreateColumnForUInt16Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "UInt16")
+	testTableCreateColumn(t, "[]UInt16")
 }
 
 func TestTableCreateColumnForUInt32Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "UInt32")
+	testTableCreateColumn(t, "[]UInt32")
 }
 
 func TestTableCreateColumnForUInt64Vector(t *testing.T) {
-	testTableCreateVectorColumn(t, "UInt64")
+	testTableCreateColumn(t, "[]UInt64")
 }
 
 func TestTableCreateColumnForFloatVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Float")
+	testTableCreateColumn(t, "[]Float")
 }
 
 func TestTableCreateColumnForTimeVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Time")
+	testTableCreateColumn(t, "[]Time")
 }
 
 func TestTableCreateColumnForShortTextVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "ShortText")
+	testTableCreateColumn(t, "[]ShortText")
 }
 
 func TestTableCreateColumnForTextVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "Text")
+	testTableCreateColumn(t, "[]Text")
 }
 
 func TestTableCreateColumnForLongTextVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "LongText")
+	testTableCreateColumn(t, "[]LongText")
 }
 
 func TestTableCreateColumnForTokyoGeoPointVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "TokyoGeoPoint")
+	testTableCreateColumn(t, "[]TokyoGeoPoint")
 }
 
 func TestTableCreateColumnForWGS84GeoPointVector(t *testing.T) {
-	testTableCreateVectorColumn(t, "WGS84GeoPoint")
+	testTableCreateColumn(t, "[]WGS84GeoPoint")
+}
+
+func testTableCreateRefColumn(t *testing.T, keyType string) {
+	valueType := "Table"
+	if strings.HasPrefix(keyType, "[]") {
+		keyType = keyType[2:]
+		valueType = "[]Table"
+	}
+	options := NewTableOptions()
+	options.KeyType = keyType
+	dirPath, _, db, table, _ :=
+		createTempColumn(t, "Table", options, "Value", valueType, nil)
+	defer removeTempDB(t, dirPath, db)
+
+	if column, err := table.FindColumn("Value"); err != nil {
+		t.Fatalf("Table.FindColumn() failed: %v", err)
+	} else {
+		t.Logf("Value: %+v", column)
+	}
+	if column, err := table.FindColumn("Value._id"); err != nil {
+		t.Fatalf("Table.FindColumn() failed: %v", err)
+	} else {
+		t.Logf("Value._id: %+v", column)
+	}
+	if column, err := table.FindColumn("Value._key"); err != nil {
+		t.Fatalf("Table.FindColumn() failed: %v", err)
+	} else {
+		t.Logf("Value._key: %+v", column)
+	}
 }
 
 func TestTableCreateColumnForRefToBool(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Bool")
+	testTableCreateRefColumn(t, "Bool")
 }
 
 func TestTableCreateColumnForRefToInt8(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Int8")
+	testTableCreateRefColumn(t, "Int8")
 }
 
 func TestTableCreateColumnForRefToInt16(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Int16")
+	testTableCreateRefColumn(t, "Int16")
 }
 
 func TestTableCreateColumnForRefToInt32(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Int32")
+	testTableCreateRefColumn(t, "Int32")
 }
 
 func TestTableCreateColumnForRefToInt64(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Int64")
+	testTableCreateRefColumn(t, "Int64")
 }
 
 func TestTableCreateColumnForRefToUInt8(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "UInt8")
+	testTableCreateRefColumn(t, "UInt8")
 }
 
 func TestTableCreateColumnForRefToUInt16(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "UInt16")
+	testTableCreateRefColumn(t, "UInt16")
 }
 
 func TestTableCreateColumnForRefToUInt32(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "UInt32")
+	testTableCreateRefColumn(t, "UInt32")
 }
 
 func TestTableCreateColumnForRefToUInt64(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "UInt64")
+	testTableCreateRefColumn(t, "UInt64")
 }
 
 func TestTableCreateColumnForRefToFloat(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Float")
+	testTableCreateRefColumn(t, "Float")
 }
 
 func TestTableCreateColumnForRefToTime(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "Time")
+	testTableCreateRefColumn(t, "Time")
 }
 
 func TestTableCreateColumnForRefToShortText(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "ShortText")
+	testTableCreateRefColumn(t, "ShortText")
 }
 
 func TestTableCreateColumnForRefToTokyoGeoPoint(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "TokyoGeoPoint")
+	testTableCreateRefColumn(t, "TokyoGeoPoint")
 }
 
 func TestTableCreateColumnForRefToWGS84GeoPoint(t *testing.T) {
-	testTableCreateScalarRefColumn(t, "WGS84GeoPoint")
+	testTableCreateRefColumn(t, "WGS84GeoPoint")
 }
 
 func TestTableCreateColumnForRefToBoolVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "Bool")
+	testTableCreateRefColumn(t, "[]Bool")
 }
 
-func TestTableCreateColumnForRefToIntVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "Int64")
+func TestTableCreateColumnForRefToInt8Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]Int8")
+}
+
+func TestTableCreateColumnForRefToInt16Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]Int16")
+}
+
+func TestTableCreateColumnForRefToInt32Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]Int32")
+}
+
+func TestTableCreateColumnForRefToInt64Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]Int64")
+}
+
+func TestTableCreateColumnForRefToUInt8Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]UInt8")
+}
+
+func TestTableCreateColumnForRefToUInt16Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]UInt16")
+}
+
+func TestTableCreateColumnForRefToUInt32Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]UInt32")
+}
+
+func TestTableCreateColumnForRefToUInt64Vector(t *testing.T) {
+	testTableCreateRefColumn(t, "[]UInt64")
 }
 
 func TestTableCreateColumnForRefToFloatVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "Float")
+	testTableCreateRefColumn(t, "[]Float")
 }
 
 func TestTableCreateColumnForRefToTimeVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "Time")
+	testTableCreateRefColumn(t, "[]Time")
 }
 
 func TestTableCreateColumnForRefToShortTextVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "ShortText")
+	testTableCreateRefColumn(t, "[]ShortText")
 }
 
 func TestTableCreateColumnForRefToTokyoGeoPointVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "TokyoGeoPoint")
+	testTableCreateRefColumn(t, "[]TokyoGeoPoint")
 }
 
 func TestTableCreateColumnForRefToWGS84GeoPointVector(t *testing.T) {
-	testTableCreateVectorRefColumn(t, "WGS84GeoPoint")
+	testTableCreateRefColumn(t, "[]WGS84GeoPoint")
 }
 
 func testColumnSetValue(t *testing.T, valueType string) {

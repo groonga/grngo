@@ -177,30 +177,18 @@ func rcString(rc C.grn_rc) string {
 	}
 }
 
-// newGrnError returns an error related to a Groonga or Grngo operation.
-func newGrnError(opName string, rc *C.grn_rc, ctx *C.grn_ctx) error {
-	switch {
-	case rc == nil:
-		if ctx == nil {
-			return fmt.Errorf("%s failed", opName)
-		}
-		if ctx.rc == C.GRN_SUCCESS {
-			return fmt.Errorf("%s failed: ctx.rc = %s",
-				opName, rcString(ctx.rc))
-		}
-		msg := C.GoString(&ctx.errbuf[0])
-		return fmt.Errorf("%s failed: ctx.rc = %s, ctx.errbuf = %s",
-			opName, rcString(ctx.rc), msg)
-	case ctx == nil:
-		return fmt.Errorf("%s failed: rc = %s", opName, *rc)
-	case ctx.rc == C.GRN_SUCCESS:
-		return fmt.Errorf("%s failed: rc = %s, ctx.rc = %s",
-			opName, rcString(*rc), rcString(ctx.rc))
-	default:
-		msg := C.GoString(&ctx.errbuf[0])
-		return fmt.Errorf("%s failed: rc = %s, ctx.rc = %s, ctx.errbuf = %s",
-			opName, rcString(*rc), rcString(ctx.rc), msg)
+// newError returns an error related to a Groonga or Grngo operation.
+func newGrnError(opName string, rc C.grn_rc, db *DB) error {
+	if db == nil {
+		return fmt.Errorf("%s failed: rc = %s", opName, rcString(rc))
 	}
+	ctx := db.c.ctx
+	if ctx.errbuf[0] == 0 {
+		return fmt.Errorf("%s failed: rc = %s, ctx.rc = %s",
+			opName, rcString(rc), rcString(ctx.rc))
+	}
+	return fmt.Errorf("%s failed: rc = %s, ctx.rc = %s, ctx.errbuf = %s",
+		opName, rcString(rc), rcString(ctx.rc), C.GoString(&ctx.errbuf[0]))
 }
 
 // newInvalidKeyTypeError returns an error for data type conflict.
@@ -398,7 +386,7 @@ func GrnInit() error {
 	if grnInitCount == 0 {
 		if !grnInitFinDisabled {
 			if rc := C.grn_init(); rc != C.GRN_SUCCESS {
-				return newGrnError("grn_init()", &rc, nil)
+				return newGrnError("grn_init()", rc, nil)
 			}
 		}
 	}
@@ -418,7 +406,7 @@ func GrnFin() error {
 	case 1:
 		if !grnInitFinDisabled {
 			if rc := C.grn_fin(); rc != C.GRN_SUCCESS {
-				return newGrnError("grn_fin()", &rc, nil)
+				return newGrnError("grn_fin()", rc, nil)
 			}
 		}
 	}
@@ -426,43 +414,18 @@ func GrnFin() error {
 	return nil
 }
 
-// openGrnCtx returns a new grn_ctx.
-func openGrnCtx() (*C.grn_ctx, error) {
-	if err := GrnInit(); err != nil {
-		return nil, err
-	}
-	ctx := C.grn_ctx_open(0)
-	if ctx == nil {
-		GrnFin()
-		return nil, newGrnError("grn_ctx_open()", nil, nil)
-	}
-	return ctx, nil
-}
-
-// closeGrnCtx finalizes a grn_ctx.
-func closeGrnCtx(ctx *C.grn_ctx) error {
-	rc := C.grn_ctx_close(ctx)
-	GrnFin()
-	if rc != C.GRN_SUCCESS {
-		return newGrnError("grn_ctx_close()", &rc, nil)
-	}
-	return nil
-}
-
 // -- DB --
 
 // DB is associated with a Groonga database with its context.
 type DB struct {
-	ctx    *C.grn_ctx        // The associated grn_ctx.
-	obj    *C.grn_obj        // The associated database.
+  c      *C.grngo_db       // The associated C object.
 	tables map[string]*Table // A cache to find tables by name.
 }
 
 // newDB returns a new DB.
-func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
+func newDB(c *C.grngo_db) *DB {
 	db := new(DB)
-	db.ctx = ctx
-	db.obj = obj
+	db.c = c
 	db.tables = make(map[string]*Table)
 	return db
 }
@@ -473,21 +436,21 @@ func newDB(ctx *C.grn_ctx, obj *C.grn_obj) *DB {
 // Note that CreateDB initializes Groonga if the new DB will be the only one
 // and implicit initialization is not disabled.
 func CreateDB(path string) (*DB, error) {
-	ctx, err := openGrnCtx()
-	if err != nil {
+	if err := GrnInit(); err != nil {
 		return nil, err
 	}
+	pathBytes := []byte(path)
 	var cPath *C.char
-	if path != "" {
-		cPath = C.CString(path)
-		defer C.free(unsafe.Pointer(cPath))
+	if len(pathBytes) != 0 {
+		cPath = (*C.char)(unsafe.Pointer(&pathBytes[0]));
 	}
-	obj := C.grn_db_create(ctx, cPath, nil)
-	if obj == nil {
-		defer closeGrnCtx(ctx)
-		return nil, newGrnError("grn_db_create()", nil, ctx)
+	var c *C.grngo_db
+	rc := C.grngo_create_db(cPath, C.size_t(len(pathBytes)), &c);
+	if (rc != C.GRN_SUCCESS) {
+		GrnFin()
+		return nil, newGrnError("grngo_create_db()", rc, nil)
 	}
-	return newDB(ctx, obj), nil
+	return newDB(c), nil
 }
 
 // OpenDB opens an existing Groonga database and returns a new DB associated
@@ -496,53 +459,41 @@ func CreateDB(path string) (*DB, error) {
 // Note that CreateDB initializes Groonga if the new DB will be the only one
 // and implicit initialization is not disabled.
 func OpenDB(path string) (*DB, error) {
-	ctx, err := openGrnCtx()
-	if err != nil {
+	if err := GrnInit(); err != nil {
 		return nil, err
 	}
-	cPath := C.CString(path)
-	defer C.free(unsafe.Pointer(cPath))
-	obj := C.grn_db_open(ctx, cPath)
-	if obj == nil {
-		defer closeGrnCtx(ctx)
-		return nil, newGrnError("grn_db_open()", nil, ctx)
+	pathBytes := []byte(path)
+	var cPath *C.char
+	if len(pathBytes) != 0 {
+		cPath = (*C.char)(unsafe.Pointer(&pathBytes[0]));
 	}
-	return newDB(ctx, obj), nil
+	var c *C.grngo_db
+	rc := C.grngo_open_db(cPath, C.size_t(len(pathBytes)), &c);
+	if (rc != C.GRN_SUCCESS) {
+		GrnFin()
+		return nil, newGrnError("grngo_open_db()", rc, nil)
+	}
+	return newDB(c), nil
 }
 
 // Close finalizes a DB.
 func (db *DB) Close() error {
-	rc := C.grn_obj_close(db.ctx, db.obj)
-	if rc != C.GRN_SUCCESS {
-		defer closeGrnCtx(db.ctx)
-		return newGrnError("grn_obj_close()", &rc, db.ctx)
-	}
-	return closeGrnCtx(db.ctx)
+	C.grngo_close_db(db.c)
+	return GrnFin()
 }
 
 // Refresh clears maps for Table and Column name resolution.
 //
-// If a table or column is renamed or removed, the maps may cause a name
+// If a table or column is renamed or removed, old maps can cause a name
 // resolution error. In such a case, you should use Refresh or reopen the
 // Groonga database to resolve it.
 func (db *DB) Refresh() error {
 	for _, table := range db.tables {
-		nameBytes := []byte(table.name)
-		cName := (*C.char)(unsafe.Pointer(&nameBytes[0]))
-		var tableObj *C.grn_obj
-		C.grngo_find_table(db.ctx, cName, C.size_t(len(nameBytes)), &tableObj)
-		if tableObj != table.obj {
-			continue
-		}
 		for _, column := range table.columns {
-			nameBytes := []byte(column.name)
-			cName := (*C.char)(unsafe.Pointer(&nameBytes[0]))
-			columnObj := C.grn_obj_column(db.ctx, table.obj, cName, C.uint(len(nameBytes)))
-			if columnObj == column.obj {
-				C.grn_obj_unlink(db.ctx, column.obj)
-			}
+			C.grngo_close_column(column.c)
 		}
-		C.grn_obj_unlink(db.ctx, table.obj)
+		table.columns = make(map[string]*Column)
+		C.grngo_close_table(table.c)
 	}
 	db.tables = make(map[string]*Table)
 	return nil
@@ -553,14 +504,21 @@ func (db *DB) Refresh() error {
 //
 // See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) Send(command string) error {
+	command = strings.TrimSpace(command)
+	if strings.HasPrefix(command, "table_remove") ||
+		strings.HasPrefix(command, "table_rename") ||
+		strings.HasPrefix(command, "column_remove") ||
+		strings.HasPrefix(command, "column_rename") {
+		db.Refresh()
+	}
 	commandBytes := []byte(command)
 	var cCommand *C.char
 	if len(commandBytes) != 0 {
 		cCommand = (*C.char)(unsafe.Pointer(&commandBytes[0]))
 	}
-	C.grn_ctx_send(db.ctx, cCommand, C.uint(len(commandBytes)), 0)
-	if db.ctx.rc != C.GRN_SUCCESS {
-		return newGrnError("grn_ctx_send()", nil, db.ctx)
+	rc := C.grngo_send(db.c, cCommand, C.size_t(len(commandBytes)))
+	if rc != C.GRN_SUCCESS {
+		return newGrnError("grngo_send()", rc, db)
 	}
 	return nil
 }
@@ -598,15 +556,13 @@ func (db *DB) SendEx(name string, options map[string]string) error {
 //
 // See http://groonga.org/docs/reference/command.html for details.
 func (db *DB) Recv() ([]byte, error) {
-	var resultBuffer *C.char
-	var resultLength C.uint
-	var flags C.int
-	C.grn_ctx_recv(db.ctx, &resultBuffer, &resultLength, &flags)
-	if db.ctx.rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grn_ctx_recv()", nil, db.ctx)
+	var res *C.char
+	var resLen C.uint
+	rc := C.grngo_recv(db.c, &res, &resLen)
+	if rc != C.GRN_SUCCESS {
+		return nil, newGrnError("grngo_recv()", rc, db)
 	}
-	result := C.GoBytes(unsafe.Pointer(resultBuffer), C.int(resultLength))
-	return result, nil
+	return C.GoBytes(unsafe.Pointer(res), C.int(resLen)), nil
 }
 
 // Query executes a Groonga command and returns the result.
@@ -734,58 +690,12 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	if len(nameBytes) != 0 {
 		cName = (*C.char)(unsafe.Pointer(&nameBytes[0]))
 	}
-	var obj *C.grn_obj
-	rc := C.grngo_find_table(db.ctx, cName, C.size_t(len(nameBytes)), &obj)
+	var c *C.grngo_table
+	rc := C.grngo_open_table(db.c, cName, C.size_t(len(nameBytes)), &c)
 	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_find_table()", &rc, db.ctx)
+		return nil, newGrnError("grngo_find_table()", rc, db)
 	}
-	// Check the key type.
-	var keyInfo C.grngo_table_type_info
-	rc = C.grngo_table_get_key_info(db.ctx, obj, &keyInfo)
-	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_table_get_key_info()", &rc, db.ctx)
-	}
-	keyType := DataType(keyInfo.data_type)
-	var keyTable *Table
-	if keyInfo.ref_table != nil {
-		defer C.grn_obj_unlink(db.ctx, keyInfo.ref_table)
-		var cKeyTableName *C.char
-		rc := C.grngo_table_get_name(db.ctx, keyInfo.ref_table, &cKeyTableName)
-		if rc != C.GRN_SUCCESS {
-			return nil, newGrnError("grngo_table_get_name()", &rc, db.ctx)
-		}
-		defer C.free(unsafe.Pointer(cKeyTableName))
-		var err error
-		keyTable, err = db.FindTable(C.GoString(cKeyTableName))
-		if err != nil {
-			return nil, err
-		}
-		keyType = keyTable.keyType
-	}
-	// Check the value type.
-	var valueInfo C.grngo_table_type_info
-	rc = C.grngo_table_get_value_info(db.ctx, obj, &valueInfo)
-	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_table_get_value_info()", &rc, db.ctx)
-	}
-	valueType := DataType(valueInfo.data_type)
-	var valueTable *Table
-	if valueInfo.ref_table != nil {
-		defer C.grn_obj_unlink(db.ctx, valueInfo.ref_table)
-		var cValueTableName *C.char
-		rc := C.grngo_table_get_name(db.ctx, valueInfo.ref_table, &cValueTableName)
-		if rc != C.GRN_SUCCESS {
-			return nil, newGrnError("grngo_table_get_name()", &rc, db.ctx)
-		}
-		defer C.free(unsafe.Pointer(cValueTableName))
-		var err error
-		valueTable, err = db.FindTable(C.GoString(cValueTableName))
-		if err != nil {
-			return nil, err
-		}
-		valueType = valueTable.keyType
-	}
-	table := newTable(db, obj, name, keyType, keyTable, valueType, valueTable)
+	table := newTable(db, c, name)
 	db.tables[name] = table
 	return table, nil
 }
@@ -852,85 +762,60 @@ func (db *DB) SetValue(tableName, columnName string, id uint32, value interface{
 
 // Table is associated with a Groonga table.
 type Table struct {
-	db         *DB                // The owner DB.
-	obj        *C.grn_obj         // The associated table.
-	name       string             // The table name.
-	keyType    DataType           // The output type of keys.
-	keyTable   *Table             // Keys' reference table or nil if not available.
-	valueType  DataType           // The output type of values.
-	valueTable *Table             // Values' reference table or nil if not available.
-	columns    map[string]*Column // A cache to find columns by name.
+	db      *DB                // The owner DB.
+	c       *C.grngo_table     // The associated C object.
+	name    string             // The table name.
+	columns map[string]*Column // A cache to find columns by name.
 }
 
 // newTable returns a new Table.
-func newTable(db *DB, obj *C.grn_obj, name string, keyType DataType, keyTable *Table, valueType DataType, valueTable *Table) *Table {
+func newTable(db *DB, c *C.grngo_table, name string) *Table {
 	var table Table
 	table.db = db
-	table.obj = obj
+	table.c = c
 	table.name = name
-	table.keyType = keyType
-	table.keyTable = keyTable
-	table.valueType = valueType
-	table.valueTable = valueTable
 	table.columns = make(map[string]*Column)
 	return &table
 }
 
 // InsertRow finds or inserts a row.
 func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err error) {
-	var result C.grngo_table_insertion_result
+	var rc C.grn_rc
+	var cInserted C.grn_bool
+	var cID C.grn_id
 	switch key := key.(type) {
 	case nil:
-		if table.keyType != Void {
-			return false, NilID, newInvalidKeyTypeError(table.keyType, Void)
-		}
-		result = C.grngo_table_insert_void(table.db.ctx, table.obj)
+		rc = C.grngo_insert_void(table.c, &cInserted, &cID)
 	case bool:
-		if table.keyType != Bool {
-			return false, NilID, newInvalidKeyTypeError(table.keyType, Bool)
-		}
-		tmpKey := C.grn_bool(C.GRN_FALSE)
+		cKey := C.grn_bool(C.GRN_FALSE)
 		if key {
-			tmpKey = C.grn_bool(C.GRN_TRUE)
+			cKey = C.grn_bool(C.GRN_TRUE)
 		}
-		result = C.grngo_table_insert_bool(table.db.ctx, table.obj, tmpKey)
+		rc = C.grngo_insert_bool(table.c, cKey, &cInserted, &cID)
 	case int64:
-		switch table.keyType {
-		case Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Time:
-		default:
-			return false, NilID, newInvalidKeyTypeError(table.keyType, LazyInt)
-		}
-		result = C.grngo_table_insert_int(table.db.ctx, table.obj, C.grn_builtin_type(table.keyType), C.int64_t(key))
+		cKey := C.int64_t(key)
+		rc = C.grngo_insert_int(table.c, cKey, &cInserted, &cID)
 	case float64:
-		if table.keyType != Float {
-			return false, NilID, newInvalidKeyTypeError(table.keyType, Float)
-		}
-		tmpKey := C.double(key)
-		result = C.grngo_table_insert_float(table.db.ctx, table.obj, tmpKey)
+		cKey := C.double(key)
+		rc = C.grngo_insert_float(table.c, cKey, &cInserted, &cID)
 	case []byte:
-		if table.keyType != ShortText {
-			return false, NilID, newInvalidKeyTypeError(table.keyType, Text)
-		}
-		var tmpKey C.grngo_text
+		var cKey C.grngo_text
 		if len(key) != 0 {
-			tmpKey.ptr = (*C.char)(unsafe.Pointer(&key[0]))
-			tmpKey.size = C.size_t(len(key))
+			cKey.ptr = (*C.char)(unsafe.Pointer(&key[0]))
+			cKey.size = C.size_t(len(key))
 		}
-		result = C.grngo_table_insert_text(table.db.ctx, table.obj, &tmpKey)
+		rc = C.grngo_insert_text(table.c, cKey, &cInserted, &cID)
 	case GeoPoint:
-		if (table.keyType != TokyoGeoPoint) && (table.keyType != WGS84GeoPoint) {
-			return false, NilID, newInvalidKeyTypeError(table.keyType, LazyGeoPoint)
-		}
-		tmpKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
-		result = C.grngo_table_insert_geo_point(table.db.ctx, table.obj, &tmpKey)
+		cKey := C.grn_geo_point{C.int(key.Latitude), C.int(key.Longitude)}
+		rc = C.grngo_insert_geo_point(table.c, cKey, &cInserted, &cID)
 	default:
 		return false, NilID, fmt.Errorf(
 			"unsupported key type: typeName = <%s>", reflect.TypeOf(key).Name())
 	}
-	if result.rc != C.GRN_SUCCESS {
-		return false, NilID, newGrnError("grngo_table_insert_*()", &result.rc, table.db.ctx)
+	if rc != C.GRN_SUCCESS {
+		return false, NilID, newGrnError("grngo_insert_*()", rc, table.db)
 	}
-	return result.inserted == C.GRN_TRUE, uint32(result.id), nil
+	return cInserted == C.GRN_TRUE, uint32(cID), nil
 }
 
 // SetValue assigns a value.
@@ -1032,103 +917,22 @@ func (table *Table) CreateColumn(name string, valueType string, options *ColumnO
 	return table.FindColumn(name)
 }
 
-// findColumn finds a column.
-func (table *Table) findColumn(name string) (*Column, error) {
-	if column, ok := table.columns[name]; ok {
-		return column, nil
-	}
-	nameBytes := []byte(name)
-	var cName *C.char
-	if len(nameBytes) != 0 {
-		cName = (*C.char)(unsafe.Pointer(&nameBytes[0]))
-	}
-	obj := C.grn_obj_column(table.db.ctx, table.obj, cName, C.uint(len(name)))
-	if obj == nil {
-		return nil, newGrnError("grn_obj_column()", nil, table.db.ctx)
-	}
-	var valueType DataType
-	var valueTable *Table
-	var isVector bool
-	switch name {
-	case "_id":
-		valueType = UInt32
-	case "_key":
-		valueType = table.keyType
-		valueTable = table.keyTable
-	case "_value":
-		valueType = table.valueType
-		valueTable = table.valueTable
-	default:
-		// Check the value type.
-		var valueInfo C.grngo_column_type_info
-		rc := C.grngo_column_get_value_info(table.db.ctx, obj, &valueInfo)
-		if rc != C.GRN_SUCCESS {
-			return nil, newGrnError("grngo_column_get_value_info", &rc, table.db.ctx)
-		}
-		valueType = DataType(valueInfo.data_type)
-		isVector = valueInfo.is_vector == C.GRN_TRUE
-		if valueInfo.ref_table != nil {
-			defer C.grn_obj_unlink(table.db.ctx, valueInfo.ref_table)
-			var cValueTableName *C.char
-			rc := C.grngo_table_get_name(table.db.ctx, valueInfo.ref_table, &cValueTableName)
-			if rc != C.GRN_SUCCESS {
-				return nil, newGrnError("grngo_table_get_name()", &rc, table.db.ctx)
-			}
-			defer C.free(unsafe.Pointer(cValueTableName))
-			var err error
-			valueTable, err = table.db.FindTable(C.GoString(cValueTableName))
-			if err != nil {
-				return nil, err
-			}
-			valueType = valueTable.keyType
-		}
-	}
-	column := newColumn(table, obj, name, valueType, isVector, valueTable)
-	table.columns[name] = column
-	return column, nil
-}
-
 // FindColumn finds a column.
 func (table *Table) FindColumn(name string) (*Column, error) {
 	if column, ok := table.columns[name]; ok {
 		return column, nil
 	}
-	delimPos := strings.IndexByte(name, '.')
-	if delimPos == -1 {
-		return table.findColumn(name)
-	}
-	columnNames := strings.Split(name, ".")
-	column, err := table.findColumn(columnNames[0])
-	if err != nil {
-		return nil, err
-	}
-	isVector := column.isVector
-	valueTable := column.valueTable
-	for _, columnName := range columnNames[1:] {
-		if column.valueTable == nil {
-			return nil, fmt.Errorf("not table reference: column.name = <%s>", column.name)
-		}
-		column, err = column.valueTable.findColumn(columnName)
-		if err != nil {
-			return nil, err
-		}
-		if column.isVector {
-			if isVector {
-				return nil, fmt.Errorf("vector of vector is not supported")
-			}
-			isVector = true
-		}
-	}
 	nameBytes := []byte(name)
 	var cName *C.char
 	if len(nameBytes) != 0 {
 		cName = (*C.char)(unsafe.Pointer(&nameBytes[0]))
 	}
-	obj := C.grn_obj_column(table.db.ctx, table.obj, cName, C.uint(len(name)))
-	if obj == nil {
-		return nil, fmt.Errorf("grn_obj_column() failed: name = <%s>", name)
+	var c *C.grngo_column
+	rc := C.grngo_open_column(table.c, cName, C.size_t(len(nameBytes)), &c)
+	if rc != C.GRN_SUCCESS {
+		return nil, newGrnError("grngo_open_column()", rc, table.db)
 	}
-	column = newColumn(table, obj, name, column.valueType, isVector, valueTable)
+	column := newColumn(table, c, name)
 	table.columns[name] = column
 	return column, nil
 }
@@ -1137,299 +941,103 @@ func (table *Table) FindColumn(name string) (*Column, error) {
 
 // Column is associated with a Groonga column or accessor.
 type Column struct {
-	table      *Table     // The owner table.
-	obj        *C.grn_obj // The associated column or accessor.
-	name       string     // The column name.
-	valueType  DataType   // The built-in data type of values.
-	isVector   bool       // Whether values are vector or not.
-	valueTable *Table     // The reference table or nil if not available.
+	table      *Table          // The owner table.
+	c          *C.grngo_column // The associated C object.
+	name       string          // The column name.
 }
 
 // newColumn returns a new Column.
-func newColumn(table *Table, obj *C.grn_obj, name string, valueType DataType, isVector bool, valueTable *Table) *Column {
+func newColumn(table *Table, c *C.grngo_column, name string) *Column {
 	var column Column
 	column.table = table
-	column.obj = obj
+	column.c = c
 	column.name = name
-	column.valueType = valueType
-	column.isVector = isVector
-	column.valueTable = valueTable
 	return &column
-}
-
-// setBool assigns a Bool value.
-func (column *Column) setBool(id uint32, value bool) error {
-	if (column.valueType != Bool) || column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, Bool, false)
-	}
-	var grnValue C.grn_bool = C.GRN_FALSE
-	if value {
-		grnValue = C.GRN_TRUE
-	}
-	if ok := C.grngo_column_set_bool(column.table.db.ctx, column.obj,
-		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_bool() failed")
-	}
-	return nil
-}
-
-// setInt assigns an Int value.
-func (column *Column) setInt(id uint32, value int64) error {
-	if column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, false)
-	}
-	ctx := column.table.db.ctx
-	var ok C.grn_bool
-	switch column.valueType {
-	case Int8:
-		grnValue := C.int8_t(value)
-		ok = C.grngo_column_set_int8(ctx, column.obj, C.grn_id(id), grnValue)
-	case Int16:
-		grnValue := C.int16_t(value)
-		ok = C.grngo_column_set_int16(ctx, column.obj, C.grn_id(id), grnValue)
-	case Int32:
-		grnValue := C.int32_t(value)
-		ok = C.grngo_column_set_int32(ctx, column.obj, C.grn_id(id), grnValue)
-	case Int64:
-		grnValue := C.int64_t(value)
-		ok = C.grngo_column_set_int64(ctx, column.obj, C.grn_id(id), grnValue)
-	case UInt8:
-		grnValue := C.uint8_t(value)
-		ok = C.grngo_column_set_uint8(ctx, column.obj, C.grn_id(id), grnValue)
-	case UInt16:
-		grnValue := C.uint16_t(value)
-		ok = C.grngo_column_set_uint16(ctx, column.obj, C.grn_id(id), grnValue)
-	case UInt32:
-		grnValue := C.uint32_t(value)
-		ok = C.grngo_column_set_uint32(ctx, column.obj, C.grn_id(id), grnValue)
-	case UInt64:
-		grnValue := C.uint64_t(value)
-		ok = C.grngo_column_set_uint64(ctx, column.obj, C.grn_id(id), grnValue)
-	case Time:
-		grnValue := C.int64_t(value)
-		ok = C.grngo_column_set_time(ctx, column.obj, C.grn_id(id), grnValue)
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, false)
-	}
-	if ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_int*() failed")
-	}
-	return nil
-}
-
-// setFloat assigns a Float value.
-func (column *Column) setFloat(id uint32, value float64) error {
-	if (column.valueType != Float) || column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, Float, false)
-	}
-	grnValue := C.double(value)
-	if ok := C.grngo_column_set_float(column.table.db.ctx, column.obj,
-		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_float() failed")
-	}
-	return nil
-}
-
-// setText assigns a Text value.
-func (column *Column) setText(id uint32, value []byte) error {
-	switch column.valueType {
-	case ShortText, Text, LongText:
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, Text, false)
-	}
-	if column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, Text, false)
-	}
-	var grnValue C.grngo_text
-	if len(value) != 0 {
-		grnValue.ptr = (*C.char)(unsafe.Pointer(&value[0]))
-		grnValue.size = C.size_t(len(value))
-	}
-	if ok := C.grngo_column_set_text(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_text() failed")
-	}
-	return nil
-}
-
-// setGeoPoint assigns a GeoPoint value.
-func (column *Column) setGeoPoint(id uint32, value GeoPoint) error {
-	switch column.valueType {
-	case TokyoGeoPoint, WGS84GeoPoint:
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, false)
-	}
-	if column.isVector {
-		return fmt.Errorf("value type conflict")
-	}
-	grnValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
-	if ok := C.grngo_column_set_geo_point(column.table.db.ctx, column.obj,
-		C.grn_builtin_type(column.valueType),
-		C.grn_id(id), grnValue); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_geo_point() failed")
-	}
-	return nil
-}
-
-// setBoolVector assigns a Bool vector.
-func (column *Column) setBoolVector(id uint32, value []bool) error {
-	if (column.valueType != Bool) || !column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, Bool, true)
-	}
-	grnValue := make([]C.grn_bool, len(value))
-	for i, v := range value {
-		if v {
-			grnValue[i] = C.GRN_TRUE
-		}
-	}
-	var grnVector C.grngo_vector
-	if len(grnValue) != 0 {
-		grnVector.ptr = unsafe.Pointer(&grnValue[0])
-		grnVector.size = C.size_t(len(grnValue))
-	}
-	if ok := C.grngo_column_set_bool_vector(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_bool_vector() failed")
-	}
-	return nil
-}
-
-// setIntVector assigns an Int vector.
-func (column *Column) setIntVector(id uint32, value []int64) error {
-	if !column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, true)
-	}
-	var grnVector C.grngo_vector
-	if len(value) != 0 {
-		grnVector.ptr = unsafe.Pointer(&value[0])
-		grnVector.size = C.size_t(len(value))
-	}
-	ctx := column.table.db.ctx
-	obj := column.obj
-	var ok C.grn_bool
-	switch column.valueType {
-	case Int8:
-		ok = C.grngo_column_set_int8_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case Int16:
-		ok = C.grngo_column_set_int16_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case Int32:
-		ok = C.grngo_column_set_int32_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case Int64:
-		ok = C.grngo_column_set_int64_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case UInt8:
-		ok = C.grngo_column_set_uint8_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case UInt16:
-		ok = C.grngo_column_set_uint16_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case UInt32:
-		ok = C.grngo_column_set_uint32_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case UInt64:
-		ok = C.grngo_column_set_uint64_vector(ctx, obj, C.grn_id(id), &grnVector)
-	case Time:
-		ok = C.grngo_column_set_time_vector(ctx, obj, C.grn_id(id), &grnVector)
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyInt, true)
-	}
-	if ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_int*_vector() failed")
-	}
-	return nil
-}
-
-// setFloatVector assigns a Float vector.
-func (column *Column) setFloatVector(id uint32, value []float64) error {
-	if (column.valueType != Float) || !column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, Float, true)
-	}
-	var grnVector C.grngo_vector
-	if len(value) != 0 {
-		grnVector.ptr = unsafe.Pointer(&value[0])
-		grnVector.size = C.size_t(len(value))
-	}
-	if ok := C.grngo_column_set_float_vector(column.table.db.ctx, column.obj,
-		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_float_vector() failed")
-	}
-	return nil
-}
-
-// setTextVector assigns a Text vector.
-func (column *Column) setTextVector(id uint32, value [][]byte) error {
-	if !column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, Text, true)
-	}
-	switch column.valueType {
-	case ShortText, Text, LongText:
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, Text, true)
-	}
-	grnValue := make([]C.grngo_text, len(value))
-	for i, v := range value {
-		if len(v) != 0 {
-			grnValue[i].ptr = (*C.char)(unsafe.Pointer(&v[0]))
-			grnValue[i].size = C.size_t(len(v))
-		}
-	}
-	var grnVector C.grngo_vector
-	if len(grnValue) != 0 {
-		grnVector.ptr = unsafe.Pointer(&grnValue[0])
-		grnVector.size = C.size_t(len(grnValue))
-	}
-	if ok := C.grngo_column_set_text_vector(column.table.db.ctx,
-		column.obj, C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_text_vector() failed")
-	}
-	return nil
-}
-
-// setGeoPointVector assigns a GeoPoint vector.
-func (column *Column) setGeoPointVector(id uint32, value []GeoPoint) error {
-	if !column.isVector {
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
-	}
-	switch column.valueType {
-	case TokyoGeoPoint, WGS84GeoPoint:
-	default:
-		return newInvalidValueTypeError(column.valueType, column.isVector, LazyGeoPoint, true)
-	}
-	var grnVector C.grngo_vector
-	if len(value) != 0 {
-		grnVector.ptr = unsafe.Pointer(&value[0])
-		grnVector.size = C.size_t(len(value))
-	}
-	if ok := C.grngo_column_set_geo_point_vector(column.table.db.ctx,
-		column.obj, C.grn_builtin_type(column.valueType),
-		C.grn_id(id), &grnVector); ok != C.GRN_TRUE {
-		return fmt.Errorf("grngo_column_set_geo_point_vector() failed")
-	}
-	return nil
 }
 
 // SetValue assigns a value.
 func (column *Column) SetValue(id uint32, value interface{}) error {
-	switch v := value.(type) {
+	var rc C.grn_rc
+	cID := C.grn_id(id)
+	switch value := value.(type) {
 	case bool:
-		return column.setBool(id, v)
+		cValue := C.grn_bool(C.GRN_FALSE)
+		if value {
+			cValue = C.grn_bool(C.GRN_TRUE)
+		}
+		rc = C.grngo_set_bool(column.c, cID, cValue)
 	case int64:
-		return column.setInt(id, v)
+		cValue := C.int64_t(value)
+		rc = C.grngo_set_int(column.c, cID, cValue)
 	case float64:
-		return column.setFloat(id, v)
+		cValue := C.double(value)
+		rc = C.grngo_set_float(column.c, cID, cValue)
 	case []byte:
-		return column.setText(id, v)
+		var cValue C.grngo_text
+		if len(value) != 0 {
+			cValue.ptr = (*C.char)(unsafe.Pointer(&value[0]))
+			cValue.size = C.size_t(len(value))
+		}
+		rc = C.grngo_set_text(column.c, cID, cValue)
 	case GeoPoint:
-		return column.setGeoPoint(id, v)
+		cValue := C.grn_geo_point{C.int(value.Latitude), C.int(value.Longitude)}
+		rc = C.grngo_set_geo_point(column.c, cID, cValue)
 	case []bool:
-		return column.setBoolVector(id, v)
+		vector := make([]C.grn_bool, len(value))
+		for i := 0; i < len(value); i++ {
+			if value[i] {
+				vector[i] = C.grn_bool(C.GRN_TRUE)
+			}
+		}
+		var cValue C.grngo_vector
+		if len(vector) != 0 {
+			cValue.ptr = unsafe.Pointer(&vector[0])
+			cValue.size = C.size_t(len(vector))
+		}
+		rc = C.grngo_set_bool_vector(column.c, cID, cValue)
 	case []int64:
-		return column.setIntVector(id, v)
+		var cValue C.grngo_vector
+		if len(value) != 0 {
+			cValue.ptr = unsafe.Pointer(&value[0])
+			cValue.size = C.size_t(len(value))
+		}
+		rc = C.grngo_set_int_vector(column.c, cID, cValue)
 	case []float64:
-		return column.setFloatVector(id, v)
+		var cValue C.grngo_vector
+		if len(value) != 0 {
+			cValue.ptr = unsafe.Pointer(&value[0])
+			cValue.size = C.size_t(len(value))
+		}
+		rc = C.grngo_set_float_vector(column.c, cID, cValue)
 	case [][]byte:
-		return column.setTextVector(id, v)
+		vector := make([]C.grngo_text, len(value))
+		for i := 0; i < len(value); i++ {
+			if len(value[i]) != 0 {
+				vector[i].ptr = (*C.char)(unsafe.Pointer(&value[i][0]))
+				vector[i].size = C.size_t(len(value[i]))
+			}
+		}
+		var cValue C.grngo_vector
+		if len(vector) != 0 {
+			cValue.ptr = unsafe.Pointer(&vector[0])
+			cValue.size = C.size_t(len(vector))
+		}
+		rc = C.grngo_set_text_vector(column.c, cID, cValue)
 	case []GeoPoint:
-		return column.setGeoPointVector(id, v)
+		var cValue C.grngo_vector
+		if len(value) != 0 {
+			cValue.ptr = unsafe.Pointer(&value[0])
+			cValue.size = C.size_t(len(value))
+		}
+		rc = C.grngo_set_geo_point_vector(column.c, cID, cValue)
 	default:
-		return fmt.Errorf("unsupported value type: name = <%s>", reflect.TypeOf(value).Name())
+		return fmt.Errorf("unsupported value type: name = <%s>",
+			reflect.TypeOf(value).Name())
 	}
+	if rc != C.GRN_SUCCESS {
+		return newGrnError("grngo_set_*()", rc, column.table.db)
+	}
+	return nil
 }
 
 //// getBool gets a Bool value.
