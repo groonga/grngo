@@ -442,10 +442,10 @@ func CreateDB(path string) (*DB, error) {
 	pathBytes := []byte(path)
 	var cPath *C.char
 	if len(pathBytes) != 0 {
-		cPath = (*C.char)(unsafe.Pointer(&pathBytes[0]));
+		cPath = (*C.char)(unsafe.Pointer(&pathBytes[0]))
 	}
 	var c *C.grngo_db
-	rc := C.grngo_create_db(cPath, C.size_t(len(pathBytes)), &c);
+	rc := C.grngo_create_db(cPath, C.size_t(len(pathBytes)), &c)
 	if (rc != C.GRN_SUCCESS) {
 		GrnFin()
 		return nil, newGrnError("grngo_create_db()", rc, nil)
@@ -465,10 +465,10 @@ func OpenDB(path string) (*DB, error) {
 	pathBytes := []byte(path)
 	var cPath *C.char
 	if len(pathBytes) != 0 {
-		cPath = (*C.char)(unsafe.Pointer(&pathBytes[0]));
+		cPath = (*C.char)(unsafe.Pointer(&pathBytes[0]))
 	}
 	var c *C.grngo_db
-	rc := C.grngo_open_db(cPath, C.size_t(len(pathBytes)), &c);
+	rc := C.grngo_open_db(cPath, C.size_t(len(pathBytes)), &c)
 	if (rc != C.GRN_SUCCESS) {
 		GrnFin()
 		return nil, newGrnError("grngo_open_db()", rc, nil)
