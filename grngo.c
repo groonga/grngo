@@ -929,7 +929,7 @@ grngo_set_bool_vector(grngo_column *column, grn_id id, grngo_vector value) {
       }\
     }\
     GRN_ ## type ## _INIT(&obj, GRN_OBJ_VECTOR);\
-    rc = grn_bulk_resize(ctx, &obj, sizeof(GRNGO_DB_TYPE(type)) * value.size);\
+    rc = grn_bulk_space(ctx, &obj, sizeof(GRNGO_DB_TYPE(type)) * value.size);\
     if (rc != GRN_SUCCESS) {\
       break;\
     }\
