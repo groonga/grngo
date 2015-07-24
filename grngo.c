@@ -1137,8 +1137,7 @@ _grngo_get_value(grngo_column *column, const grn_id *ids, size_t n_ids) {
       offset = size;
     }
     if (column->text_buf) {
-      size_t n_texts = offset;
-      for (i = 0; i < n_texts; i++) {
+      for (i = 0; i < offset; i++) {
         grngo_text text;
         text.size = grn_vector_get_element(ctx, src_buf, i,
                                            &text.ptr, NULL, NULL);
