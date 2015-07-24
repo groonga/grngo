@@ -1073,6 +1073,42 @@ grngo_set_geo_point_vector(grngo_column *column, grn_id id,
   return rc;
 }
 
+grn_rc
+grngo_get(grngo_column *column, grn_id id, void **value) {
+  if (!column || !value) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+    return GRN_INVALID_ARGUMENT;
+  }
+  const grn_id *ids = &id;
+  size_t n_ids = 1;
+  size_t i, j;
+  for (i = 0; i < (column->n_srcs - 1); i++) {
+    GRN_BULK_REWIND(column->src_bufs[i]);
+    // TODO: Vector.
+    for (j = 0; j < n_ids; j++) {
+      grn_obj_get_value(ctx, column->srcs[i], ids[j], column->src_bufs[i]);
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
+      }
+    }
+    ids = (const grn_id *)GRN_BULK_HEAD(column->src_bufs[i]);
+    n_ids = grn_vector_size(ctx, column->src_bufs[i]);
+  }
+  GRN_BULK_REWIND(column->src_bufs[i]);
+  for (j = 0; j < n_ids; j++) {
+    // TODO: Vector and Text.
+    grn_obj_get_value(ctx, column->srcs[i], ids[j], column->src_bufs[i]);
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
+    }
+  }
+  *value = GRN_BULK_HEAD(column->src_bufs[i]);
+  return GRN_SUCCESS;
+}
+
 // -- old... --
 
 grn_rc grngo_find_table(grn_ctx *ctx, const char *name, size_t name_len,

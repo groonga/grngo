@@ -100,7 +100,7 @@ grn_rc grngo_set_text_vector(grngo_column *column, grn_id id,
 grn_rc grngo_set_geo_point_vector(grngo_column *column, grn_id id,
                                   grngo_vector value);
 
-//grn_rc grngo_get(grngo_column *column, grn_id id, void **value);
+grn_rc grngo_get(grngo_column *column, grn_id id, void **value);
 
 // -- old... --
 

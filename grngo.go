@@ -749,14 +749,14 @@ func (db *DB) SetValue(tableName, columnName string, id uint32, value interface{
 	return table.SetValue(columnName, id, value)
 }
 
-//// GetValue gets a value.
-//func (db *DB) GetValue(tableName, columnName string, id uint32) (interface{}, error) {
-//	table, err := db.FindTable(tableName)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return table.GetValue(columnName, id)
-//}
+// GetValue gets a value.
+func (db *DB) GetValue(tableName, columnName string, id uint32) (interface{}, error) {
+	table, err := db.FindTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	return table.GetValue(columnName, id)
+}
 
 // -- Table --
 
@@ -827,14 +827,14 @@ func (table *Table) SetValue(columnName string, id uint32, value interface{}) er
 	return column.SetValue(id, value)
 }
 
-//// GetValue gets a value.
-//func (table *Table) GetValue(columnName string, id uint32) (interface{}, error) {
-//	column, err := table.FindColumn(columnName)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return column.GetValue(id)
-//}
+// GetValue gets a value.
+func (table *Table) GetValue(columnName string, id uint32) (interface{}, error) {
+	column, err := table.FindColumn(columnName)
+	if err != nil {
+		return nil, err
+	}
+	return column.GetValue(id)
+}
 
 // createColumnOptionsMap creates an options map for column_create.
 //
@@ -1038,6 +1038,53 @@ func (column *Column) SetValue(id uint32, value interface{}) error {
 		return newGrnError("grngo_set_*()", rc, column.table.db)
 	}
 	return nil
+}
+
+// GetValue gets a value.
+func (column *Column) GetValue(id uint32) (interface{}, error) {
+	if column.c.dimension != 0 {
+		return nil, fmt.Errorf("Vector is not supported yet")
+	}
+	switch column.c.value_type {
+	case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
+		return nil, fmt.Errorf("Text is not supported yet")
+	}
+	var ptr unsafe.Pointer
+	rc := C.grngo_get(column.c, C.grn_id(id), &ptr)
+	if rc != C.GRN_SUCCESS {
+		return nil, newGrnError("grngo_get()", rc, column.table.db)
+	}
+	switch column.c.value_type {
+	case C.GRN_DB_BOOL:
+		cValue := *(*C.grn_bool)(ptr)
+		return cValue == C.GRN_TRUE, nil
+	case C.GRN_DB_INT8:
+		return int64(*(*C.int8_t)(ptr)), nil
+	case C.GRN_DB_INT16:
+		return int64(*(*C.int16_t)(ptr)), nil
+	case C.GRN_DB_INT32:
+		return int64(*(*C.int32_t)(ptr)), nil
+	case C.GRN_DB_INT64:
+		return int64(*(*C.int64_t)(ptr)), nil
+	case C.GRN_DB_UINT8:
+		return int64(*(*C.uint8_t)(ptr)), nil
+	case C.GRN_DB_UINT16:
+		return int64(*(*C.uint16_t)(ptr)), nil
+	case C.GRN_DB_UINT32:
+		return int64(*(*C.uint32_t)(ptr)), nil
+	case C.GRN_DB_UINT64:
+		return int64(*(*C.uint64_t)(ptr)), nil
+	case C.GRN_DB_FLOAT:
+		return float64(*(*C.double)(ptr)), nil
+	case C.GRN_DB_TIME:
+		return int64(*(*C.int64_t)(ptr)), nil
+	case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
+		cValue := *(*C.grn_geo_point)(ptr)
+		return GeoPoint{int32(cValue.latitude), int32(cValue.longitude)}, nil
+	default:
+		return nil, fmt.Errorf("unsupported value type")
+	}
+	return nil, fmt.Errorf("unknown error")
 }
 
 //// getBool gets a Bool value.
