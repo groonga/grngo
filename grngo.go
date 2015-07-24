@@ -1045,10 +1045,6 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 	if column.c.dimension != 0 {
 		return nil, fmt.Errorf("Vector is not supported yet")
 	}
-	switch column.c.value_type {
-	case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
-		return nil, fmt.Errorf("Text is not supported yet")
-	}
 	var ptr unsafe.Pointer
 	rc := C.grngo_get(column.c, C.grn_id(id), &ptr)
 	if rc != C.GRN_SUCCESS {
@@ -1078,6 +1074,9 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 		return float64(*(*C.double)(ptr)), nil
 	case C.GRN_DB_TIME:
 		return int64(*(*C.int64_t)(ptr)), nil
+	case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
+		cValue := *(*C.grngo_text)(ptr)
+		return C.GoBytes(unsafe.Pointer(cValue.ptr), C.int(cValue.size)), nil
 	case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
 		cValue := *(*C.grn_geo_point)(ptr)
 		return GeoPoint{int32(cValue.latitude), int32(cValue.longitude)}, nil

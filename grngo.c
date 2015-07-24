@@ -1098,14 +1098,41 @@ grngo_get(grngo_column *column, grn_id id, void **value) {
     n_ids = grn_vector_size(ctx, column->src_bufs[i]);
   }
   GRN_BULK_REWIND(column->src_bufs[i]);
-  for (j = 0; j < n_ids; j++) {
-    // TODO: Vector and Text.
-    grn_obj_get_value(ctx, column->srcs[i], ids[j], column->src_bufs[i]);
-    if (ctx->rc != GRN_SUCCESS) {
-      return ctx->rc;
+  // TODO: Vector.
+  if (column->text_buf) {
+    GRN_BULK_REWIND(column->text_buf);
+    size_t offset = 0;
+    for (j = 0; j < n_ids; j++) {
+      grn_obj_get_value(ctx, column->srcs[i], ids[j], column->src_bufs[i]);
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
+      }
+      size_t size = GRN_BULK_VSIZE(column->src_bufs[i]);
+      grngo_text text = { NULL, size - offset };
+      grn_rc rc = grn_bulk_write(ctx, column->text_buf,
+                                 (char *)&text, sizeof(text));
+      if (rc != GRN_SUCCESS) {
+        return rc;
+      }
+      offset = size;
     }
+    char *ptr = GRN_BULK_HEAD(column->src_bufs[i]);
+    grngo_text *texts = (grngo_text *)GRN_BULK_HEAD(column->text_buf);
+    for (j = 0; j < n_ids; j++) {
+      texts[j].ptr = ptr;
+      ptr += texts[j].size;
+    }
+    *value = texts;
+  } else {
+    for (j = 0; j < n_ids; j++) {
+      // TODO: Vector and Text.
+      grn_obj_get_value(ctx, column->srcs[i], ids[j], column->src_bufs[i]);
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
+      }
+    }
+    *value = GRN_BULK_HEAD(column->src_bufs[i]);
   }
-  *value = GRN_BULK_HEAD(column->src_bufs[i]);
   return GRN_SUCCESS;
 }
 

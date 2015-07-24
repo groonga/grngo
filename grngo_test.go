@@ -1109,17 +1109,17 @@ func TestColumnGetValueForTime(t *testing.T) {
 	testColumnGetValue(t, "Time")
 }
 
-//func TestColumnGetValueForShortText(t *testing.T) {
-//	testColumnGetValue(t, "ShortText")
-//}
+func TestColumnGetValueForShortText(t *testing.T) {
+	testColumnGetValue(t, "ShortText")
+}
 
-//func TestColumnGetValueForText(t *testing.T) {
-//	testColumnGetValue(t, "Text")
-//}
+func TestColumnGetValueForText(t *testing.T) {
+	testColumnGetValue(t, "Text")
+}
 
-//func TestColumnGetValueForLongText(t *testing.T) {
-//	testColumnGetValue(t, "LongText")
-//}
+func TestColumnGetValueForLongText(t *testing.T) {
+	testColumnGetValue(t, "LongText")
+}
 
 func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
 	testColumnGetValue(t, "TokyoGeoPoint")
