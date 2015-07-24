@@ -603,8 +603,8 @@ _grngo_push_src(grngo_column *column, grn_obj *table,
 
 static grn_rc
 _grngo_open_bufs(grngo_column *column) {
-  column->src_bufs = (grn_obj **)GRNGO_MALLOC(column->db,
-                                              sizeof(grn_obj *) * column->n_srcs);
+  size_t size = sizeof(grn_obj *) * column->n_srcs;
+  column->src_bufs = (grn_obj **)GRNGO_MALLOC(column->db, size);
   if (!column->src_bufs) {
     return GRN_NO_MEMORY_AVAILABLE;
   }
