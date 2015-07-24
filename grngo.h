@@ -69,8 +69,8 @@ grn_rc grngo_insert_geo_point(grngo_table *tbl, grn_geo_point key,
 typedef struct {
   grngo_db         *db;
   grngo_table      *table;
-  grn_obj          **objs;
-  size_t           num_objs;
+  grn_obj          **srcs;
+  size_t           n_srcs;
   grn_builtin_type value_type;
   int              dimension;
   grn_bool         writable;
@@ -96,6 +96,8 @@ grn_rc grngo_set_text_vector(grngo_column *column, grn_id id,
                              grngo_vector value);
 grn_rc grngo_set_geo_point_vector(grngo_column *column, grn_id id,
                                   grngo_vector value);
+
+//grn_rc grngo_get(grngo_column *column, grn_id id, void **value);
 
 // -- old... --
 

@@ -477,18 +477,18 @@ _grngo_new_column(grngo_table *table) {
   memset(column, 0, sizeof(*column));
   column->db = table->db;
   column->table = table;
-  column->objs = NULL;
+  column->srcs = NULL;
   return column;
 }
 
 static void
 _grngo_delete_column(grngo_column *column) {
-  if (column->objs) {
+  if (column->srcs) {
     size_t i;
-    for (i = 0; i < column->num_objs; i++) {
-      grn_obj_unlink(column->db->ctx, column->objs[i]);
+    for (i = 0; i < column->n_srcs; i++) {
+      grn_obj_unlink(column->db->ctx, column->srcs[i]);
     }
-    GRNGO_FREE(column->db, column->objs);
+    GRNGO_FREE(column->db, column->srcs);
   }
   GRNGO_FREE(column->db, column);
 }
@@ -556,16 +556,16 @@ _grngo_push_column(grngo_column *column, grn_obj **table,
       return GRN_INVALID_ARGUMENT;
     }
   }
-  size_t new_size = sizeof(grn_obj *) * (column->num_objs + 1);
-  grn_obj **new_objs = (grn_obj **)GRNGO_REALLOC(column->db, column->objs,
+  size_t new_size = sizeof(grn_obj *) * (column->n_srcs + 1);
+  grn_obj **new_srcs = (grn_obj **)GRNGO_REALLOC(column->db, column->srcs,
                                                  new_size);
-  if (!new_objs) {
+  if (!new_srcs) {
     grn_obj_unlink(ctx, obj);
     return GRN_NO_MEMORY_AVAILABLE;
   }
-  column->objs = new_objs;
-  column->objs[column->num_objs] = obj;
-  column->num_objs++;
+  column->srcs = new_srcs;
+  column->srcs[column->n_srcs] = obj;
+  column->n_srcs++;
   return GRN_SUCCESS;
 }
 
@@ -591,8 +591,8 @@ _grngo_open_column(grngo_table *table, grngo_column *column,
       return rc;
     }
   }
-  if (column->num_objs == 1) {
-    switch (column->objs[0]->header.type) {
+  if (column->n_srcs == 1) {
+    switch (column->srcs[0]->header.type) {
       case GRN_TABLE_HASH_KEY:
       case GRN_TABLE_PAT_KEY:
       case GRN_TABLE_NO_KEY:
@@ -655,7 +655,7 @@ grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
   GRN_BOOL_INIT(&obj, 0);
   grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)&value, sizeof(value));
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -697,7 +697,7 @@ grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
     }
   }
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -717,7 +717,7 @@ grngo_set_float(grngo_column *column, grn_id id, double value) {
   GRN_FLOAT_INIT(&obj, 0);
   grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)&value, sizeof(value));
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -751,7 +751,7 @@ grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
   }
   grn_rc rc = grn_bulk_write(ctx, &obj, value.ptr, value.size);
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -783,7 +783,7 @@ grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
   }
   grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)&value, sizeof(value));
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -803,7 +803,7 @@ grngo_set_bool_vector(grngo_column *column, grn_id id, grngo_vector value) {
   grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)value.ptr,
                              sizeof(grn_bool) * value.size);
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -855,7 +855,7 @@ grngo_set_int_vector(grngo_column *column, grn_id id, grngo_vector value) {
     }
   }
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -876,7 +876,7 @@ grngo_set_float_vector(grngo_column *column, grn_id id, grngo_vector value) {
   grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)value.ptr,
                              sizeof(double) * value.size);
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -921,7 +921,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
     }
   }
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
@@ -955,7 +955,7 @@ grngo_set_geo_point_vector(grngo_column *column, grn_id id,
   grn_rc rc = grn_bulk_write(ctx, &obj, (const char *)value.ptr,
                              sizeof(grn_geo_point) * value.size);
   if (rc == GRN_SUCCESS) {
-    rc = grn_obj_set_value(ctx, column->objs[0], id, &obj, GRN_OBJ_SET);
+    rc = grn_obj_set_value(ctx, column->srcs[0], id, &obj, GRN_OBJ_SET);
   }
   GRN_OBJ_FIN(ctx, &obj);
   return rc;
