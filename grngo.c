@@ -502,37 +502,37 @@ _grngo_delete_column(grngo_column *column) {
 }
 
 static grn_rc
-_grngo_open_column_obj(grngo_db *db, grn_obj *table,
-                       const char *name, size_t name_len, grn_obj **obj) {
-  grn_obj *new_obj;
+_grngo_open_src(grngo_db *db, grn_obj *table,
+                const char *name, size_t name_len, grn_obj **src) {
+  grn_obj *new_src;
   if ((name_len == GRN_COLUMN_NAME_VALUE_LEN) &&
       !memcmp(name, GRN_COLUMN_NAME_VALUE, name_len)) {
-    new_obj = grn_ctx_at(db->ctx, grn_obj_id(db->ctx, table));
+    new_src = grn_ctx_at(db->ctx, grn_obj_id(db->ctx, table));
   } else {
-    new_obj = grn_obj_column(db->ctx, table, name, name_len);
+    new_src = grn_obj_column(db->ctx, table, name, name_len);
   }
-  if (!new_obj) {
+  if (!new_src) {
     if (db->ctx->rc != GRN_SUCCESS) {
       return db->ctx->rc;
     }
     return GRN_UNKNOWN_ERROR;
   }
-  *obj = new_obj;
+  *src = new_src;
   return GRN_SUCCESS;
 }
 
 static grn_rc
-_grngo_push_column(grngo_column *column, grn_obj **table,
-                   const char *name, size_t name_len) {
-  grn_obj *obj;
-  grn_rc rc = _grngo_open_column_obj(column->db, *table, name, name_len, &obj);
+_grngo_push_src(grngo_column *column, grn_obj **table,
+                const char *name, size_t name_len) {
+  grn_obj *src;
+  grn_rc rc = _grngo_open_src(column->db, *table, name, name_len, &src);
   if (rc != GRN_SUCCESS) {
     return rc;
   }
   grn_ctx *ctx = column->db->ctx;
-  switch (obj->header.type) {
+  switch (src->header.type) {
     case GRN_COLUMN_VAR_SIZE: {
-      grn_obj_flags type = obj->header.flags & GRN_OBJ_COLUMN_TYPE_MASK;
+      grn_obj_flags type = src->header.flags & GRN_OBJ_COLUMN_TYPE_MASK;
       if (type == GRN_OBJ_COLUMN_VECTOR) {
         column->dimension++;
       }
@@ -542,9 +542,9 @@ _grngo_push_column(grngo_column *column, grn_obj **table,
     case GRN_TABLE_NO_KEY:
     case GRN_ACCESSOR:
     case GRN_COLUMN_FIX_SIZE: {
-      grn_id range = grn_obj_get_range(ctx, obj);
+      grn_id range = grn_obj_get_range(ctx, src);
       if (range == GRN_DB_VOID) {
-        grn_obj_unlink(ctx, obj);
+        grn_obj_unlink(ctx, src);
         return GRN_INVALID_ARGUMENT;
       } else if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
         column->value_type = range;
@@ -560,7 +560,7 @@ _grngo_push_column(grngo_column *column, grn_obj **table,
       break;
     }
     default: {
-      grn_obj_unlink(ctx, obj);
+      grn_obj_unlink(ctx, src);
       return GRN_INVALID_ARGUMENT;
     }
   }
@@ -568,11 +568,11 @@ _grngo_push_column(grngo_column *column, grn_obj **table,
   grn_obj **new_srcs = (grn_obj **)GRNGO_REALLOC(column->db, column->srcs,
                                                  new_size);
   if (!new_srcs) {
-    grn_obj_unlink(ctx, obj);
+    grn_obj_unlink(ctx, src);
     return GRN_NO_MEMORY_AVAILABLE;
   }
   column->srcs = new_srcs;
-  column->srcs[column->n_srcs] = obj;
+  column->srcs[column->n_srcs] = src;
   column->n_srcs++;
   return GRN_SUCCESS;
 }
@@ -594,7 +594,7 @@ _grngo_open_column(grngo_table *table, grngo_column *column,
       }
       token_len++;
     }
-    grn_rc rc = _grngo_push_column(column, &owner, token, token_len);
+    grn_rc rc = _grngo_push_src(column, &owner, token, token_len);
     if (rc != GRN_SUCCESS) {
       return rc;
     }
@@ -615,8 +615,8 @@ _grngo_open_column(grngo_table *table, grngo_column *column,
     }
   }
   while (owner) {
-    grn_rc rc = _grngo_push_column(column, &owner, GRN_COLUMN_NAME_KEY,
-                                   GRN_COLUMN_NAME_KEY_LEN);
+    grn_rc rc = _grngo_push_src(column, &owner, GRN_COLUMN_NAME_KEY,
+                                GRN_COLUMN_NAME_KEY_LEN);
     if (rc != GRN_SUCCESS) {
       return rc;
     }
