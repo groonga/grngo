@@ -522,10 +522,10 @@ _grngo_open_src(grngo_db *db, grn_obj *table,
 }
 
 static grn_rc
-_grngo_push_src(grngo_column *column, grn_obj **table,
-                const char *name, size_t name_len) {
+_grngo_push_src(grngo_column *column, grn_obj *table,
+                const char *name, size_t name_len, grn_obj **next_table) {
   grn_obj *src;
-  grn_rc rc = _grngo_open_src(column->db, *table, name, name_len, &src);
+  grn_rc rc = _grngo_open_src(column->db, table, name, name_len, &src);
   if (rc != GRN_SUCCESS) {
     return rc;
   }
@@ -536,11 +536,12 @@ _grngo_push_src(grngo_column *column, grn_obj **table,
       if (type == GRN_OBJ_COLUMN_VECTOR) {
         column->dimension++;
       }
+      // Fallthrough.
     }
-    case GRN_TABLE_HASH_KEY:
-    case GRN_TABLE_PAT_KEY:
-    case GRN_TABLE_NO_KEY:
-    case GRN_ACCESSOR:
+    case GRN_TABLE_HASH_KEY: // _value.
+    case GRN_TABLE_PAT_KEY:  // _value.
+    case GRN_TABLE_NO_KEY:   // _value.
+    case GRN_ACCESSOR:       // _id or _key.
     case GRN_COLUMN_FIX_SIZE: {
       grn_id range = grn_obj_get_range(ctx, src);
       if (range == GRN_DB_VOID) {
@@ -548,14 +549,14 @@ _grngo_push_src(grngo_column *column, grn_obj **table,
         return GRN_INVALID_ARGUMENT;
       } else if (range <= GRNGO_MAX_BUILTIN_TYPE_ID) {
         column->value_type = range;
-        *table = NULL;
+        *next_table = NULL;
       } else {
         grn_obj *range_obj = grn_ctx_at(ctx, range);
         if (!grn_obj_is_table(ctx, range_obj)) {
           grn_obj_unlink(ctx, range_obj);
           return GRN_INVALID_ARGUMENT;
         }
-        *table = range_obj;
+        *next_table = range_obj;
       }
       break;
     }
@@ -564,10 +565,14 @@ _grngo_push_src(grngo_column *column, grn_obj **table,
       return GRN_INVALID_ARGUMENT;
     }
   }
+  // Append a source.
   size_t new_size = sizeof(grn_obj *) * (column->n_srcs + 1);
   grn_obj **new_srcs = (grn_obj **)GRNGO_REALLOC(column->db, column->srcs,
                                                  new_size);
   if (!new_srcs) {
+    if (*next_table) {
+      grn_obj_unlink(ctx, *next_table);
+    }
     grn_obj_unlink(ctx, src);
     return GRN_NO_MEMORY_AVAILABLE;
   }
@@ -594,16 +599,22 @@ _grngo_open_column(grngo_table *table, grngo_column *column,
       }
       token_len++;
     }
-    grn_rc rc = _grngo_push_src(column, &owner, token, token_len);
+    grn_obj *new_owner;
+    grn_rc rc = _grngo_push_src(column, owner, token, token_len, &new_owner);
     if (rc != GRN_SUCCESS) {
       return rc;
     }
+    if (column->n_srcs != 0) {
+      grn_obj_unlink(column->db->ctx, owner);
+    }
+    owner = new_owner;
   }
+  // Check whether the column is writable or not.
   if (column->n_srcs == 1) {
     switch (column->srcs[0]->header.type) {
-      case GRN_TABLE_HASH_KEY:
-      case GRN_TABLE_PAT_KEY:
-      case GRN_TABLE_NO_KEY:
+      case GRN_TABLE_HASH_KEY: // _value.
+      case GRN_TABLE_PAT_KEY:  // _value.
+      case GRN_TABLE_NO_KEY:   // _value.
       case GRN_COLUMN_FIX_SIZE:
       case GRN_COLUMN_VAR_SIZE: {
         column->writable = GRN_TRUE;
@@ -614,12 +625,16 @@ _grngo_open_column(grngo_table *table, grngo_column *column,
       }
     }
   }
+  // Resolve the _key chain if _key is table reference.
   while (owner) {
-    grn_rc rc = _grngo_push_src(column, &owner, GRN_COLUMN_NAME_KEY,
-                                GRN_COLUMN_NAME_KEY_LEN);
+    grn_obj *new_owner;
+    grn_rc rc = _grngo_push_src(column, owner, GRN_COLUMN_NAME_KEY,
+                                GRN_COLUMN_NAME_KEY_LEN, &new_owner);
     if (rc != GRN_SUCCESS) {
       return rc;
     }
+    grn_obj_unlink(column->db->ctx, owner);
+    owner = new_owner;
   }
   return GRN_SUCCESS;
 }
