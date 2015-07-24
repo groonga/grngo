@@ -1170,7 +1170,12 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 			}
 			return value, nil
 		case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
-			return nil, fmt.Errorf("not supported yet")
+      cValue := *(*[]C.grngo_text)(unsafe.Pointer(&header))
+			value := make([][]byte, len(cValue))
+			for i := 0; i < len(value); i++ {
+				value[i] = C.GoBytes(unsafe.Pointer(cValue[i].ptr), C.int(cValue[i].size))
+			}
+			return value, nil
 		case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
       cValue := *(*[]C.grn_geo_point)(unsafe.Pointer(&header))
 			value := make([]GeoPoint, len(cValue))
