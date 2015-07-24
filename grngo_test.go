@@ -1193,6 +1193,65 @@ func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
 	testColumnGetValue(t, "[]WGS84GeoPoint")
 }
 
+func TestRef(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
+	options := NewTableOptions()
+	options.KeyType = "ShortText"
+	table, err := db.CreateTable("Table", options)
+	if err != nil {
+		t.Fatalf("DB.CreateTable() failed: %v", err)
+	}
+	for i := 0; i < 100; i++ {
+		key := []byte(strconv.Itoa(i))
+		if _, _, err := table.InsertRow(key); err != nil {
+			t.Fatalf("Table.InsertRow() failed: %v", err)
+		}
+	}
+	column, err := table.CreateColumn("Ref", "Table", nil)
+	for i := 0; i < 100; i++ {
+		id := uint32(i + 1)
+		value := []byte(strconv.Itoa((i + 1) % 100))
+		if err := column.SetValue(id, value); err != nil {
+			t.Fatalf("Column.SetValue() failed: %v", err)
+		}
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Fatalf("Column.GetValue() failed: %v", err)
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+				value, storedValue)
+		}
+	}
+	column, err = table.FindColumn("Ref._key")
+	for i := 0; i < 100; i++ {
+		id := uint32(i + 1)
+		value := []byte(strconv.Itoa((i + 1) % 100))
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Fatalf("Column.GetValue() failed: %v", err)
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+				value, storedValue)
+		}
+	}
+	column, err = table.FindColumn("Ref.Ref.Ref")
+	for i := 0; i < 100; i++ {
+		id := uint32(i + 1)
+		value := []byte(strconv.Itoa((i + 3) % 100))
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Fatalf("Column.GetValue() failed: %v", err)
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+				value, storedValue)
+		}
+	}
+}
+
 // Benchmarks.
 
 var numTestRows = 100000
