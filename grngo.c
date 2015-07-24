@@ -478,6 +478,7 @@ _grngo_new_column(grngo_table *table) {
   column->db = table->db;
   column->table = table;
   column->srcs = NULL;
+  column->bufs = NULL;
   return column;
 }
 
@@ -489,6 +490,13 @@ _grngo_delete_column(grngo_column *column) {
       grn_obj_unlink(column->db->ctx, column->srcs[i]);
     }
     GRNGO_FREE(column->db, column->srcs);
+  }
+  if (column->bufs) {
+    size_t i;
+    for (i = 0; i < column->n_bufs; i++) {
+      GRN_OBJ_FIN(column->db->ctx, &column->bufs[i]);
+    }
+    GRNGO_FREE(column->db, column->bufs);
   }
   GRNGO_FREE(column->db, column);
 }

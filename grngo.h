@@ -71,6 +71,8 @@ typedef struct {
   grngo_table      *table;
   grn_obj          **srcs;
   size_t           n_srcs;
+  grn_obj          *bufs;
+  size_t           n_bufs;
   grn_builtin_type value_type;
   int              dimension;
   grn_bool         writable;
