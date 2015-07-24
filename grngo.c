@@ -109,6 +109,15 @@ _grngo_free(grngo_db *db, void *buf,
 #define GRNGO_FREE(db, buf)\
   _grngo_free(db, buf, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
+static grn_bool
+_grngo_is_vector(grn_obj *obj) {
+  if (obj->header.type != GRN_COLUMN_VAR_SIZE) {
+    return GRN_FALSE;
+  }
+  grn_obj_flags type = obj->header.flags & GRN_OBJ_COLUMN_TYPE_MASK;
+  return type == GRN_OBJ_COLUMN_VECTOR;
+}
+
 // -- grngo_db --
 
 static grngo_db *
@@ -478,7 +487,9 @@ _grngo_new_column(grngo_table *table) {
   column->db = table->db;
   column->table = table;
   column->srcs = NULL;
-  column->bufs = NULL;
+  column->src_bufs = NULL;
+  column->text_buf = NULL;
+  column->vector_buf = NULL;
   return column;
 }
 
@@ -491,12 +502,20 @@ _grngo_delete_column(grngo_column *column) {
     }
     GRNGO_FREE(column->db, column->srcs);
   }
-  if (column->bufs) {
+  if (column->src_bufs) {
     size_t i;
-    for (i = 0; i < column->n_bufs; i++) {
-      GRN_OBJ_FIN(column->db->ctx, &column->bufs[i]);
+    for (i = 0; i < column->n_srcs; i++) {
+      if (column->src_bufs[i]) {
+        grn_obj_close(column->db->ctx, column->src_bufs[i]);
+      }
     }
-    GRNGO_FREE(column->db, column->bufs);
+    GRNGO_FREE(column->db, column->src_bufs);
+  }
+  if (column->text_buf) {
+    grn_obj_close(column->db->ctx, column->text_buf);
+  }
+  if (column->vector_buf) {
+    grn_obj_close(column->db->ctx, column->vector_buf);
   }
   GRNGO_FREE(column->db, column);
 }
@@ -583,6 +602,75 @@ _grngo_push_src(grngo_column *column, grn_obj *table,
 }
 
 static grn_rc
+_grngo_open_bufs(grngo_column *column) {
+  column->src_bufs = (grn_obj **)GRNGO_MALLOC(column->db,
+                                              sizeof(grn_obj *) * column->n_srcs);
+  if (!column->src_bufs) {
+    return GRN_NO_MEMORY_AVAILABLE;
+  }
+  size_t i = 0;
+  for (i = 0; i < column->n_srcs; i++) {
+    column->src_bufs[i] = NULL;
+  }
+  grn_ctx *ctx = column->db->ctx;
+  for (i = 0; i < (column->n_srcs - 1); i++) {
+    column->src_bufs[i] = grn_obj_open(ctx, GRN_VECTOR, 0, GRN_DB_UINT32);
+    if (!column->src_bufs[i]) {
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
+      }
+      return GRN_UNKNOWN_ERROR;
+    }
+  }
+  grn_builtin_type value_type = column->value_type;
+  switch (value_type) {
+    case GRN_DB_SHORT_TEXT:
+    case GRN_DB_TEXT:
+    case GRN_DB_LONG_TEXT: {
+      if (_grngo_is_vector(column->srcs[i])) {
+        column->src_bufs[i] = grn_obj_open(ctx, GRN_VECTOR, 0, value_type);
+      } else {
+        column->src_bufs[i] = grn_obj_open(ctx, GRN_BULK, 0, GRN_DB_LONG_TEXT);
+      }
+      if (!column->src_bufs[i]) {
+        if (ctx->rc != GRN_SUCCESS) {
+          return ctx->rc;
+        }
+        return GRN_UNKNOWN_ERROR;
+      }
+      column->text_buf = grn_obj_open(ctx, GRN_BULK, 0, GRN_DB_LONG_TEXT);
+      if (!column->text_buf) {
+        if (ctx->rc != GRN_SUCCESS) {
+          return ctx->rc;
+        }
+        return GRN_UNKNOWN_ERROR;
+      }
+      break;
+    }
+    default: {
+      column->src_bufs[i] = grn_obj_open(ctx, GRN_VECTOR, 0, value_type);
+      if (!column->src_bufs[i]) {
+        if (ctx->rc != GRN_SUCCESS) {
+          return ctx->rc;
+        }
+        return GRN_UNKNOWN_ERROR;
+      }
+      break;
+    }
+  }
+  if (column->dimension != 0) {
+    column->vector_buf = grn_obj_open(ctx, GRN_BULK, 0, GRN_DB_LONG_TEXT);
+    if (!column->vector_buf) {
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
+      }
+      return GRN_UNKNOWN_ERROR;
+    }
+  }
+  return GRN_SUCCESS;
+}
+
+static grn_rc
 _grngo_open_column(grngo_table *table, grngo_column *column,
                    const char *name, size_t name_len) {
   grn_obj *owner = table->obj;
@@ -636,7 +724,7 @@ _grngo_open_column(grngo_table *table, grngo_column *column,
     grn_obj_unlink(column->db->ctx, owner);
     owner = new_owner;
   }
-  return GRN_SUCCESS;
+  return _grngo_open_bufs(column);
 }
 
 grn_rc
