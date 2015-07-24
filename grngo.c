@@ -495,10 +495,11 @@ _grngo_new_column(grngo_table *table) {
 
 static void
 _grngo_delete_column(grngo_column *column) {
+  grn_ctx *ctx = column->db->ctx;
   if (column->srcs) {
     size_t i;
     for (i = 0; i < column->n_srcs; i++) {
-      grn_obj_unlink(column->db->ctx, column->srcs[i]);
+      grn_obj_unlink(ctx, column->srcs[i]);
     }
     GRNGO_FREE(column->db, column->srcs);
   }
@@ -506,16 +507,16 @@ _grngo_delete_column(grngo_column *column) {
     size_t i;
     for (i = 0; i < column->n_srcs; i++) {
       if (column->src_bufs[i]) {
-        grn_obj_close(column->db->ctx, column->src_bufs[i]);
+        grn_obj_close(ctx, column->src_bufs[i]);
       }
     }
     GRNGO_FREE(column->db, column->src_bufs);
   }
   if (column->text_buf) {
-    grn_obj_close(column->db->ctx, column->text_buf);
+    grn_obj_close(ctx, column->text_buf);
   }
   if (column->vector_buf) {
-    grn_obj_close(column->db->ctx, column->vector_buf);
+    grn_obj_close(ctx, column->vector_buf);
   }
   GRNGO_FREE(column->db, column);
 }
