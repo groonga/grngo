@@ -1333,9 +1333,9 @@ func TestRefs(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		id := uint32(i + 1)
 		value := []float64{
-			float64((i + 1) % 100) / 10.0,
-			float64((i + 2) % 100) / 10.0,
-			float64((i + 3) % 100) / 10.0,
+			float64((i+1)%100) / 10.0,
+			float64((i+2)%100) / 10.0,
+			float64((i+3)%100) / 10.0,
 		}
 		storedValue, err := column.GetValue(id)
 		if err != nil {

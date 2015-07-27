@@ -418,7 +418,7 @@ func GrnFin() error {
 
 // DB is associated with a Groonga database with its context.
 type DB struct {
-  c      *C.grngo_db       // The associated C object.
+	c      *C.grngo_db       // The associated C object.
 	tables map[string]*Table // A cache to find tables by name.
 }
 
@@ -446,7 +446,7 @@ func CreateDB(path string) (*DB, error) {
 	}
 	var c *C.grngo_db
 	rc := C.grngo_create_db(cPath, C.size_t(len(pathBytes)), &c)
-	if (rc != C.GRN_SUCCESS) {
+	if rc != C.GRN_SUCCESS {
 		GrnFin()
 		return nil, newGrnError("grngo_create_db()", rc, nil)
 	}
@@ -469,7 +469,7 @@ func OpenDB(path string) (*DB, error) {
 	}
 	var c *C.grngo_db
 	rc := C.grngo_open_db(cPath, C.size_t(len(pathBytes)), &c)
-	if (rc != C.GRN_SUCCESS) {
+	if rc != C.GRN_SUCCESS {
 		GrnFin()
 		return nil, newGrnError("grngo_open_db()", rc, nil)
 	}
@@ -941,9 +941,9 @@ func (table *Table) FindColumn(name string) (*Column, error) {
 
 // Column is associated with a Groonga column or accessor.
 type Column struct {
-	table      *Table          // The owner table.
-	c          *C.grngo_column // The associated C object.
-	name       string          // The column name.
+	table *Table          // The owner table.
+	c     *C.grngo_column // The associated C object.
+	name  string          // The column name.
 }
 
 // newColumn returns a new Column.
@@ -1086,98 +1086,98 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 		}
 	} else {
 		cVector := *(*C.grngo_vector)(ptr)
-    header := reflect.SliceHeader{
+		header := reflect.SliceHeader{
 			Data: uintptr(unsafe.Pointer(cVector.ptr)),
 			Len:  int(cVector.size),
 			Cap:  int(cVector.size),
-    }
+		}
 		switch column.c.value_type {
 		case C.GRN_DB_BOOL:
-      cValue := *(*[]C.grn_bool)(unsafe.Pointer(&header))
+			cValue := *(*[]C.grn_bool)(unsafe.Pointer(&header))
 			value := make([]bool, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = cValue[i] == C.GRN_TRUE
 			}
 			return value, nil
 		case C.GRN_DB_INT8:
-      cValue := *(*[]C.int8_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.int8_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_INT16:
-      cValue := *(*[]C.int16_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.int16_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_INT32:
-      cValue := *(*[]C.int32_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.int32_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_INT64:
-      cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_UINT8:
-      cValue := *(*[]C.uint8_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.uint8_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_UINT16:
-      cValue := *(*[]C.uint16_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.uint16_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_UINT32:
-      cValue := *(*[]C.uint32_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.uint32_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_UINT64:
-      cValue := *(*[]C.uint64_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.uint64_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_FLOAT:
-      cValue := *(*[]C.double)(unsafe.Pointer(&header))
+			cValue := *(*[]C.double)(unsafe.Pointer(&header))
 			value := make([]float64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = float64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_TIME:
-      cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
+			cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
 			value := make([]int64, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = int64(cValue[i])
 			}
 			return value, nil
 		case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
-      cValue := *(*[]C.grngo_text)(unsafe.Pointer(&header))
+			cValue := *(*[]C.grngo_text)(unsafe.Pointer(&header))
 			value := make([][]byte, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i] = C.GoBytes(unsafe.Pointer(cValue[i].ptr), C.int(cValue[i].size))
 			}
 			return value, nil
 		case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
-      cValue := *(*[]C.grn_geo_point)(unsafe.Pointer(&header))
+			cValue := *(*[]C.grn_geo_point)(unsafe.Pointer(&header))
 			value := make([]GeoPoint, len(cValue))
 			for i := 0; i < len(value); i++ {
 				value[i].Latitude = int32(cValue[i].latitude)
