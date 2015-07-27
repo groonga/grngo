@@ -896,6 +896,49 @@ func TestTableCreateColumnForRefToWGS84GeoPointVector(t *testing.T) {
 	testTableCreateRefColumn(t, "[]WGS84GeoPoint")
 }
 
+func TestInvalidRows(t *testing.T) {
+	dirPath, _, db, table, column :=
+		createTempColumn(t, "Table", nil, "Value", "Int32", nil)
+	defer removeTempDB(t, dirPath, db)
+	for id := uint32(1); id <= 100; id++ {
+		if _, err := column.GetValue(id); err == nil {
+			t.Fatalf("Column.GetValue() succeeded for an invalid row")
+		}
+		if err := column.SetValue(id, int64(id) + 100); err == nil {
+			t.Fatalf("Column.SetValue() succeeded for an invalid row")
+		}
+	}
+	for id := uint32(1); id <= 100; id++ {
+		_, _, err := table.InsertRow(nil)
+		if err != nil {
+			t.Fatalf("Table.InsertRow() failed: %v", err)
+		}
+	}
+	for id := uint32(2); id <= 100; id += 2 {
+		_, err := db.Query("delete Table --id " + strconv.Itoa(int(id)))
+		if err != nil {
+			t.Fatalf("DB.Query() failed: %v", err)
+		}
+	}
+	for id := uint32(1); id <= 100; id++ {
+		if (id % 2) == 0 {
+			if _, err := column.GetValue(id); err == nil {
+				t.Fatalf("Column.GetValue() succeeded for an invalid row")
+			}
+			if err := column.SetValue(id, int64(id) + 200); err == nil {
+				t.Fatalf("Column.SetValue() succeeded for an invalid row")
+			}
+		} else {
+			if _, err := column.GetValue(id); err != nil {
+				t.Fatalf("Column.GetValue() failed: %v", err)
+			}
+			if err := column.SetValue(id, int64(id) + 200); err != nil {
+				t.Fatalf("Column.GetValue() failed: %v", err)
+			}
+		}
+	}
+}
+
 func testColumnSetValue(t *testing.T, valueType string) {
 	dirPath, _, db, table, column :=
 		createTempColumn(t, "Table", nil, "Value", valueType, nil)
