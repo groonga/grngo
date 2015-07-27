@@ -11,35 +11,37 @@
 #define GRNGO_MAX_TEXT_LEN       65535
 #define GRNGO_MAX_LONG_TEXT_LEN  2147484647
 
-#define GRNGO_BOOL_DB_TYPE      grn_bool
-#define GRNGO_INT8_DB_TYPE      int8_t
-#define GRNGO_INT16_DB_TYPE     int16_t
-#define GRNGO_INT32_DB_TYPE     int32_t
-#define GRNGO_INT64_DB_TYPE     int64_t
-#define GRNGO_UINT8_DB_TYPE     uint8_t
-#define GRNGO_UINT16_DB_TYPE    uint16_t
-#define GRNGO_UINT32_DB_TYPE    uint32_t
-#define GRNGO_UINT64_DB_TYPE    uint64_t
-#define GRNGO_FLOAT_DB_TYPE     double
-#define GRNGO_TIME_DB_TYPE      int64_t
-#define GRNGO_TEXT_DB_TYPE      grngo_text
-#define GRNGO_GEO_POINT_DB_TYPE grngo_geo_point
+#define GRNGO_BOOL_DB_TYPE            grn_bool
+#define GRNGO_INT8_DB_TYPE            int8_t
+#define GRNGO_INT16_DB_TYPE           int16_t
+#define GRNGO_INT32_DB_TYPE           int32_t
+#define GRNGO_INT64_DB_TYPE           int64_t
+#define GRNGO_UINT8_DB_TYPE           uint8_t
+#define GRNGO_UINT16_DB_TYPE          uint16_t
+#define GRNGO_UINT32_DB_TYPE          uint32_t
+#define GRNGO_UINT64_DB_TYPE          uint64_t
+#define GRNGO_FLOAT_DB_TYPE           double
+#define GRNGO_TIME_DB_TYPE            int64_t
+#define GRNGO_TEXT_DB_TYPE            grngo_text
+#define GRNGO_TOKYO_GEO_POINT_DB_TYPE grn_geo_point
+#define GRNGO_WGS84_GEO_POINT_DB_TYPE grn_geo_point
 
 #define GRNGO_DB_TYPE(type) GRNGO_ ## type ## _DB_TYPE
 
-#define GRNGO_BOOL_C_TYPE      grn_bool
-#define GRNGO_INT8_C_TYPE      int64_t
-#define GRNGO_INT16_C_TYPE     int64_t
-#define GRNGO_INT32_C_TYPE     int64_t
-#define GRNGO_INT64_C_TYPE     int64_t
-#define GRNGO_UINT8_C_TYPE     int64_t
-#define GRNGO_UINT16_C_TYPE    int64_t
-#define GRNGO_UINT32_C_TYPE    int64_t
-#define GRNGO_UINT64_C_TYPE    int64_t
-#define GRNGO_FLOAT_C_TYPE     double
-#define GRNGO_TIME_C_TYPE      int64_t
-#define GRNGO_TEXT_C_TYPE      grngo_text
-#define GRNGO_GEO_POINT_C_TYPE grngo_geo_point
+#define GRNGO_BOOL_C_TYPE            grn_bool
+#define GRNGO_INT8_C_TYPE            int64_t
+#define GRNGO_INT16_C_TYPE           int64_t
+#define GRNGO_INT32_C_TYPE           int64_t
+#define GRNGO_INT64_C_TYPE           int64_t
+#define GRNGO_UINT8_C_TYPE           int64_t
+#define GRNGO_UINT16_C_TYPE          int64_t
+#define GRNGO_UINT32_C_TYPE          int64_t
+#define GRNGO_UINT64_C_TYPE          int64_t
+#define GRNGO_FLOAT_C_TYPE           double
+#define GRNGO_TIME_C_TYPE            int64_t
+#define GRNGO_TEXT_C_TYPE            grngo_text
+#define GRNGO_TOKYO_GEO_POINT_C_TYPE grn_geo_point
+#define GRNGO_WGS84_GEO_POINT_C_TYPE grn_geo_point
 
 #define GRNGO_C_TYPE(type)  GRNGO_ ## type ## _C_TYPE
 
@@ -1185,6 +1187,61 @@ _grngo_get_value(grngo_column *column, const grn_id *ids, size_t n_ids) {
   return GRN_SUCCESS;
 }
 
+#define GRNGO_FILL_VECTOR_CASE_BLOCK(type)\
+  case GRN_DB_ ## type: {\
+    void *head = GRN_BULK_HEAD(column->src_bufs[column->n_srcs - 1]);\
+    GRNGO_DB_TYPE(type) *ptr = (GRNGO_DB_TYPE(type) *)head;\
+    while (src < dest) {\
+      src->ptr = ptr;\
+      ptr += src->size;\
+      src++;\
+    }\
+    break;\
+  }
+static grn_rc
+_grngo_fill_vector(grngo_column *column) {
+  grngo_vector *src = (grngo_vector *)GRN_BULK_HEAD(column->vector_buf);
+  grngo_vector *dest = src + 1;
+  size_t i, j;
+  for (i = 1; i < column->dimension; i++) {
+    size_t size = dest - src;
+    for (j = 0; j < size; j++) {
+      src->ptr = dest;
+      dest += src->size;
+      src++;
+    }
+  }
+  if (column->text_buf) {
+    grngo_text *ptr = (grngo_text *)GRN_BULK_HEAD(column->text_buf);
+    while (src < dest) {
+      src->ptr = ptr;
+      ptr += src->size;
+      src++;
+    }
+    return GRN_SUCCESS;
+  }
+  switch (column->value_type) {
+    GRNGO_FILL_VECTOR_CASE_BLOCK(BOOL)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(INT8)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(INT16)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(INT32)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(INT64)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(UINT8)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(UINT16)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(UINT32)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(UINT64)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(FLOAT)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(TIME)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(TOKYO_GEO_POINT)
+    GRNGO_FILL_VECTOR_CASE_BLOCK(WGS84_GEO_POINT)
+    default: {
+      return GRN_UNKNOWN_ERROR;
+    }
+  }
+  return GRN_SUCCESS;
+}
+#undef GRNGO_FILL_VECTOR_CASE_BLOCK
+
 grn_rc
 grngo_get(grngo_column *column, grn_id id, void **value) {
   if (!column || !value) {
@@ -1211,13 +1268,7 @@ grngo_get(grngo_column *column, grn_id id, void **value) {
     return GRN_SUCCESS;
   }
   if (column->dimension != 0) {
-    // TODO
-    grngo_vector *vectors = (grngo_vector *)GRN_BULK_HEAD(column->vector_buf);
-    if (column->text_buf) {
-      vectors[0].ptr = GRN_BULK_HEAD(column->text_buf);
-    } else {
-      vectors[0].ptr = GRN_BULK_HEAD(column->src_bufs[i]);
-    }
+    _grngo_fill_vector(column);
     *value = GRN_BULK_HEAD(column->vector_buf);
   } else if (column->text_buf) {
     *value = GRN_BULK_HEAD(column->text_buf);
