@@ -1267,7 +1267,15 @@ func TestRefs(t *testing.T) {
 			t.Fatalf("Table.InsertRow() failed: %v", err)
 		}
 	}
-	column, err := table.CreateColumn("Ref", "[]Table", nil)
+	column, err := table.CreateColumn("Value", "Float", nil)
+	for i := 0; i < 100; i++ {
+		id := uint32(i + 1)
+		value := float64(i) / 10.0
+		if err := column.SetValue(id, value); err != nil {
+			t.Fatalf("Column.SetValue() failed: %v", err)
+		}
+	}
+	column, err = table.CreateColumn("Ref", "[]Table", nil)
 	for i := 0; i < 100; i++ {
 		id := uint32(i + 1)
 		value := [][]byte{
@@ -1287,6 +1295,23 @@ func TestRefs(t *testing.T) {
 				value, storedValue)
 		}
 	}
+	column, err = table.FindColumn("Ref")
+	for i := 0; i < 100; i++ {
+		id := uint32(i + 1)
+		value := [][]byte{
+			[]byte(strconv.Itoa((i + 1) % 100)),
+			[]byte(strconv.Itoa((i + 2) % 100)),
+			[]byte(strconv.Itoa((i + 3) % 100)),
+		}
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Fatalf("Column.GetValue() failed: %v", err)
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+				value, storedValue)
+		}
+	}
 	column, err = table.FindColumn("Ref._key")
 	for i := 0; i < 100; i++ {
 		id := uint32(i + 1)
@@ -1294,6 +1319,23 @@ func TestRefs(t *testing.T) {
 			[]byte(strconv.Itoa((i + 1) % 100)),
 			[]byte(strconv.Itoa((i + 2) % 100)),
 			[]byte(strconv.Itoa((i + 3) % 100)),
+		}
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Fatalf("Column.GetValue() failed: %v", err)
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+				value, storedValue)
+		}
+	}
+	column, err = table.FindColumn("Ref.Value")
+	for i := 0; i < 100; i++ {
+		id := uint32(i + 1)
+		value := []float64{
+			float64((i + 1) % 100) / 10.0,
+			float64((i + 2) % 100) / 10.0,
+			float64((i + 3) % 100) / 10.0,
 		}
 		storedValue, err := column.GetValue(id)
 		if err != nil {
