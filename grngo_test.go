@@ -1391,6 +1391,51 @@ func TestRefs(t *testing.T) {
 	}
 }
 
+func TestDeepVector(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
+	options := NewTableOptions()
+	options.KeyType = "ShortText"
+	table, err := db.CreateTable("Table", options)
+	if err != nil {
+		t.Fatalf("DB.CreateTable() failed: %v", err)
+	}
+	var keys [][]byte
+	keys = append(keys, []byte("ABC"))
+	keys = append(keys, []byte("DEF"))
+	keys = append(keys, []byte("GHI"))
+	for _, key := range keys {
+		if _, _, err := table.InsertRow(key); err != nil {
+			t.Fatalf("Table.InsertRow() failed: %v", err)
+		}
+	}
+	column, err := table.CreateColumn("Ref", "[]Table", nil)
+	var values [][][]byte
+	values = append(values, [][]byte{ keys[1], keys[2] })
+	values = append(values, [][]byte{ keys[2], keys[0] })
+	values = append(values, [][]byte{ keys[0], keys[1] })
+	for i, value := range values {
+		if err := column.SetValue(uint32(i + 1), value); err != nil {
+			t.Fatalf("Column.SetValue() failed: %v", err)
+		}
+	}
+	column, err = table.FindColumn("Ref.Ref")
+	if err != nil {
+		t.Fatalf("Table.FindColumn() failed: %v", err)
+	}
+	storedValue, err := column.GetValue(uint32(1))
+	if err != nil {
+		t.Fatalf("Column.GetValue() failed: %v", err)
+	}
+	var value [][][]byte
+	value = append(value, values[1])
+	value = append(value, values[2])
+	if !reflect.DeepEqual(value, storedValue) {
+		t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+			value, storedValue)
+	}
+}
+
 // Benchmarks.
 
 var numTestRows = 100000
