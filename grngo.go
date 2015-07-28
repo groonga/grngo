@@ -1040,6 +1040,149 @@ func (column *Column) SetValue(id uint32, value interface{}) error {
 	return nil
 }
 
+// parseScalar parses a scalar value.
+func (column *Column) parseScalar(ptr unsafe.Pointer) (interface{}, error) {
+	switch column.c.value_type {
+	case C.GRN_DB_BOOL:
+		cValue := *(*C.grn_bool)(ptr)
+		return cValue == C.GRN_TRUE, nil
+	case C.GRN_DB_INT8:
+		return int64(*(*C.int8_t)(ptr)), nil
+	case C.GRN_DB_INT16:
+		return int64(*(*C.int16_t)(ptr)), nil
+	case C.GRN_DB_INT32:
+		return int64(*(*C.int32_t)(ptr)), nil
+	case C.GRN_DB_INT64:
+		return int64(*(*C.int64_t)(ptr)), nil
+	case C.GRN_DB_UINT8:
+		return int64(*(*C.uint8_t)(ptr)), nil
+	case C.GRN_DB_UINT16:
+		return int64(*(*C.uint16_t)(ptr)), nil
+	case C.GRN_DB_UINT32:
+		return int64(*(*C.uint32_t)(ptr)), nil
+	case C.GRN_DB_UINT64:
+		return int64(*(*C.uint64_t)(ptr)), nil
+	case C.GRN_DB_FLOAT:
+		return float64(*(*C.double)(ptr)), nil
+	case C.GRN_DB_TIME:
+		return int64(*(*C.int64_t)(ptr)), nil
+	case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
+		cValue := *(*C.grngo_text)(ptr)
+		return C.GoBytes(unsafe.Pointer(cValue.ptr), C.int(cValue.size)), nil
+	case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
+		cValue := *(*C.grn_geo_point)(ptr)
+		return GeoPoint{int32(cValue.latitude), int32(cValue.longitude)}, nil
+	default:
+		return nil, fmt.Errorf("unsupported value type")
+	}
+}
+
+// parseVector parses a vector value.
+func (column *Column) parseVector(ptr unsafe.Pointer) (interface{}, error) {
+	cVector := *(*C.grngo_vector)(ptr)
+	header := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cVector.ptr)),
+		Len:  int(cVector.size),
+		Cap:  int(cVector.size),
+	}
+	switch column.c.value_type {
+	case C.GRN_DB_BOOL:
+		cValue := *(*[]C.grn_bool)(unsafe.Pointer(&header))
+		value := make([]bool, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = cValue[i] == C.GRN_TRUE
+		}
+		return value, nil
+	case C.GRN_DB_INT8:
+		cValue := *(*[]C.int8_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_INT16:
+		cValue := *(*[]C.int16_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_INT32:
+		cValue := *(*[]C.int32_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_INT64:
+		cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_UINT8:
+		cValue := *(*[]C.uint8_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_UINT16:
+		cValue := *(*[]C.uint16_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_UINT32:
+		cValue := *(*[]C.uint32_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_UINT64:
+		cValue := *(*[]C.uint64_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_FLOAT:
+		cValue := *(*[]C.double)(unsafe.Pointer(&header))
+		value := make([]float64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = float64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_TIME:
+		cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
+		value := make([]int64, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = int64(cValue[i])
+		}
+		return value, nil
+	case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
+		cValue := *(*[]C.grngo_text)(unsafe.Pointer(&header))
+		value := make([][]byte, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i] = C.GoBytes(unsafe.Pointer(cValue[i].ptr), C.int(cValue[i].size))
+		}
+		return value, nil
+	case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
+		cValue := *(*[]C.grn_geo_point)(unsafe.Pointer(&header))
+		value := make([]GeoPoint, len(cValue))
+		for i := 0; i < len(value); i++ {
+			value[i].Latitude = int32(cValue[i].latitude)
+			value[i].Longitude = int32(cValue[i].longitude)
+		}
+		return value, nil
+	default:
+		return nil, fmt.Errorf("unsupported value type")
+	}
+}
+
 // GetValue gets a value.
 func (column *Column) GetValue(id uint32) (interface{}, error) {
 	if column.c.dimension > 1 {
@@ -1051,142 +1194,8 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 		return nil, newGrnError("grngo_get()", rc, column.table.db)
 	}
 	if column.c.dimension == 0 {
-		switch column.c.value_type {
-		case C.GRN_DB_BOOL:
-			cValue := *(*C.grn_bool)(ptr)
-			return cValue == C.GRN_TRUE, nil
-		case C.GRN_DB_INT8:
-			return int64(*(*C.int8_t)(ptr)), nil
-		case C.GRN_DB_INT16:
-			return int64(*(*C.int16_t)(ptr)), nil
-		case C.GRN_DB_INT32:
-			return int64(*(*C.int32_t)(ptr)), nil
-		case C.GRN_DB_INT64:
-			return int64(*(*C.int64_t)(ptr)), nil
-		case C.GRN_DB_UINT8:
-			return int64(*(*C.uint8_t)(ptr)), nil
-		case C.GRN_DB_UINT16:
-			return int64(*(*C.uint16_t)(ptr)), nil
-		case C.GRN_DB_UINT32:
-			return int64(*(*C.uint32_t)(ptr)), nil
-		case C.GRN_DB_UINT64:
-			return int64(*(*C.uint64_t)(ptr)), nil
-		case C.GRN_DB_FLOAT:
-			return float64(*(*C.double)(ptr)), nil
-		case C.GRN_DB_TIME:
-			return int64(*(*C.int64_t)(ptr)), nil
-		case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
-			cValue := *(*C.grngo_text)(ptr)
-			return C.GoBytes(unsafe.Pointer(cValue.ptr), C.int(cValue.size)), nil
-		case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
-			cValue := *(*C.grn_geo_point)(ptr)
-			return GeoPoint{int32(cValue.latitude), int32(cValue.longitude)}, nil
-		default:
-			return nil, fmt.Errorf("unsupported value type")
-		}
+		return column.parseScalar(ptr)
 	} else {
-		cVector := *(*C.grngo_vector)(ptr)
-		header := reflect.SliceHeader{
-			Data: uintptr(unsafe.Pointer(cVector.ptr)),
-			Len:  int(cVector.size),
-			Cap:  int(cVector.size),
-		}
-		switch column.c.value_type {
-		case C.GRN_DB_BOOL:
-			cValue := *(*[]C.grn_bool)(unsafe.Pointer(&header))
-			value := make([]bool, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = cValue[i] == C.GRN_TRUE
-			}
-			return value, nil
-		case C.GRN_DB_INT8:
-			cValue := *(*[]C.int8_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_INT16:
-			cValue := *(*[]C.int16_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_INT32:
-			cValue := *(*[]C.int32_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_INT64:
-			cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_UINT8:
-			cValue := *(*[]C.uint8_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_UINT16:
-			cValue := *(*[]C.uint16_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_UINT32:
-			cValue := *(*[]C.uint32_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_UINT64:
-			cValue := *(*[]C.uint64_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_FLOAT:
-			cValue := *(*[]C.double)(unsafe.Pointer(&header))
-			value := make([]float64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = float64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_TIME:
-			cValue := *(*[]C.int64_t)(unsafe.Pointer(&header))
-			value := make([]int64, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = int64(cValue[i])
-			}
-			return value, nil
-		case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
-			cValue := *(*[]C.grngo_text)(unsafe.Pointer(&header))
-			value := make([][]byte, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i] = C.GoBytes(unsafe.Pointer(cValue[i].ptr), C.int(cValue[i].size))
-			}
-			return value, nil
-		case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
-			cValue := *(*[]C.grn_geo_point)(unsafe.Pointer(&header))
-			value := make([]GeoPoint, len(cValue))
-			for i := 0; i < len(value); i++ {
-				value[i].Latitude = int32(cValue[i].latitude)
-				value[i].Longitude = int32(cValue[i].longitude)
-			}
-			return value, nil
-		default:
-			return nil, fmt.Errorf("unsupported value type")
-		}
+		return column.parseVector(ptr)
 	}
-	return nil, fmt.Errorf("unknown error")
 }
