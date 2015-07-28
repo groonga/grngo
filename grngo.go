@@ -1183,19 +1183,89 @@ func (column *Column) parseVector(ptr unsafe.Pointer) (interface{}, error) {
 	}
 }
 
+func (column *Column) getType() (reflect.Type, error) {
+	switch column.c.value_type {
+	case C.GRN_DB_BOOL:
+		var dummy bool
+		return reflect.TypeOf(dummy), nil
+	case C.GRN_DB_INT8, C.GRN_DB_INT16, C.GRN_DB_INT32, C.GRN_DB_INT64,
+		C.GRN_DB_UINT8, C.GRN_DB_UINT16, C.GRN_DB_UINT32, C.GRN_DB_UINT64:
+		var dummy int64
+		return reflect.TypeOf(dummy), nil
+	case C.GRN_DB_FLOAT:
+		var dummy float64
+		return reflect.TypeOf(dummy), nil
+	case C.GRN_DB_TIME:
+		var dummy int64
+		return reflect.TypeOf(dummy), nil
+	case C.GRN_DB_SHORT_TEXT, C.GRN_DB_TEXT, C.GRN_DB_LONG_TEXT:
+		var dummy []byte
+		return reflect.TypeOf(dummy), nil
+	case C.GRN_DB_TOKYO_GEO_POINT, C.GRN_DB_WGS84_GEO_POINT:
+		var dummy GeoPoint
+		return reflect.TypeOf(dummy), nil
+	default:
+		return nil, fmt.Errorf("unknown data type")
+	}
+}
+
+func (column *Column) parse(typ reflect.Type, depth int, ptr unsafe.Pointer) (reflect.Value, error) {
+	dimension := int(column.c.dimension)
+	if (depth == (dimension - 1)) {
+		value, err := column.parseVector(ptr)
+		if err != nil {
+			return reflect.Zero(reflect.SliceOf(typ)), err
+		}
+		return reflect.ValueOf(value), nil
+	}
+	sType := typ
+	for i := depth; i < int(column.c.dimension); i++ {
+		sType = reflect.SliceOf(sType)
+	}
+	vector := *(*C.grngo_vector)(ptr)
+	header := reflect.SliceHeader{
+		Data: uintptr(vector.ptr),
+		Len:  int(vector.size),
+		Cap:  int(vector.size),
+	}
+	cValue := *(*[]C.grngo_vector)(unsafe.Pointer(&header))
+	value := reflect.MakeSlice(sType, 0, len(cValue))
+	for i := 0; i < len(cValue); i++ {
+		newValue, err := column.parse(typ, depth + 1, unsafe.Pointer(&cValue[i]))
+		if err != nil {
+			return reflect.Zero(sType), err
+		}
+		value = reflect.Append(value, newValue)
+	}
+	return value, nil
+}
+
+// parseDeepVector parses a deep vector.
+func (column *Column) parseDeepVector(ptr unsafe.Pointer) (interface{}, error) {
+	typ, err := column.getType()
+	if err != nil {
+		return nil, err
+	}
+	value, err := column.parse(typ, 0, ptr)
+	if err != nil {
+		return nil, err
+	}
+	return value.Interface(), nil
+}
+
 // GetValue gets a value.
 func (column *Column) GetValue(id uint32) (interface{}, error) {
-	if column.c.dimension > 1 {
-		return nil, fmt.Errorf("Deep vectors are not supported yet")
-	}
 	var ptr unsafe.Pointer
 	rc := C.grngo_get(column.c, C.grn_id(id), &ptr)
 	if rc != C.GRN_SUCCESS {
 		return nil, newGrnError("grngo_get()", rc, column.table.db)
 	}
-	if column.c.dimension == 0 {
+	switch column.c.dimension {
+	case 0:
 		return column.parseScalar(ptr)
-	} else {
+	case 1:
 		return column.parseVector(ptr)
+	default:
+		return column.parseDeepVector(ptr)
 	}
 }
