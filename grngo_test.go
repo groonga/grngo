@@ -1423,17 +1423,29 @@ func TestDeepVector(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Table.FindColumn() failed: %v", err)
 	}
+	for i := 0; i < len(keys); i++ {
+		id := uint32(i+1)
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Fatalf("Column.GetValue() failed: %v", err)
+		}
+		var value [][][]byte
+		value = append(value, values[(i+1)%len(keys)])
+		value = append(value, values[(i+2)%len(keys)])
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
+				value, storedValue)
+		}
+	}
+	column, err = table.FindColumn("Ref.Ref.Ref.Ref.Ref")
+	if err != nil {
+		t.Fatalf("Table.FindColumn() failed: %v", err)
+	}
 	storedValue, err := column.GetValue(uint32(1))
 	if err != nil {
 		t.Fatalf("Column.GetValue() failed: %v", err)
 	}
-	var value [][][]byte
-	value = append(value, values[1])
-	value = append(value, values[2])
-	if !reflect.DeepEqual(value, storedValue) {
-		t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
-			value, storedValue)
-	}
+	t.Logf("Ref.Ref.Ref.Ref.Ref: %v", storedValue)
 }
 
 // Benchmarks.
