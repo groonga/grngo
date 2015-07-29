@@ -273,6 +273,32 @@ func TestDB(t *testing.T) {
 	defer db2.Close()
 }
 
+func TestDBRefresh(t *testing.T) {
+	dirPath, _, db, _, _ := createTempColumn(t, "Table", nil, "Value", "Bool", nil)
+	defer removeTempDB(t, dirPath, db)
+	if _, err := db.Query("column_remove Table Value"); err != nil {
+		t.Fatalf("DB.Query() failed: %v", err)
+	}
+	if err := db.Refresh(); err != nil {
+		t.Fatalf("DB.Refresh() failed: %v", err)
+	}
+	if _, err := db.FindTable("Table"); err != nil {
+		t.Fatalf("DB.FindTable() failed: %v", err)
+	}
+	if _, err := db.FindColumn("Table", "Column"); err == nil {
+		t.Fatalf("DB.FindColumn() succeeded for deleted column")
+	}
+	if _, err := db.Query("table_remove Table"); err != nil {
+		t.Fatalf("DB.Query() failed: %v", err)
+	}
+	if err := db.Refresh(); err != nil {
+		t.Fatalf("DB.Refresh() failed: %v", err)
+	}
+	if _, err := db.FindTable("Table"); err == nil {
+		t.Fatalf("DB.FindTable() succeeded for deleted table")
+	}
+}
+
 func TestNoKeyValue(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
@@ -366,32 +392,6 @@ func TestValue(t *testing.T) {
 		if _, err := db.Query("table_remove Table"); err != nil {
 			t.Logf("DB.Query() failed: %v", err)
 		}
-	}
-}
-
-func TestDBRefresh(t *testing.T) {
-	dirPath, _, db, _, _ := createTempColumn(t, "Table", nil, "Value", "Bool", nil)
-	defer removeTempDB(t, dirPath, db)
-	if _, err := db.Query("column_remove Table Value"); err != nil {
-		t.Fatalf("DB.Query() failed: %v", err)
-	}
-	if err := db.Refresh(); err != nil {
-		t.Fatalf("DB.Refresh() failed: %v", err)
-	}
-	if _, err := db.FindTable("Table"); err != nil {
-		t.Fatalf("DB.FindTable() failed: %v", err)
-	}
-	if _, err := db.FindColumn("Table", "Column"); err == nil {
-		t.Fatalf("DB.FindColumn() succeeded")
-	}
-	if _, err := db.Query("table_remove Table"); err != nil {
-		t.Fatalf("DB.Query() failed: %v", err)
-	}
-	if err := db.Refresh(); err != nil {
-		t.Fatalf("DB.Refresh() failed: %v", err)
-	}
-	if _, err := db.FindTable("Table"); err == nil {
-		t.Fatalf("DB.FindTable() succeeded: %v", err)
 	}
 }
 
