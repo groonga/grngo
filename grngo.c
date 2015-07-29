@@ -763,7 +763,7 @@ grngo_close_column(grngo_column *column) {
 
 grn_rc
 grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
-  if (!column || !GRNGO_TEST_BOOL(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_BOOL(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -792,7 +792,7 @@ grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
   }
 grn_rc
 grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
-  if (!column) {
+  if (!column || !column->writable) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -825,7 +825,7 @@ grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
 
 grn_rc
 grngo_set_float(grngo_column *column, grn_id id, double value) {
-  if (!column || !GRNGO_TEST_FLOAT(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_FLOAT(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -852,7 +852,7 @@ grngo_set_float(grngo_column *column, grn_id id, double value) {
   }
 grn_rc
 grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
-  if (!column) {
+  if (!column || !column->writable) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -879,7 +879,7 @@ grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
 
 grn_rc
 grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
-  if (!column || !GRNGO_TEST_GEO_POINT(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_GEO_POINT(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -910,7 +910,7 @@ grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
 
 grn_rc
 grngo_set_bool_vector(grngo_column *column, grn_id id, grngo_vector value) {
-  if (!column || !GRNGO_TEST_VECTOR(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_VECTOR(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -948,7 +948,7 @@ grngo_set_bool_vector(grngo_column *column, grn_id id, grngo_vector value) {
   }
 grn_rc
 grngo_set_int_vector(grngo_column *column, grn_id id, grngo_vector value) {
-  if (!column || !GRNGO_TEST_VECTOR(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_VECTOR(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -983,7 +983,7 @@ grngo_set_int_vector(grngo_column *column, grn_id id, grngo_vector value) {
 
 grn_rc
 grngo_set_float_vector(grngo_column *column, grn_id id, grngo_vector value) {
-  if (!column || !GRNGO_TEST_VECTOR(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_VECTOR(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -1013,7 +1013,7 @@ grngo_set_float_vector(grngo_column *column, grn_id id, grngo_vector value) {
   }
 grn_rc
 grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
-  if (!column || !GRNGO_TEST_VECTOR(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_VECTOR(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
@@ -1050,7 +1050,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
 grn_rc
 grngo_set_geo_point_vector(grngo_column *column, grn_id id,
                            grngo_vector value) {
-  if (!column || !GRNGO_TEST_VECTOR(value)) {
+  if (!column || !column->writable || !GRNGO_TEST_VECTOR(value)) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
