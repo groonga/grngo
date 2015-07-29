@@ -294,6 +294,48 @@ func TestKey(t *testing.T) {
 	}
 }
 
+func TestValue(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
+
+	valueTypes := []string{
+		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
+		"UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint",
+	}
+	for _, valueType := range valueTypes {
+		options := NewTableOptions()
+		options.ValueType = valueType
+		table, err := db.CreateTable("Table", options)
+		if err != nil {
+			t.Fatalf("DB.CreateTable() failed: %v", err)
+		}
+		column, err := table.FindColumn("_value")
+		if err != nil {
+			t.Fatalf("Table.FindColumn() failed: %v", err)
+		}
+		for i := 0; i < 100; i++ {
+			_, id, err := table.InsertRow(nil)
+			if err != nil {
+				t.Fatalf("Table.InsertRow() failed: %v", err)
+			}
+			value := generateRandomValue(valueType)
+			if err := column.SetValue(id, value); err != nil {
+				t.Fatalf("Column.SetValue() failed: %v", err)
+			}
+			storedValue, err := column.GetValue(id)
+			if err != nil {
+				t.Fatalf("Column.GetValue() failed: %v", err)
+			}
+			if !reflect.DeepEqual(value, storedValue) {
+				t.Fatalf("DeepEqual() failed")
+			}
+		}
+		if _, err := db.Query("table_remove Table"); err != nil {
+			t.Logf("DB.Query() failed: %v", err)
+		}
+	}
+}
+
 func TestCreateDB(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
