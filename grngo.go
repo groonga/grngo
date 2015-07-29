@@ -191,24 +191,6 @@ func newGrnError(opName string, rc C.grn_rc, db *DB) error {
 		opName, rcString(rc), rcString(ctx.rc), C.GoString(&ctx.errbuf[0]))
 }
 
-// newInvalidKeyTypeError returns an error for data type conflict.
-func newInvalidKeyTypeError(expected, actual DataType) error {
-	return fmt.Errorf("invalid data type: expected = %s, actual = %s", expected, actual)
-}
-
-// newInvalidValueTypeError returns an error for data type conflict.
-func newInvalidValueTypeError(expectedDataType DataType, expectedIsVector bool, actualDataType DataType, actualIsVector bool) error {
-	expected := expectedDataType.String()
-	if expectedIsVector {
-		expected = "[]" + expected
-	}
-	actual := actualDataType.String()
-	if actualIsVector {
-		actual = "[]" + actual
-	}
-	return fmt.Errorf("invalid data type: expected = %s, actual = %s", expected, actual)
-}
-
 // -- Data types --
 
 // GeoPoint represents a coordinate of latitude and longitude.
