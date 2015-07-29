@@ -273,6 +273,19 @@ func TestDB(t *testing.T) {
 	defer db2.Close()
 }
 
+func TestNoKeyValue(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
+
+	table, err := db.CreateTable("Table", nil)
+	if err != nil {
+		t.Fatalf("DB.CreateTable() failed: %v", err)
+	}
+	if _, err := table.FindColumn("_key"); err == nil {
+		t.Fatalf("Table.FindColumn() succeeded for undefined _key")
+	}
+}
+
 func TestKey(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
