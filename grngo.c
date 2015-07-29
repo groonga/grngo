@@ -534,6 +534,11 @@ static grn_rc
 _grngo_open_src(grngo_db *db, grn_obj *table,
                 const char *name, size_t name_len, grn_obj **src) {
   grn_obj *new_src;
+  if ((name_len == GRN_COLUMN_NAME_KEY_LEN) &&
+      !memcmp(name, GRN_COLUMN_NAME_KEY, name_len) &&
+      (table->header.type == GRN_TABLE_NO_KEY)) {
+    return GRN_INVALID_ARGUMENT;
+  }
   if ((name_len == GRN_COLUMN_NAME_VALUE_LEN) &&
       !memcmp(name, GRN_COLUMN_NAME_VALUE, name_len)) {
     new_src = grn_ctx_at(db->ctx, grn_obj_id(db->ctx, table));
