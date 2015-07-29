@@ -177,8 +177,8 @@ func rcString(rc C.grn_rc) string {
 	}
 }
 
-// newError returns an error related to a Groonga or Grngo operation.
-func newGrnError(opName string, rc C.grn_rc, db *DB) error {
+// newCError returns an error related to a Groonga or Grngo operation.
+func newCError(opName string, rc C.grn_rc, db *DB) error {
 	if db == nil {
 		return fmt.Errorf("%s failed: rc = %s", opName, rcString(rc))
 	}
@@ -368,7 +368,7 @@ func GrnInit() error {
 	if grnInitCount == 0 {
 		if !grnInitFinDisabled {
 			if rc := C.grn_init(); rc != C.GRN_SUCCESS {
-				return newGrnError("grn_init()", rc, nil)
+				return newCError("grn_init()", rc, nil)
 			}
 		}
 	}
@@ -388,7 +388,7 @@ func GrnFin() error {
 	case 1:
 		if !grnInitFinDisabled {
 			if rc := C.grn_fin(); rc != C.GRN_SUCCESS {
-				return newGrnError("grn_fin()", rc, nil)
+				return newCError("grn_fin()", rc, nil)
 			}
 		}
 	}
@@ -430,7 +430,7 @@ func CreateDB(path string) (*DB, error) {
 	rc := C.grngo_create_db(cPath, C.size_t(len(pathBytes)), &c)
 	if rc != C.GRN_SUCCESS {
 		GrnFin()
-		return nil, newGrnError("grngo_create_db()", rc, nil)
+		return nil, newCError("grngo_create_db()", rc, nil)
 	}
 	return newDB(c), nil
 }
@@ -453,7 +453,7 @@ func OpenDB(path string) (*DB, error) {
 	rc := C.grngo_open_db(cPath, C.size_t(len(pathBytes)), &c)
 	if rc != C.GRN_SUCCESS {
 		GrnFin()
-		return nil, newGrnError("grngo_open_db()", rc, nil)
+		return nil, newCError("grngo_open_db()", rc, nil)
 	}
 	return newDB(c), nil
 }
@@ -500,7 +500,7 @@ func (db *DB) Send(command string) error {
 	}
 	rc := C.grngo_send(db.c, cCommand, C.size_t(len(commandBytes)))
 	if rc != C.GRN_SUCCESS {
-		return newGrnError("grngo_send()", rc, db)
+		return newCError("grngo_send()", rc, db)
 	}
 	return nil
 }
@@ -542,7 +542,7 @@ func (db *DB) Recv() ([]byte, error) {
 	var resLen C.uint
 	rc := C.grngo_recv(db.c, &res, &resLen)
 	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_recv()", rc, db)
+		return nil, newCError("grngo_recv()", rc, db)
 	}
 	return C.GoBytes(unsafe.Pointer(res), C.int(resLen)), nil
 }
@@ -675,7 +675,7 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	var c *C.grngo_table
 	rc := C.grngo_open_table(db.c, cName, C.size_t(len(nameBytes)), &c)
 	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_find_table()", rc, db)
+		return nil, newCError("grngo_find_table()", rc, db)
 	}
 	table := newTable(db, c, name)
 	db.tables[name] = table
@@ -795,7 +795,7 @@ func (table *Table) InsertRow(key interface{}) (inserted bool, id uint32, err er
 			"unsupported key type: typeName = <%s>", reflect.TypeOf(key).Name())
 	}
 	if rc != C.GRN_SUCCESS {
-		return false, NilID, newGrnError("grngo_insert_*()", rc, table.db)
+		return false, NilID, newCError("grngo_insert_*()", rc, table.db)
 	}
 	return cInserted == C.GRN_TRUE, uint32(cID), nil
 }
@@ -912,7 +912,7 @@ func (table *Table) FindColumn(name string) (*Column, error) {
 	var c *C.grngo_column
 	rc := C.grngo_open_column(table.c, cName, C.size_t(len(nameBytes)), &c)
 	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_open_column()", rc, table.db)
+		return nil, newCError("grngo_open_column()", rc, table.db)
 	}
 	column := newColumn(table, c, name)
 	table.columns[name] = column
@@ -1017,7 +1017,7 @@ func (column *Column) SetValue(id uint32, value interface{}) error {
 			reflect.TypeOf(value).Name())
 	}
 	if rc != C.GRN_SUCCESS {
-		return newGrnError("grngo_set_*()", rc, column.table.db)
+		return newCError("grngo_set_*()", rc, column.table.db)
 	}
 	return nil
 }
@@ -1243,7 +1243,7 @@ func (column *Column) GetValue(id uint32) (interface{}, error) {
 	var ptr unsafe.Pointer
 	rc := C.grngo_get(column.c, C.grn_id(id), &ptr)
 	if rc != C.GRN_SUCCESS {
-		return nil, newGrnError("grngo_get()", rc, column.table.db)
+		return nil, newCError("grngo_get()", rc, column.table.db)
 	}
 	switch column.c.dimension {
 	case 0:
