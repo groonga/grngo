@@ -255,6 +255,24 @@ func removeTempDB(tb testing.TB, dirPath string, db *DB) {
 
 // Tests.
 
+func TestDB(t *testing.T) {
+	dirPath, dbPath, db := createTempDB(t)
+	defer os.RemoveAll(dirPath)
+	if err := db.Close(); err != nil {
+		t.Fatalf("DB.Close() failed: %v", err)
+	}
+	db, err := OpenDB(dbPath)
+	if err != nil {
+		t.Fatalf("OpenDB() failed: %v", err)
+	}
+	defer db.Close()
+	db2, err := OpenDB(dbPath)
+	if err != nil {
+		t.Fatalf("OpenDB() failed: %v", err)
+	}
+	defer db2.Close()
+}
+
 func TestKey(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
@@ -336,21 +354,6 @@ func TestValue(t *testing.T) {
 			t.Logf("DB.Query() failed: %v", err)
 		}
 	}
-}
-
-func TestCreateDB(t *testing.T) {
-	dirPath, _, db := createTempDB(t)
-	defer removeTempDB(t, dirPath, db)
-}
-
-func TestOpenDB(t *testing.T) {
-	dirPath, dbPath, db := createTempDB(t)
-	defer removeTempDB(t, dirPath, db)
-	db2, err := OpenDB(dbPath)
-	if err != nil {
-		t.Fatalf("OpenDB() failed: %v", err)
-	}
-	defer db2.Close()
 }
 
 func TestDBRefresh(t *testing.T) {
