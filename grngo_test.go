@@ -264,6 +264,7 @@ func TestKey(t *testing.T) {
 		"UInt64", "Float", "Time", "ShortText", "TokyoGeoPoint", "WGS84GeoPoint",
 	}
 	for _, keyType := range keyTypes {
+		t.Logf("keyType = %s", keyType)
 		options := NewTableOptions()
 		options.KeyType = keyType
 		table, err := db.CreateTable("Table", options)
@@ -303,6 +304,7 @@ func TestValue(t *testing.T) {
 		"UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint",
 	}
 	for _, valueType := range valueTypes {
+		t.Logf("valueType = %s", valueType)
 		options := NewTableOptions()
 		options.ValueType = valueType
 		table, err := db.CreateTable("Table", options)
