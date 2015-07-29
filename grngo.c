@@ -299,6 +299,7 @@ _grngo_set_key_type(grngo_table *table, grn_obj *obj) {
     table->key_type = domain;
     return GRN_SUCCESS;
   }
+  // Resolve a _key chain.
   for ( ; ; ) {
     obj = grn_ctx_at(table->db->ctx, domain);
     if (!obj) {
@@ -616,6 +617,7 @@ _grngo_open_bufs(grngo_column *column) {
     column->src_bufs[i] = NULL;
   }
   grn_ctx *ctx = column->db->ctx;
+  // Open buffers for table references.
   for (i = 0; i < (column->n_srcs - 1); i++) {
     column->src_bufs[i] = grn_obj_open(ctx, GRN_UVECTOR, 0, GRN_DB_UINT32);
     if (!column->src_bufs[i]) {
@@ -625,6 +627,7 @@ _grngo_open_bufs(grngo_column *column) {
       return GRN_UNKNOWN_ERROR;
     }
   }
+  // Open buffers for values.
   grn_builtin_type value_type = column->value_type;
   switch (value_type) {
     case GRN_DB_SHORT_TEXT:
@@ -661,6 +664,7 @@ _grngo_open_bufs(grngo_column *column) {
       break;
     }
   }
+  // Open a buffer for vectors.
   if (column->dimension != 0) {
     column->vector_buf = grn_obj_open(ctx, GRN_BULK, 0, GRN_DB_LONG_TEXT);
     if (!column->vector_buf) {
@@ -676,6 +680,7 @@ _grngo_open_bufs(grngo_column *column) {
 static grn_rc
 _grngo_open_column(grngo_table *table, grngo_column *column,
                    const char *name, size_t name_len) {
+  // Tokenize the given name and push sources.
   grn_obj *owner = table->obj;
   while (name_len) {
     if (!owner) {
@@ -1200,6 +1205,7 @@ _grngo_get_value(grngo_column *column, const grn_id *ids, size_t n_ids) {
   }
 static grn_rc
 _grngo_fill_vector(grngo_column *column) {
+  // Fill pointers to next vectors.
   grngo_vector *src = (grngo_vector *)GRN_BULK_HEAD(column->vector_buf);
   grngo_vector *dest = src + 1;
   size_t i, j;
@@ -1211,6 +1217,7 @@ _grngo_fill_vector(grngo_column *column) {
       src++;
     }
   }
+  // Fill pointers to text bodies.
   if (column->text_buf) {
     grngo_text *ptr = (grngo_text *)GRN_BULK_HEAD(column->text_buf);
     while (src < dest) {
@@ -1220,6 +1227,7 @@ _grngo_fill_vector(grngo_column *column) {
     }
     return GRN_SUCCESS;
   }
+  // Fill pointers to values.
   switch (column->value_type) {
     GRNGO_FILL_VECTOR_CASE_BLOCK(BOOL)
     GRNGO_FILL_VECTOR_CASE_BLOCK(INT8)
@@ -1251,6 +1259,7 @@ grngo_get(grngo_column *column, grn_id id, void **value) {
   if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
+  // Get vectors and values.
   if (column->vector_buf) {
     GRN_BULK_REWIND(column->vector_buf);
   }
@@ -1267,6 +1276,7 @@ grngo_get(grngo_column *column, grn_id id, void **value) {
   if (rc != GRN_SUCCESS) {
     return GRN_SUCCESS;
   }
+  // Fill pointers.
   if (column->dimension != 0) {
     _grngo_fill_vector(column);
     *value = GRN_BULK_HEAD(column->vector_buf);
