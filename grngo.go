@@ -1165,7 +1165,8 @@ func (column *Column) parseVector(ptr unsafe.Pointer) (interface{}, error) {
 	}
 }
 
-func (column *Column) getType() (reflect.Type, error) {
+// getValueType() returns a reflect.Type associated with the value type.
+func (column *Column) getValueType() (reflect.Type, error) {
 	switch column.c.value_type {
 	case C.GRN_DB_BOOL:
 		var dummy bool
@@ -1191,7 +1192,9 @@ func (column *Column) getType() (reflect.Type, error) {
 	}
 }
 
-func (column *Column) parse(typ reflect.Type, depth int, ptr unsafe.Pointer) (reflect.Value, error) {
+// parseDeepVectorIn recursively parses a deep vector
+// ((column.c.dimension - depth) >= 2).
+func (column *Column) traverse(typ reflect.Type, depth int, ptr unsafe.Pointer) (reflect.Value, error) {
 	dimension := int(column.c.dimension)
 	if (depth == (dimension - 1)) {
 		value, err := column.parseVector(ptr)
@@ -1213,7 +1216,7 @@ func (column *Column) parse(typ reflect.Type, depth int, ptr unsafe.Pointer) (re
 	cValue := *(*[]C.grngo_vector)(unsafe.Pointer(&header))
 	value := reflect.MakeSlice(sType, 0, len(cValue))
 	for i := 0; i < len(cValue); i++ {
-		newValue, err := column.parse(typ, depth + 1, unsafe.Pointer(&cValue[i]))
+		newValue, err := column.traverse(typ, depth + 1, unsafe.Pointer(&cValue[i]))
 		if err != nil {
 			return reflect.Zero(sType), err
 		}
@@ -1222,13 +1225,13 @@ func (column *Column) parse(typ reflect.Type, depth int, ptr unsafe.Pointer) (re
 	return value, nil
 }
 
-// parseDeepVector parses a deep vector.
+// parseDeepVector parses a deep vector (column.c.dimension >= 2).
 func (column *Column) parseDeepVector(ptr unsafe.Pointer) (interface{}, error) {
-	typ, err := column.getType()
+	valueType, err := column.getValueType()
 	if err != nil {
 		return nil, err
 	}
-	value, err := column.parse(typ, 0, ptr)
+	value, err := column.traverse(valueType, 0, ptr)
 	if err != nil {
 		return nil, err
 	}
