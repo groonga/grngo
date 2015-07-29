@@ -255,6 +255,45 @@ func removeTempDB(tb testing.TB, dirPath string, db *DB) {
 
 // Tests.
 
+func TestKey(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
+
+	keyTypes := []string{
+		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
+		"UInt64", "Float", "Time", "ShortText", "TokyoGeoPoint", "WGS84GeoPoint",
+	}
+	for _, keyType := range keyTypes {
+		options := NewTableOptions()
+		options.KeyType = keyType
+		table, err := db.CreateTable("Table", options)
+		if err != nil {
+			t.Fatalf("DB.CreateTable() failed: %v", err)
+		}
+		column, err := table.FindColumn("_key")
+		if err != nil {
+			t.Fatalf("Table.FindColumn() failed: %v", err)
+		}
+		for i := 0; i < 100; i++ {
+			key := generateRandomKey(keyType)
+			_, id, err := table.InsertRow(key)
+			if err != nil {
+				t.Fatalf("Table.InsertRow() failed: %v", err)
+			}
+			storedKey, err := column.GetValue(id)
+			if err != nil {
+				t.Fatalf("Column.GetValue() failed: %v", err)
+			}
+			if !reflect.DeepEqual(key, storedKey) {
+				t.Fatalf("DeepEqual() failed")
+			}
+		}
+		if _, err := db.Query("table_remove Table"); err != nil {
+			t.Logf("DB.Query() failed: %v", err)
+		}
+	}
+}
+
 func TestCreateDB(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
