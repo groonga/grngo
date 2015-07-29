@@ -295,6 +295,9 @@ _grngo_delete_table(grngo_table *table) {
 static grn_rc
 _grngo_set_key_type(grngo_table *table, grn_obj *obj) {
   grn_id domain = obj->header.domain;
+  if (obj->header.type == GRN_TABLE_NO_KEY) {
+    domain = GRN_DB_VOID;
+  }
   if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
     table->key_type = domain;
     return GRN_SUCCESS;
@@ -309,6 +312,9 @@ _grngo_set_key_type(grngo_table *table, grn_obj *obj) {
       return GRN_UNKNOWN_ERROR;
     }
     domain = obj->header.domain;
+    if (obj->header.type == GRN_TABLE_NO_KEY) {
+      domain = GRN_DB_VOID;
+    }
     grn_obj_unlink(table->db->ctx, obj);
     if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
       table->key_type = domain;
