@@ -341,7 +341,7 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 				return false
 			}
 			if !reflect.DeepEqual(key, storedKey) {
-				t.Log("DeepEqual() failed")
+				t.Logf("DeepEqual() failed: key = %v, storedKey = %v", key, storedKey)
 				return false
 			}
 		}
@@ -357,7 +357,8 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 				return false
 			}
 			if !reflect.DeepEqual(value, storedValue) {
-				t.Log("DeepEqual() failed")
+				t.Logf("DeepEqual() failed: value = %v, storedValue = %v",
+					value, storedValue)
 				return false
 			}
 		}
@@ -431,7 +432,7 @@ func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
 			return false
 		}
 		if !reflect.DeepEqual(key, storedKey) {
-			t.Log("DeepEqual() failed")
+			t.Logf("DeepEqual() failed: key = %v, storedKey = %v", key, storedKey)
 			return false
 		}
 		value := generateRandomValue(keyType)
@@ -445,7 +446,8 @@ func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
 			return false
 		}
 		if !reflect.DeepEqual(value, storedValue) {
-			t.Log("DeepEqual() failed")
+			t.Logf("DeepEqual() failed: value = %v, storedValue = %v",
+				value, storedValue)
 			return false
 		}
 	}
