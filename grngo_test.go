@@ -308,12 +308,12 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 		t.Log("DB.CreateTable() failed: %v", err)
 		return false
 	}
+	defer db.Query("table_remove Table")
 	keyColumn, err := table.FindColumn("_key")
 	if (keyType == "") && (err == nil) {
 		t.Log("Table.FindColumn() succeeded for non-existent _key")
 		return false
 	}
-	defer db.Query("table_remove Table")
 	if (keyType != "") && (err != nil) {
 		t.Log("Table.FindColumn() failed: %v", err)
 		return false
