@@ -44,7 +44,8 @@ grn_rc grngo_recv(grngo_db *db, char **res, unsigned int *res_len);
 
 typedef struct {
   grngo_db         *db;
-  grn_obj          *obj;
+  grn_obj          **objs;
+  size_t           n_objs;
   grn_builtin_type key_type;
 } grngo_table;
 

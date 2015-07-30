@@ -280,14 +280,20 @@ _grngo_new_table(grngo_db *db) {
   }
   memset(table, 0, sizeof(*table));
   table->db = db;
-  table->obj = NULL;
+  table->objs = NULL;
   return table;
 }
 
 static void
 _grngo_delete_table(grngo_table *table) {
-  if (table->obj) {
-    grn_obj_unlink(table->db->ctx, table->obj);
+  if (table->objs) {
+    size_t i;
+    for (i = 0; i < table->n_objs; i++) {
+      if (table->objs[i]) {
+        grn_obj_unlink(table->db->ctx, table->objs[i]);
+      }
+    }
+    GRNGO_FREE(table->db, table->objs);
   }
   GRNGO_FREE(table->db, table);
 }
@@ -337,7 +343,12 @@ _grngo_open_table(grngo_table *table, const char *name, size_t name_len) {
     grn_obj_unlink(table->db->ctx, obj);
     return GRN_INVALID_FORMAT;
   }
-  table->obj = obj;
+  table->objs = (grn_obj **)GRNGO_MALLOC(table->db, sizeof(grn_obj *));
+  if (!table->objs) {
+    return GRN_NO_MEMORY_AVAILABLE;
+  }
+  table->objs[0] = obj;
+  table->n_objs = 1;
   return _grngo_set_key_type(table, obj);
 }
 
@@ -371,8 +382,8 @@ static grn_rc
 _grngo_insert_row(grngo_table *table, const void *key, size_t key_size,
                   grn_bool *inserted, grn_id *id) {
   int tmp_inserted;
-  grn_id tmp_id = grn_table_add(table->db->ctx, table->obj, key, key_size,
-                                &tmp_inserted);
+  grn_id tmp_id = grn_table_add(table->db->ctx, table->objs[0],
+                                key, key_size, &tmp_inserted);
   if (tmp_id == GRN_ID_NIL) {
     if (table->db->ctx->rc != GRN_SUCCESS) {
       return table->db->ctx->rc;
@@ -692,7 +703,7 @@ static grn_rc
 _grngo_open_column(grngo_table *table, grngo_column *column,
                    const char *name, size_t name_len) {
   // Tokenize the given name and push sources.
-  grn_obj *owner = table->obj;
+  grn_obj *owner = table->objs[0];
   while (name_len) {
     if (!owner) {
       return GRN_INVALID_ARGUMENT;
@@ -778,7 +789,7 @@ grngo_set_bool(grngo_column *column, grn_id id, grn_bool value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -807,7 +818,7 @@ grngo_set_int(grngo_column *column, grn_id id, int64_t value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -840,7 +851,7 @@ grngo_set_float(grngo_column *column, grn_id id, double value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -867,7 +878,7 @@ grngo_set_text(grngo_column *column, grn_id id, grngo_text value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -894,7 +905,7 @@ grngo_set_geo_point(grngo_column *column, grn_id id, grn_geo_point value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -925,7 +936,7 @@ grngo_set_bool_vector(grngo_column *column, grn_id id, grngo_vector value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -963,7 +974,7 @@ grngo_set_int_vector(grngo_column *column, grn_id id, grngo_vector value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -998,7 +1009,7 @@ grngo_set_float_vector(grngo_column *column, grn_id id, grngo_vector value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -1028,7 +1039,7 @@ grngo_set_text_vector(grngo_column *column, grn_id id, grngo_vector value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -1065,7 +1076,7 @@ grngo_set_geo_point_vector(grngo_column *column, grn_id id,
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_obj obj;
@@ -1267,7 +1278,7 @@ grngo_get(grngo_column *column, grn_id id, void **value) {
     return GRN_INVALID_ARGUMENT;
   }
   grn_ctx *ctx = column->db->ctx;
-  if (grn_table_at(ctx, column->table->obj, id) == GRN_ID_NIL) {
+  if (grn_table_at(ctx, column->table->objs[0], id) == GRN_ID_NIL) {
     return GRN_INVALID_ARGUMENT;
   }
   // Get vectors and values.
