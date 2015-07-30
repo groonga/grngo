@@ -365,14 +365,27 @@ static grn_rc
 _grngo_insert_row(grngo_table *table, const void *key, size_t key_size,
                   grn_bool *inserted, grn_id *id) {
   grn_ctx *ctx = table->db->ctx;
+  size_t i = table->n_objs - 1;
   int tmp_inserted;
-  grn_id tmp_id = grn_table_add(ctx, table->objs[0],
-                                key, key_size, &tmp_inserted);
+  grn_id tmp_id = grn_table_add(ctx, table->objs[i], key, key_size,
+                                &tmp_inserted);
   if (tmp_id == GRN_ID_NIL) {
     if (ctx->rc != GRN_SUCCESS) {
       return ctx->rc;
     }
     return GRN_UNKNOWN_ERROR;
+  }
+  // Resolve table references.
+  while (i > 0) {
+    i--;
+    tmp_id = grn_table_add(ctx, table->objs[i], &tmp_id, sizeof(tmp_id),
+                           &tmp_inserted);
+    if (tmp_id == GRN_ID_NIL) {
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
+      }
+      return GRN_UNKNOWN_ERROR;
+    }
   }
   *inserted = (grn_bool)tmp_inserted;
   *id = tmp_id;
