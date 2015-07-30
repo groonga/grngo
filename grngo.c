@@ -299,59 +299,40 @@ _grngo_delete_table(grngo_table *table) {
 }
 
 static grn_rc
-_grngo_set_key_type(grngo_table *table, grn_obj *obj) {
-  grn_id domain = obj->header.domain;
-  if (obj->header.type == GRN_TABLE_NO_KEY) {
-    domain = GRN_DB_VOID;
-  }
-  if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
-    table->key_type = domain;
-    return GRN_SUCCESS;
-  }
-  // Resolve a _key chain.
-  grn_ctx *ctx = table->db->ctx;
-  for ( ; ; ) {
-    obj = grn_ctx_at(ctx, domain);
-    if (!obj) {
-      if (ctx->rc != GRN_SUCCESS) {
-        return ctx->rc;
-      }
-      return GRN_UNKNOWN_ERROR;
-    }
-    domain = obj->header.domain;
-    if (obj->header.type == GRN_TABLE_NO_KEY) {
-      domain = GRN_DB_VOID;
-    }
-    grn_obj_unlink(ctx, obj);
-    if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
-      table->key_type = domain;
-      break;
-    }
-  }
-  return GRN_SUCCESS;
-}
-
-static grn_rc
 _grngo_open_table(grngo_table *table, const char *name, size_t name_len) {
   grn_ctx *ctx = table->db->ctx;
   grn_obj *obj = grn_ctx_get(ctx, name, name_len);
+  while (obj) {
+    // Register an object.
+    size_t new_size = sizeof(grn_obj *) * (table->n_objs + 1);
+    grn_obj **new_objs = (grn_obj **)GRNGO_REALLOC(table->db, table->objs,
+                                                   new_size);
+    if (!new_objs) {
+      grn_obj_unlink(ctx, obj);
+      return GRN_NO_MEMORY_AVAILABLE;
+    }
+    table->objs = new_objs;
+    table->objs[table->n_objs] = obj;
+    table->n_objs++;
+
+    // Detect the builtin type of _key or dereference _key.
+    grn_id domain = obj->header.domain;
+    if (obj->header.type == GRN_TABLE_NO_KEY) {
+      domain = GRN_DB_VOID;
+    }
+    if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
+      table->key_type = domain;
+      return GRN_SUCCESS;
+    }
+    obj = grn_ctx_at(ctx, domain);
+  }
   if (!obj) {
     if (ctx->rc != GRN_SUCCESS) {
       return ctx->rc;
     }
     return GRN_UNKNOWN_ERROR;
   }
-  if (!grn_obj_is_table(ctx, obj)) {
-    grn_obj_unlink(ctx, obj);
-    return GRN_INVALID_FORMAT;
-  }
-  table->objs = (grn_obj **)GRNGO_MALLOC(table->db, sizeof(grn_obj *));
-  if (!table->objs) {
-    return GRN_NO_MEMORY_AVAILABLE;
-  }
-  table->objs[0] = obj;
-  table->n_objs = 1;
-  return _grngo_set_key_type(table, obj);
+  return GRN_SUCCESS;
 }
 
 grn_rc
