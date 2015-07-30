@@ -387,6 +387,89 @@ func TestKeyValue(t *testing.T) {
 	}
 }
 
+func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
+	for i := depth; i > 0; i-- {
+		tableName := fmt.Sprintf("Table%d", i)
+		options := NewTableOptions()
+		options.KeyType = keyType
+		_, err := db.CreateTable(tableName, options)
+		if err != nil {
+			t.Log("DB.CreateTable() failed: %v", err)
+			return false
+		}
+		defer db.Query(fmt.Sprintf("table_remove %s", tableName))
+	}
+	options := NewTableOptions()
+	options.KeyType = "Table1"
+	options.ValueType = "Table1"
+	table, err := db.CreateTable("Table", options)
+	if err != nil {
+		t.Log("DB.CreateTable() failed: %v", err)
+		return false
+	}
+	defer db.Query("table_remove Table")
+	keyColumn, err := table.FindColumn("_key")
+	if err != nil {
+		t.Log("Table.FindColumn() failed: %v", err)
+		return false
+	}
+	valueColumn, err := table.FindColumn("_value")
+	if err != nil {
+		t.Logf("Table.FindColumn() failed: %v", err)
+		return false
+	}
+	for i := 0; i < 100; i++ {
+		key := generateRandomKey(keyType)
+		_, id, err := table.InsertRow(key)
+		if err != nil {
+			t.Logf("Table.InsertRow() failed: %v", err)
+			return false
+		}
+		storedKey, err := keyColumn.GetValue(id)
+		if err != nil {
+			t.Logf("Column.GetValue() failed: %v", err)
+			return false
+		}
+		if !reflect.DeepEqual(key, storedKey) {
+			t.Log("DeepEqual() failed")
+			return false
+		}
+		value := generateRandomValue(keyType)
+		if err := valueColumn.SetValue(id, value); err != nil {
+			t.Logf("Column.SetValue() failed: %v", err)
+			return false
+		}
+		storedValue, err := valueColumn.GetValue(id)
+		if err != nil {
+			t.Logf("Column.GetValue() failed: %v", err)
+			return false
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Log("DeepEqual() failed")
+			return false
+		}
+	}
+	return true
+}
+
+func TestRefKeyValue(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
+	defer removeTempDB(t, dirPath, db)
+	keyTypes := []string{
+		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
+		"UInt64", "Float", "Time", "ShortText", "TokyoGeoPoint", "WGS84GeoPoint",
+	}
+	maxDepth := 3
+	for depth := 1; depth <= maxDepth; depth++ {
+		for _, keyType := range keyTypes {
+			if !testRefKeyValue(t, db, depth, keyType) {
+				t.Logf("[ fail ] depth = %d, keyType = \"%s\"", depth, keyType)
+				t.Fail()
+			}
+		}
+	}
+}
+
 func testDBCreateTableWithRefKey(t *testing.T, keyType string) {
 	options := NewTableOptions()
 	options.KeyType = keyType
