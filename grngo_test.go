@@ -381,6 +381,7 @@ func TestKeyValue(t *testing.T) {
 			if !testKeyValue(t, db, keyType, valueType) {
 				t.Logf("[ fail ] keyType = \"%s\", valueType = \"%s\"",
 					keyType, valueType)
+				t.Fail()
 			}
 		}
 	}
