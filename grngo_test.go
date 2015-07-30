@@ -388,7 +388,7 @@ func TestKeyValue(t *testing.T) {
 	}
 }
 
-func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
+func testRefKey(t *testing.T, db *DB, depth int, keyType string) bool {
 	for i := depth; i > 0; i-- {
 		tableName := fmt.Sprintf("Table%d", i)
 		options := NewTableOptions()
@@ -402,7 +402,6 @@ func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
 	}
 	options := NewTableOptions()
 	options.KeyType = "Table1"
-	options.ValueType = "Table1"
 	table, err := db.CreateTable("Table", options)
 	if err != nil {
 		t.Log("DB.CreateTable() failed: %v", err)
@@ -412,11 +411,6 @@ func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
 	keyColumn, err := table.FindColumn("_key")
 	if err != nil {
 		t.Log("Table.FindColumn() failed: %v", err)
-		return false
-	}
-	valueColumn, err := table.FindColumn("_value")
-	if err != nil {
-		t.Logf("Table.FindColumn() failed: %v", err)
 		return false
 	}
 	for i := 0; i < 100; i++ {
@@ -435,26 +429,11 @@ func testRefKeyValue(t *testing.T, db *DB, depth int, keyType string) bool {
 			t.Logf("DeepEqual() failed: key = %v, storedKey = %v", key, storedKey)
 			return false
 		}
-		value := generateRandomValue(keyType)
-		if err := valueColumn.SetValue(id, value); err != nil {
-			t.Logf("Column.SetValue() failed: %v", err)
-			return false
-		}
-		storedValue, err := valueColumn.GetValue(id)
-		if err != nil {
-			t.Logf("Column.GetValue() failed: %v", err)
-			return false
-		}
-		if !reflect.DeepEqual(value, storedValue) {
-			t.Logf("DeepEqual() failed: value = %v, storedValue = %v",
-				value, storedValue)
-			return false
-		}
 	}
 	return true
 }
 
-func TestRefKeyValue(t *testing.T) {
+func TestRefKey(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
 	keyTypes := []string{
@@ -464,7 +443,7 @@ func TestRefKeyValue(t *testing.T) {
 	maxDepth := 3
 	for depth := 1; depth <= maxDepth; depth++ {
 		for _, keyType := range keyTypes {
-			if !testRefKeyValue(t, db, depth, keyType) {
+			if !testRefKey(t, db, depth, keyType) {
 				t.Logf("[ fail ] depth = %d, keyType = \"%s\"", depth, keyType)
 				t.Fail()
 			}
