@@ -299,61 +299,70 @@ func TestDBRefresh(t *testing.T) {
 	}
 }
 
-func testKeyValue(t *testing.T, db *DB, keyType, valueType string) {
-	t.Logf("keyType = %s, valueType = %s", keyType, valueType)
+func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 	options := NewTableOptions()
 	options.KeyType = keyType
 	options.ValueType = valueType
 	table, err := db.CreateTable("Table", options)
 	if err != nil {
-		t.Fatalf("DB.CreateTable() failed: %v", err)
+		t.Log("DB.CreateTable() failed: %v", err)
+		return false
 	}
 	keyColumn, err := table.FindColumn("_key")
 	if (keyType == "") && (err == nil) {
-		t.Fatalf("Table.FindColumn() succeeded for non-existent _key")
+		t.Log("Table.FindColumn() succeeded for non-existent _key")
+		return false
 	}
+	defer db.Query("table_remove Table")
 	if (keyType != "") && (err != nil) {
-			t.Fatalf("Table.FindColumn() failed: %v", err)
+		t.Log("Table.FindColumn() failed: %v", err)
+		return false
 	}
 	valueColumn, err := table.FindColumn("_value")
 	if (valueType == "") && (err == nil) {
-		t.Fatalf("Table.FindColumn() succeeded for non-existent _value")
+		t.Log("Table.FindColumn() succeeded for non-existent _value")
+		return false
 	}
 	if (valueType != "") && (err != nil) {
-			t.Fatalf("Table.FindColumn() failed: %v", err)
+		t.Logf("Table.FindColumn() failed: %v", err)
+		return false
 	}
 	for i := 0; i < 100; i++ {
 		key := generateRandomKey(keyType)
 		_, id, err := table.InsertRow(key)
 		if err != nil {
-			t.Fatalf("Table.InsertRow() failed: %v", err)
+			t.Logf("Table.InsertRow() failed: %v", err)
+			return false
 		}
 		if keyColumn != nil {
 			storedKey, err := keyColumn.GetValue(id)
 			if err != nil {
-				t.Fatalf("Column.GetValue() failed: %v", err)
+				t.Logf("Column.GetValue() failed: %v", err)
+				return false
 			}
 			if !reflect.DeepEqual(key, storedKey) {
-				t.Fatalf("DeepEqual() failed")
+				t.Log("DeepEqual() failed")
+				return false
 			}
 		}
 		if valueColumn != nil {
 			value := generateRandomValue(valueType)
 			if err := valueColumn.SetValue(id, value); err != nil {
-				t.Fatalf("Column.SetValue() failed: %v", err)
+				t.Logf("Column.SetValue() failed: %v", err)
+				return false
 			}
 			storedValue, err := valueColumn.GetValue(id)
 			if err != nil {
-				t.Fatalf("Column.GetValue() failed: %v", err)
+				t.Logf("Column.GetValue() failed: %v", err)
+				return false
 			}
 			if !reflect.DeepEqual(value, storedValue) {
-				t.Fatalf("DeepEqual() failed")
+				t.Log("DeepEqual() failed")
+				return false
 			}
 		}
 	}
-	if _, err := db.Query("table_remove Table"); err != nil {
-		t.Logf("DB.Query() failed: %v", err)
-	}
+	return true
 }
 
 func TestKeyValue(t *testing.T) {
@@ -369,7 +378,10 @@ func TestKeyValue(t *testing.T) {
 	}
 	for _, keyType := range keyTypes {
 		for _, valueType := range valueTypes {
-			testKeyValue(t, db, keyType, valueType)
+			if !testKeyValue(t, db, keyType, valueType) {
+				t.Logf("[ fail ] keyType = \"%s\", valueType = \"%s\"",
+					keyType, valueType)
+			}
 		}
 	}
 }
