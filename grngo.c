@@ -309,11 +309,12 @@ _grngo_set_key_type(grngo_table *table, grn_obj *obj) {
     return GRN_SUCCESS;
   }
   // Resolve a _key chain.
+  grn_ctx *ctx = table->db->ctx;
   for ( ; ; ) {
-    obj = grn_ctx_at(table->db->ctx, domain);
+    obj = grn_ctx_at(ctx, domain);
     if (!obj) {
-      if (table->db->ctx->rc != GRN_SUCCESS) {
-        return table->db->ctx->rc;
+      if (ctx->rc != GRN_SUCCESS) {
+        return ctx->rc;
       }
       return GRN_UNKNOWN_ERROR;
     }
@@ -321,7 +322,7 @@ _grngo_set_key_type(grngo_table *table, grn_obj *obj) {
     if (obj->header.type == GRN_TABLE_NO_KEY) {
       domain = GRN_DB_VOID;
     }
-    grn_obj_unlink(table->db->ctx, obj);
+    grn_obj_unlink(ctx, obj);
     if (domain <= GRNGO_MAX_BUILTIN_TYPE_ID) {
       table->key_type = domain;
       break;
@@ -332,15 +333,16 @@ _grngo_set_key_type(grngo_table *table, grn_obj *obj) {
 
 static grn_rc
 _grngo_open_table(grngo_table *table, const char *name, size_t name_len) {
-  grn_obj *obj = grn_ctx_get(table->db->ctx, name, name_len);
+  grn_ctx *ctx = table->db->ctx;
+  grn_obj *obj = grn_ctx_get(ctx, name, name_len);
   if (!obj) {
-    if (table->db->ctx->rc != GRN_SUCCESS) {
-      return table->db->ctx->rc;
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
     }
     return GRN_UNKNOWN_ERROR;
   }
-  if (!grn_obj_is_table(table->db->ctx, obj)) {
-    grn_obj_unlink(table->db->ctx, obj);
+  if (!grn_obj_is_table(ctx, obj)) {
+    grn_obj_unlink(ctx, obj);
     return GRN_INVALID_FORMAT;
   }
   table->objs = (grn_obj **)GRNGO_MALLOC(table->db, sizeof(grn_obj *));
@@ -381,12 +383,13 @@ grngo_close_table(grngo_table *table) {
 static grn_rc
 _grngo_insert_row(grngo_table *table, const void *key, size_t key_size,
                   grn_bool *inserted, grn_id *id) {
+  grn_ctx *ctx = table->db->ctx;
   int tmp_inserted;
-  grn_id tmp_id = grn_table_add(table->db->ctx, table->objs[0],
+  grn_id tmp_id = grn_table_add(ctx, table->objs[0],
                                 key, key_size, &tmp_inserted);
   if (tmp_id == GRN_ID_NIL) {
-    if (table->db->ctx->rc != GRN_SUCCESS) {
-      return table->db->ctx->rc;
+    if (ctx->rc != GRN_SUCCESS) {
+      return ctx->rc;
     }
     return GRN_UNKNOWN_ERROR;
   }
