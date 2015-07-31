@@ -305,7 +305,7 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 	options.ValueType = valueType
 	table, err := db.CreateTable("Table", options)
 	if err != nil {
-		t.Log("DB.CreateTable() failed: %v", err)
+		t.Log("DB.CreateTable() failed:", err)
 		return false
 	}
 	defer db.Query("table_remove Table")
@@ -315,7 +315,7 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 		return false
 	}
 	if (keyType != "") && (err != nil) {
-		t.Log("Table.FindColumn() failed: %v", err)
+		t.Log("Table.FindColumn() failed", err)
 		return false
 	}
 	valueColumn, err := table.FindColumn("_value")
@@ -324,20 +324,20 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 		return false
 	}
 	if (valueType != "") && (err != nil) {
-		t.Logf("Table.FindColumn() failed: %v", err)
+		t.Log("Table.FindColumn() failed:", err)
 		return false
 	}
 	for i := 0; i < 100; i++ {
 		key := generateRandomKey(keyType)
 		_, id, err := table.InsertRow(key)
 		if err != nil {
-			t.Logf("Table.InsertRow() failed: %v", err)
+			t.Log("Table.InsertRow() failed:", err)
 			return false
 		}
 		if keyColumn != nil {
 			storedKey, err := keyColumn.GetValue(id)
 			if err != nil {
-				t.Logf("Column.GetValue() failed: %v", err)
+				t.Log("Column.GetValue() failed:", err)
 				return false
 			}
 			if !reflect.DeepEqual(key, storedKey) {
@@ -348,12 +348,12 @@ func testKeyValue(t *testing.T, db *DB, keyType, valueType string) bool {
 		if valueColumn != nil {
 			value := generateRandomValue(valueType)
 			if err := valueColumn.SetValue(id, value); err != nil {
-				t.Logf("Column.SetValue() failed: %v", err)
+				t.Log("Column.SetValue() failed:", err)
 				return false
 			}
 			storedValue, err := valueColumn.GetValue(id)
 			if err != nil {
-				t.Logf("Column.GetValue() failed: %v", err)
+				t.Log("Column.GetValue() failed:", err)
 				return false
 			}
 			if !reflect.DeepEqual(value, storedValue) {
@@ -395,7 +395,7 @@ func testRefKey(t *testing.T, db *DB, depth int, keyType string) bool {
 		options.KeyType = keyType
 		_, err := db.CreateTable(tableName, options)
 		if err != nil {
-			t.Log("DB.CreateTable() failed: %v", err)
+			t.Log("DB.CreateTable() failed:", err)
 			return false
 		}
 		defer db.Query(fmt.Sprintf("table_remove %s", tableName))
@@ -404,25 +404,25 @@ func testRefKey(t *testing.T, db *DB, depth int, keyType string) bool {
 	options.KeyType = "Table1"
 	table, err := db.CreateTable("Table", options)
 	if err != nil {
-		t.Log("DB.CreateTable() failed: %v", err)
+		t.Log("DB.CreateTable() failed:", err)
 		return false
 	}
 	defer db.Query("table_remove Table")
 	keyColumn, err := table.FindColumn("_key")
 	if err != nil {
-		t.Log("Table.FindColumn() failed: %v", err)
+		t.Log("Table.FindColumn() failed:", err)
 		return false
 	}
 	for i := 0; i < 100; i++ {
 		key := generateRandomKey(keyType)
 		_, id, err := table.InsertRow(key)
 		if err != nil {
-			t.Logf("Table.InsertRow() failed: %v", err)
+			t.Log("Table.InsertRow() failed:", err)
 			return false
 		}
 		storedKey, err := keyColumn.GetValue(id)
 		if err != nil {
-			t.Logf("Column.GetValue() failed: %v", err)
+			t.Log("Column.GetValue() failed:", err)
 			return false
 		}
 		if !reflect.DeepEqual(key, storedKey) {
@@ -459,18 +459,18 @@ func testColumn(t *testing.T, table *Table, valueType string, ids []uint32) bool
 	columnName += "Value"
 	column, err := table.CreateColumn(columnName, valueType, nil)
 	if err != nil {
-		t.Log("Table.CreateColumn() failed: %v", err)
+		t.Log("Table.CreateColumn() failed:", err)
 		return false
 	}
 	for _, id := range ids {
 		value := generateRandomValue(valueType)
 		if err := column.SetValue(id, value); err != nil {
-			t.Logf("Column.SetValue() failed: %v", err)
+			t.Log("Column.SetValue() failed:", err)
 			return false
 		}
 		storedValue, err := column.GetValue(id)
 		if err != nil {
-			t.Logf("Column.GetValue() failed: %v", err)
+			t.Log("Column.GetValue() failed:", err)
 			return false
 		}
 		if !reflect.DeepEqual(value, storedValue) {
