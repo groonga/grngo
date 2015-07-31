@@ -3,6 +3,14 @@
 #include <math.h>
 #include <string.h>
 
+// -- debug --
+
+#include <stdio.h>
+
+#define GRNGO_DEBUG(fmt, ...)\
+  fprintf(stderr, "%s:%d: In %s: " fmt "\n",\
+          __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)
+
 // -- miscellaneous --
 
 #define GRNGO_MAX_BUILTIN_TYPE_ID GRN_DB_WGS84_GEO_POINT
