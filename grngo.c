@@ -1137,6 +1137,7 @@ _grngo_get_ref(grngo_column *column, size_t src_id,
     size_t i;
     for (i = 0; i < n_ids; i++) {
       grn_obj_get_value(ctx, src, ids[i], src_buf);
+      src_buf->header.type = GRN_UVECTOR;
       if (ctx->rc != GRN_SUCCESS) {
         return ctx->rc;
       }
@@ -1212,6 +1213,7 @@ _grngo_get_value(grngo_column *column, const grn_id *ids, size_t n_ids) {
     size_t i;
     for (i = 0; i < n_ids; i++) {
       grn_obj_get_value(ctx, src, ids[i], src_buf);
+      src_buf->header.type = GRN_UVECTOR;
       if (ctx->rc != GRN_SUCCESS) {
         return ctx->rc;
       }
