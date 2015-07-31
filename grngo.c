@@ -646,7 +646,8 @@ _grngo_open_bufs(grngo_column *column) {
   grn_ctx *ctx = column->db->ctx;
   // Open buffers for table references.
   for (i = 0; i < (column->n_srcs - 1); i++) {
-    column->src_bufs[i] = grn_obj_open(ctx, GRN_UVECTOR, 0, GRN_DB_UINT32);
+    grn_id range = grn_obj_get_range(ctx, column->srcs[i]);
+    column->src_bufs[i] = grn_obj_open(ctx, GRN_UVECTOR, 0, range);
     if (!column->src_bufs[i]) {
       if (ctx->rc != GRN_SUCCESS) {
         return ctx->rc;
