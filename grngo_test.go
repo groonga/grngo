@@ -502,7 +502,7 @@ func TestColumn(t *testing.T) {
 		if !inserted {
 			t.Fatalf("Table.InsertRow() failed")
 		}
-		ids[i] = id;
+		ids[i] = id
 	}
 	for _, valueType := range valueTypes {
 		if !testColumn(t, table, valueType, ids) {
@@ -568,10 +568,10 @@ func TestRefColumn(t *testing.T) {
 	keyTypes := []string{
 		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
 		"UInt64", "Float", "Time", "ShortText",
-//		"TokyoGeoPoint", "WGS84GeoPoint",
+		//"TokyoGeoPoint", "WGS84GeoPoint",
 	}
-	refTypes := []string{ "Table" }
-//	refTypes := []string{ "Table", "[]Table" }
+	refTypes := []string{"Table"}
+	//refTypes := []string{ "Table", "[]Table" }
 	for _, keyType := range keyTypes {
 		for _, refType := range refTypes {
 			if !testRefColumn(t, db, keyType, refType) {
@@ -590,7 +590,7 @@ func TestInvalidRows(t *testing.T) {
 		if _, err := column.GetValue(id); err == nil {
 			t.Fatalf("Column.GetValue() succeeded for an invalid row")
 		}
-		if err := column.SetValue(id, int64(id) + 100); err == nil {
+		if err := column.SetValue(id, int64(id)+100); err == nil {
 			t.Fatalf("Column.SetValue() succeeded for an invalid row")
 		}
 	}
@@ -611,14 +611,14 @@ func TestInvalidRows(t *testing.T) {
 			if _, err := column.GetValue(id); err == nil {
 				t.Fatalf("Column.GetValue() succeeded for an invalid row")
 			}
-			if err := column.SetValue(id, int64(id) + 200); err == nil {
+			if err := column.SetValue(id, int64(id)+200); err == nil {
 				t.Fatalf("Column.SetValue() succeeded for an invalid row")
 			}
 		} else {
 			if _, err := column.GetValue(id); err != nil {
 				t.Fatalf("Column.GetValue() failed: %v", err)
 			}
-			if err := column.SetValue(id, int64(id) + 200); err != nil {
+			if err := column.SetValue(id, int64(id)+200); err != nil {
 				t.Fatalf("Column.GetValue() failed: %v", err)
 			}
 		}
@@ -800,11 +800,11 @@ func TestDeepVector(t *testing.T) {
 	}
 	column, err := table.CreateColumn("Ref", "[]Table", nil)
 	var values [][][]byte
-	values = append(values, [][]byte{ keys[1], keys[2] })
-	values = append(values, [][]byte{ keys[2], keys[0] })
-	values = append(values, [][]byte{ keys[0], keys[1] })
+	values = append(values, [][]byte{keys[1], keys[2]})
+	values = append(values, [][]byte{keys[2], keys[0]})
+	values = append(values, [][]byte{keys[0], keys[1]})
 	for i, value := range values {
-		if err := column.SetValue(uint32(i + 1), value); err != nil {
+		if err := column.SetValue(uint32(i+1), value); err != nil {
 			t.Fatalf("Column.SetValue() failed: %v", err)
 		}
 	}
@@ -813,7 +813,7 @@ func TestDeepVector(t *testing.T) {
 		t.Fatalf("Table.FindColumn() failed: %v", err)
 	}
 	for i := 0; i < len(keys); i++ {
-		id := uint32(i+1)
+		id := uint32(i + 1)
 		storedValue, err := column.GetValue(id)
 		if err != nil {
 			t.Fatalf("Column.GetValue() failed: %v", err)

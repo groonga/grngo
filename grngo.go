@@ -1196,7 +1196,7 @@ func (column *Column) getValueType() (reflect.Type, error) {
 // ((column.c.dimension - depth) >= 2).
 func (column *Column) traverse(typ reflect.Type, depth int, ptr unsafe.Pointer) (reflect.Value, error) {
 	dimension := int(column.c.dimension)
-	if (depth == (dimension - 1)) {
+	if depth == (dimension - 1) {
 		value, err := column.parseVector(ptr)
 		if err != nil {
 			return reflect.Zero(reflect.SliceOf(typ)), err
@@ -1216,7 +1216,7 @@ func (column *Column) traverse(typ reflect.Type, depth int, ptr unsafe.Pointer) 
 	cValue := *(*[]C.grngo_vector)(unsafe.Pointer(&header))
 	value := reflect.MakeSlice(sType, 0, len(cValue))
 	for i := 0; i < len(cValue); i++ {
-		newValue, err := column.traverse(typ, depth + 1, unsafe.Pointer(&cValue[i]))
+		newValue, err := column.traverse(typ, depth+1, unsafe.Pointer(&cValue[i]))
 		if err != nil {
 			return reflect.Zero(sType), err
 		}
