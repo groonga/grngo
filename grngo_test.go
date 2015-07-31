@@ -512,145 +512,74 @@ func TestColumn(t *testing.T) {
 	}
 }
 
-func testTableCreateRefColumn(t *testing.T, keyType string) {
-	valueType := "Table"
-	if strings.HasPrefix(keyType, "[]") {
-		keyType = keyType[2:]
-		valueType = "[]Table"
-	}
+func testRefColumn(t *testing.T, db *DB, keyType, refType string) bool {
+	// Create a referred table.
 	options := NewTableOptions()
 	options.KeyType = keyType
-	dirPath, _, db, table, _ :=
-		createTempColumn(t, "Table", options, "Value", valueType, nil)
+	_, err := db.CreateTable("Table", options)
+	if err != nil {
+		t.Log("DB.CreateTable() failed:", err)
+		return false
+	}
+	defer db.Query("table_remove Table")
+
+	// Create a referrer table.
+	refTable, err := db.CreateTable("RefTable", nil)
+	if err != nil {
+		t.Log("DB.CreateTable() failed:", err)
+		return false
+	}
+	defer db.Query("table_remove RefTable")
+	refColumn, err := refTable.CreateColumn("Ref", refType, nil)
+	if err != nil {
+		t.Log("Table.CreateColumn() failed:", err)
+		return false
+	}
+	valueType := strings.Replace(refType, "Table", keyType, 1)
+
+	for i := 0; i < 10; i++ {
+		_, id, err := refTable.InsertRow(nil)
+		if err != nil {
+			t.Log("Table.InsertRow() failed:", err)
+			return false
+		}
+		value := generateRandomValue(valueType)
+		if err := refColumn.SetValue(id, value); err != nil {
+			t.Log("Column.SetValue() failed:", err)
+			return false
+		}
+		storedValue, err := refColumn.GetValue(id)
+		if err != nil {
+			t.Log("Column.GetValue() failed:", err)
+			return false
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Logf("DeepEqual() failed: value = %v, storedValue = %v",
+				value, storedValue)
+			return false
+		}
+	}
+	return true
+}
+
+func TestRefColumn(t *testing.T) {
+	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
-
-	if column, err := table.FindColumn("Value"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value: %+v", column)
+	keyTypes := []string{
+		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
+		"UInt64", "Float", "Time", "ShortText",
+//		"TokyoGeoPoint", "WGS84GeoPoint",
 	}
-	if column, err := table.FindColumn("Value._id"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value._id: %+v", column)
+	refTypes := []string{ "Table" }
+//	refTypes := []string{ "Table", "[]Table" }
+	for _, keyType := range keyTypes {
+		for _, refType := range refTypes {
+			if !testRefColumn(t, db, keyType, refType) {
+				t.Logf("[ fail ] keyType = \"%s\", refType = \"%s\"", keyType, refType)
+				t.Fail()
+			}
+		}
 	}
-	if column, err := table.FindColumn("Value._key"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value._key: %+v", column)
-	}
-}
-
-func TestTableCreateColumnForRefToBool(t *testing.T) {
-	testTableCreateRefColumn(t, "Bool")
-}
-
-func TestTableCreateColumnForRefToInt8(t *testing.T) {
-	testTableCreateRefColumn(t, "Int8")
-}
-
-func TestTableCreateColumnForRefToInt16(t *testing.T) {
-	testTableCreateRefColumn(t, "Int16")
-}
-
-func TestTableCreateColumnForRefToInt32(t *testing.T) {
-	testTableCreateRefColumn(t, "Int32")
-}
-
-func TestTableCreateColumnForRefToInt64(t *testing.T) {
-	testTableCreateRefColumn(t, "Int64")
-}
-
-func TestTableCreateColumnForRefToUInt8(t *testing.T) {
-	testTableCreateRefColumn(t, "UInt8")
-}
-
-func TestTableCreateColumnForRefToUInt16(t *testing.T) {
-	testTableCreateRefColumn(t, "UInt16")
-}
-
-func TestTableCreateColumnForRefToUInt32(t *testing.T) {
-	testTableCreateRefColumn(t, "UInt32")
-}
-
-func TestTableCreateColumnForRefToUInt64(t *testing.T) {
-	testTableCreateRefColumn(t, "UInt64")
-}
-
-func TestTableCreateColumnForRefToFloat(t *testing.T) {
-	testTableCreateRefColumn(t, "Float")
-}
-
-func TestTableCreateColumnForRefToTime(t *testing.T) {
-	testTableCreateRefColumn(t, "Time")
-}
-
-func TestTableCreateColumnForRefToShortText(t *testing.T) {
-	testTableCreateRefColumn(t, "ShortText")
-}
-
-func TestTableCreateColumnForRefToTokyoGeoPoint(t *testing.T) {
-	testTableCreateRefColumn(t, "TokyoGeoPoint")
-}
-
-func TestTableCreateColumnForRefToWGS84GeoPoint(t *testing.T) {
-	testTableCreateRefColumn(t, "WGS84GeoPoint")
-}
-
-func TestTableCreateColumnForRefToBoolVector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Bool")
-}
-
-func TestTableCreateColumnForRefToInt8Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Int8")
-}
-
-func TestTableCreateColumnForRefToInt16Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Int16")
-}
-
-func TestTableCreateColumnForRefToInt32Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Int32")
-}
-
-func TestTableCreateColumnForRefToInt64Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Int64")
-}
-
-func TestTableCreateColumnForRefToUInt8Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]UInt8")
-}
-
-func TestTableCreateColumnForRefToUInt16Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]UInt16")
-}
-
-func TestTableCreateColumnForRefToUInt32Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]UInt32")
-}
-
-func TestTableCreateColumnForRefToUInt64Vector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]UInt64")
-}
-
-func TestTableCreateColumnForRefToFloatVector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Float")
-}
-
-func TestTableCreateColumnForRefToTimeVector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]Time")
-}
-
-func TestTableCreateColumnForRefToShortTextVector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]ShortText")
-}
-
-func TestTableCreateColumnForRefToTokyoGeoPointVector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]TokyoGeoPoint")
-}
-
-func TestTableCreateColumnForRefToWGS84GeoPointVector(t *testing.T) {
-	testTableCreateRefColumn(t, "[]WGS84GeoPoint")
 }
 
 func TestInvalidRows(t *testing.T) {
