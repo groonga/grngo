@@ -451,149 +451,64 @@ func TestRefKey(t *testing.T) {
 	}
 }
 
-func testTableCreateColumn(t *testing.T, valueType string) {
-	dirPath, _, db, table, _ :=
-		createTempColumn(t, "Table", nil, "Value", valueType, nil)
+func testColumn(t *testing.T, table *Table, valueType string, ids []uint32) bool {
+	columnName := valueType
+	if strings.HasPrefix(valueType, "[]") {
+		columnName = valueType[2:] + "Vector"
+	}
+	columnName += "Value"
+	column, err := table.CreateColumn(columnName, valueType, nil)
+	if err != nil {
+		t.Log("Table.CreateColumn() failed: %v", err)
+		return false
+	}
+	for _, id := range ids {
+		value := generateRandomValue(valueType)
+		if err := column.SetValue(id, value); err != nil {
+			t.Logf("Column.SetValue() failed: %v", err)
+			return false
+		}
+		storedValue, err := column.GetValue(id)
+		if err != nil {
+			t.Logf("Column.GetValue() failed: %v", err)
+			return false
+		}
+		if !reflect.DeepEqual(value, storedValue) {
+			t.Logf("DeepEqual() failed: value = %v, storedValue = %v",
+				value, storedValue)
+			return false
+		}
+	}
+	return true
+}
+
+func TestColumn(t *testing.T) {
+	dirPath, _, db, table := createTempTable(t, "Table", nil)
 	defer removeTempDB(t, dirPath, db)
-
-	if column, err := table.FindColumn("_id"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("_id: %+v", column)
+	valueTypes := []string{
+		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
+		"UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint",
+		"[]Bool", "[]Int8", "[]Int16", "[]Int32", "[]Int64", "[]UInt8", "[]UInt16",
+		"[]UInt32", "[]UInt64", "[]Float", "[]Time", "[]TokyoGeoPoint",
+		"[]WGS84GeoPoint",
 	}
-	if column, err := table.FindColumn("Value"); err != nil {
-		t.Fatalf("Table.FindColumn() failed: %v", err)
-	} else {
-		t.Logf("Value: %+v", column)
+	ids := make([]uint32, 100)
+	for i := 0; i < len(ids); i++ {
+		inserted, id, err := table.InsertRow(nil)
+		if err != nil {
+			t.Fatalf("Table.InsertRow() failed: %v", err)
+		}
+		if !inserted {
+			t.Fatalf("Table.InsertRow() failed")
+		}
+		ids[i] = id;
 	}
-}
-
-func TestTableCreateColumnForBool(t *testing.T) {
-	testTableCreateColumn(t, "Bool")
-}
-
-func TestTableCreateColumnForInt8(t *testing.T) {
-	testTableCreateColumn(t, "Int8")
-}
-
-func TestTableCreateColumnForInt16(t *testing.T) {
-	testTableCreateColumn(t, "Int16")
-}
-
-func TestTableCreateColumnForInt32(t *testing.T) {
-	testTableCreateColumn(t, "Int32")
-}
-
-func TestTableCreateColumnForInt64(t *testing.T) {
-	testTableCreateColumn(t, "Int64")
-}
-
-func TestTableCreateColumnForUInt8(t *testing.T) {
-	testTableCreateColumn(t, "UInt8")
-}
-
-func TestTableCreateColumnForUInt16(t *testing.T) {
-	testTableCreateColumn(t, "UInt16")
-}
-
-func TestTableCreateColumnForUInt32(t *testing.T) {
-	testTableCreateColumn(t, "UInt32")
-}
-
-func TestTableCreateColumnForUInt64(t *testing.T) {
-	testTableCreateColumn(t, "UInt64")
-}
-
-func TestTableCreateColumnForFloat(t *testing.T) {
-	testTableCreateColumn(t, "Float")
-}
-
-func TestTableCreateColumnForTime(t *testing.T) {
-	testTableCreateColumn(t, "Time")
-}
-
-func TestTableCreateColumnForShortText(t *testing.T) {
-	testTableCreateColumn(t, "ShortText")
-}
-
-func TestTableCreateColumnForText(t *testing.T) {
-	testTableCreateColumn(t, "Text")
-}
-
-func TestTableCreateColumnForLongText(t *testing.T) {
-	testTableCreateColumn(t, "LongText")
-}
-
-func TestTableCreateColumnForTokyoGeoPoint(t *testing.T) {
-	testTableCreateColumn(t, "TokyoGeoPoint")
-}
-
-func TestTableCreateColumnForWGS84GeoPoint(t *testing.T) {
-	testTableCreateColumn(t, "WGS84GeoPoint")
-}
-
-func TestTableCreateColumnForBoolVector(t *testing.T) {
-	testTableCreateColumn(t, "[]Bool")
-}
-
-func TestTableCreateColumnForInt8Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]Int8")
-}
-
-func TestTableCreateColumnForInt16Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]Int16")
-}
-
-func TestTableCreateColumnForInt32Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]Int32")
-}
-
-func TestTableCreateColumnForInt64Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]Int64")
-}
-
-func TestTableCreateColumnForUInt8Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]UInt8")
-}
-
-func TestTableCreateColumnForUInt16Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]UInt16")
-}
-
-func TestTableCreateColumnForUInt32Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]UInt32")
-}
-
-func TestTableCreateColumnForUInt64Vector(t *testing.T) {
-	testTableCreateColumn(t, "[]UInt64")
-}
-
-func TestTableCreateColumnForFloatVector(t *testing.T) {
-	testTableCreateColumn(t, "[]Float")
-}
-
-func TestTableCreateColumnForTimeVector(t *testing.T) {
-	testTableCreateColumn(t, "[]Time")
-}
-
-func TestTableCreateColumnForShortTextVector(t *testing.T) {
-	testTableCreateColumn(t, "[]ShortText")
-}
-
-func TestTableCreateColumnForTextVector(t *testing.T) {
-	testTableCreateColumn(t, "[]Text")
-}
-
-func TestTableCreateColumnForLongTextVector(t *testing.T) {
-	testTableCreateColumn(t, "[]LongText")
-}
-
-func TestTableCreateColumnForTokyoGeoPointVector(t *testing.T) {
-	testTableCreateColumn(t, "[]TokyoGeoPoint")
-}
-
-func TestTableCreateColumnForWGS84GeoPointVector(t *testing.T) {
-	testTableCreateColumn(t, "[]WGS84GeoPoint")
+	for _, valueType := range valueTypes {
+		if !testColumn(t, table, valueType, ids) {
+			t.Logf("[ fail ] valueType = \"%s\"", valueType)
+			t.Fail()
+		}
+	}
 }
 
 func testTableCreateRefColumn(t *testing.T, keyType string) {
@@ -778,303 +693,6 @@ func TestInvalidRows(t *testing.T) {
 			}
 		}
 	}
-}
-
-func testColumnSetValue(t *testing.T, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", valueType, nil)
-	defer removeTempDB(t, dirPath, db)
-
-	for i := 0; i < 100; i++ {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			t.Fatalf("Table.InsertRow() failed: %v", err)
-		}
-		if err := column.SetValue(id, generateRandomValue(valueType)); err != nil {
-			t.Fatalf("Column.SetValue() failed: %v", err)
-		}
-	}
-
-	bytes, _ := db.Query("select Table --limit 3")
-	t.Logf("valueType = <%s>, result = %s", valueType, string(bytes))
-}
-
-func TestColumnSetValueForBool(t *testing.T) {
-	testColumnSetValue(t, "Bool")
-}
-
-func TestColumnSetValueForInt8(t *testing.T) {
-	testColumnSetValue(t, "Int8")
-}
-
-func TestColumnSetValueForInt16(t *testing.T) {
-	testColumnSetValue(t, "Int16")
-}
-
-func TestColumnSetValueForInt32(t *testing.T) {
-	testColumnSetValue(t, "Int32")
-}
-
-func TestColumnSetValueForInt64(t *testing.T) {
-	testColumnSetValue(t, "Int64")
-}
-
-func TestColumnSetValueForUInt8(t *testing.T) {
-	testColumnSetValue(t, "UInt8")
-}
-
-func TestColumnSetValueForUInt16(t *testing.T) {
-	testColumnSetValue(t, "UInt16")
-}
-
-func TestColumnSetValueForUInt32(t *testing.T) {
-	testColumnSetValue(t, "UInt32")
-}
-
-func TestColumnSetValueForUInt64(t *testing.T) {
-	testColumnSetValue(t, "UInt64")
-}
-
-func TestColumnSetValueForFloat(t *testing.T) {
-	testColumnSetValue(t, "Float")
-}
-
-func TestColumnSetValueForTime(t *testing.T) {
-	testColumnSetValue(t, "Time")
-}
-
-func TestColumnSetValueForShortText(t *testing.T) {
-	testColumnSetValue(t, "ShortText")
-}
-
-func TestColumnSetValueForText(t *testing.T) {
-	testColumnSetValue(t, "Text")
-}
-
-func TestColumnSetValueForLongText(t *testing.T) {
-	testColumnSetValue(t, "LongText")
-}
-
-func TestColumnSetValueForTokyoGeoPoint(t *testing.T) {
-	testColumnSetValue(t, "TokyoGeoPoint")
-}
-
-func TestColumnSetValueForWGS84GeoPoint(t *testing.T) {
-	testColumnSetValue(t, "WGS84GeoPoint")
-}
-
-func TestColumnSetValueForBoolVector(t *testing.T) {
-	testColumnSetValue(t, "[]Bool")
-}
-
-func TestColumnSetValueForInt8Vector(t *testing.T) {
-	testColumnSetValue(t, "[]Int8")
-}
-
-func TestColumnSetValueForInt16Vector(t *testing.T) {
-	testColumnSetValue(t, "[]Int16")
-}
-
-func TestColumnSetValueForInt32Vector(t *testing.T) {
-	testColumnSetValue(t, "[]Int32")
-}
-
-func TestColumnSetValueForInt64Vector(t *testing.T) {
-	testColumnSetValue(t, "[]Int64")
-}
-
-func TestColumnSetValueForUInt8Vector(t *testing.T) {
-	testColumnSetValue(t, "[]UInt8")
-}
-
-func TestColumnSetValueForUInt16Vector(t *testing.T) {
-	testColumnSetValue(t, "[]UInt16")
-}
-
-func TestColumnSetValueForUInt32Vector(t *testing.T) {
-	testColumnSetValue(t, "[]UInt32")
-}
-
-func TestColumnSetValueForUInt64Vector(t *testing.T) {
-	testColumnSetValue(t, "[]UInt64")
-}
-
-func TestColumnSetValueForFloatVector(t *testing.T) {
-	testColumnSetValue(t, "[]Float")
-}
-
-func TestColumnSetValueForTimeVector(t *testing.T) {
-	testColumnSetValue(t, "[]Time")
-}
-
-func TestColumnSetValueForShortTextVector(t *testing.T) {
-	testColumnSetValue(t, "[]ShortText")
-}
-
-func TestColumnSetValueForTextVector(t *testing.T) {
-	testColumnSetValue(t, "[]Text")
-}
-
-func TestColumnSetValueForLongTextVector(t *testing.T) {
-	testColumnSetValue(t, "[]LongText")
-}
-
-func TestColumnSetValueForTokyoGeoPointVector(t *testing.T) {
-	testColumnSetValue(t, "[]TokyoGeoPoint")
-}
-
-func TestColumnSetValueForWGS84GeoPointVector(t *testing.T) {
-	testColumnSetValue(t, "[]WGS84GeoPoint")
-}
-
-func testColumnGetValue(t *testing.T, valueType string) {
-	dirPath, _, db, table, column :=
-		createTempColumn(t, "Table", nil, "Value", valueType, nil)
-	defer removeTempDB(t, dirPath, db)
-	for i := 0; i < 100; i++ {
-		_, id, err := table.InsertRow(nil)
-		if err != nil {
-			t.Fatalf("Table.InsertRow() failed: %v", err)
-		}
-		value := generateRandomValue(valueType)
-		if err := column.SetValue(id, value); err != nil {
-			t.Fatalf("Column.SetValue() failed: %v", err)
-		}
-		if storedValue, err := column.GetValue(id); err != nil {
-			t.Fatalf("Column.GetValue() failed: %v", err)
-		} else if !reflect.DeepEqual(value, storedValue) {
-			t.Fatalf("Column.GetValue() failed: value = %v, storedValue = %v",
-				value, storedValue)
-		}
-	}
-}
-
-func TestColumnGetValueForBool(t *testing.T) {
-	testColumnGetValue(t, "Bool")
-}
-
-func TestColumnGetValueForInt8(t *testing.T) {
-	testColumnGetValue(t, "Int8")
-}
-
-func TestColumnGetValueForInt16(t *testing.T) {
-	testColumnGetValue(t, "Int16")
-}
-
-func TestColumnGetValueForInt32(t *testing.T) {
-	testColumnGetValue(t, "Int32")
-}
-
-func TestColumnGetValueForInt64(t *testing.T) {
-	testColumnGetValue(t, "Int64")
-}
-
-func TestColumnGetValueForUInt8(t *testing.T) {
-	testColumnGetValue(t, "UInt8")
-}
-
-func TestColumnGetValueForUInt16(t *testing.T) {
-	testColumnGetValue(t, "UInt16")
-}
-
-func TestColumnGetValueForUInt32(t *testing.T) {
-	testColumnGetValue(t, "UInt32")
-}
-
-func TestColumnGetValueForUInt64(t *testing.T) {
-	testColumnGetValue(t, "UInt64")
-}
-
-func TestColumnGetValueForFloat(t *testing.T) {
-	testColumnGetValue(t, "Float")
-}
-
-func TestColumnGetValueForTime(t *testing.T) {
-	testColumnGetValue(t, "Time")
-}
-
-func TestColumnGetValueForShortText(t *testing.T) {
-	testColumnGetValue(t, "ShortText")
-}
-
-func TestColumnGetValueForText(t *testing.T) {
-	testColumnGetValue(t, "Text")
-}
-
-func TestColumnGetValueForLongText(t *testing.T) {
-	testColumnGetValue(t, "LongText")
-}
-
-func TestColumnGetValueForTokyoGeoPoint(t *testing.T) {
-	testColumnGetValue(t, "TokyoGeoPoint")
-}
-
-func TestColumnGetValueForWGS84GeoPoint(t *testing.T) {
-	testColumnGetValue(t, "WGS84GeoPoint")
-}
-
-func TestColumnGetValueForBoolVector(t *testing.T) {
-	testColumnGetValue(t, "[]Bool")
-}
-
-func TestColumnGetValueForInt8Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int8")
-}
-
-func TestColumnGetValueForInt16Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int16")
-}
-
-func TestColumnGetValueForInt32Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int32")
-}
-
-func TestColumnGetValueForInt64Vector(t *testing.T) {
-	testColumnGetValue(t, "[]Int64")
-}
-
-func TestColumnGetValueForUInt8Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt8")
-}
-
-func TestColumnGetValueForUInt16Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt16")
-}
-
-func TestColumnGetValueForUInt32Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt32")
-}
-
-func TestColumnGetValueForUInt64Vector(t *testing.T) {
-	testColumnGetValue(t, "[]UInt64")
-}
-
-func TestColumnGetValueForFloatVector(t *testing.T) {
-	testColumnGetValue(t, "[]Float")
-}
-
-func TestColumnGetValueForTimeVector(t *testing.T) {
-	testColumnGetValue(t, "[]Time")
-}
-
-func TestColumnGetValueForShortTextVector(t *testing.T) {
-	testColumnGetValue(t, "[]ShortText")
-}
-
-func TestColumnGetValueForTextVector(t *testing.T) {
-	testColumnGetValue(t, "[]Text")
-}
-
-func TestColumnGetValueForLongTextVector(t *testing.T) {
-	testColumnGetValue(t, "[]LongText")
-}
-
-func TestColumnGetValueForTokyoGeoPointVector(t *testing.T) {
-	testColumnGetValue(t, "[]TokyoGeoPoint")
-}
-
-func TestColumnGetValueForWGS84GeoPointVector(t *testing.T) {
-	testColumnGetValue(t, "[]WGS84GeoPoint")
 }
 
 func TestRef(t *testing.T) {
