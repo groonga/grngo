@@ -487,10 +487,11 @@ func TestColumn(t *testing.T) {
 	defer removeTempDB(t, dirPath, db)
 	valueTypes := []string{
 		"Bool", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16", "UInt32",
-		"UInt64", "Float", "Time", "TokyoGeoPoint", "WGS84GeoPoint",
+		"UInt64", "Float", "Time", "ShortText", "Text", "LongText",
+		"TokyoGeoPoint", "WGS84GeoPoint",
 		"[]Bool", "[]Int8", "[]Int16", "[]Int32", "[]Int64", "[]UInt8", "[]UInt16",
-		"[]UInt32", "[]UInt64", "[]Float", "[]Time", "[]TokyoGeoPoint",
-		"[]WGS84GeoPoint",
+		"[]UInt32", "[]UInt64", "[]Float", "[]Time", "[]ShortText", "[]Text",
+		"[]LongText", "[]TokyoGeoPoint", "[]WGS84GeoPoint",
 	}
 	ids := make([]uint32, 100)
 	for i := 0; i < len(ids); i++ {
