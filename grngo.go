@@ -851,7 +851,7 @@ func (table *Table) createColumnOptionsMap(name string, valueType string, option
 	case CompressZlib:
 		optionsMap["flags"] += "|COMPRESS_ZLIB"
 	case CompressLZ4:
-		optionsMap["flags"] += "|COMRESS_LZ4"
+		optionsMap["flags"] += "|COMPRESS_LZ4"
 	default:
 		return nil, fmt.Errorf("undefined compression type: options = %+v", options)
 	}
