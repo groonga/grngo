@@ -255,6 +255,43 @@ func removeTempDB(tb testing.TB, dirPath string, db *DB) {
 
 // Tests.
 
+type Rec struct {
+	A bool `grngo:"A"`
+	B int64 `grngo:"B"`
+	C float64 `grngo:"C"`
+	D string `grngo:"D"`
+	E []byte `grngo:"E"`
+}
+
+func TestLoad(t *testing.T) {
+	dirPath, _, db, _ := createTempTable(t, "Table", nil)
+	defer removeTempDB(t, dirPath, db)
+	if _, err := db.CreateColumn("Table", "A", "Bool", nil); err != nil {
+		t.Fatal("DB.CreateColumn() failed:", err)
+	}
+	if _, err := db.CreateColumn("Table", "B", "Int64", nil); err != nil {
+		t.Fatal("DB.CreateColumn() failed:", err)
+	}
+	if _, err := db.CreateColumn("Table", "C", "Float", nil); err != nil {
+		t.Fatal("DB.CreateColumn() failed:", err)
+	}
+	if _, err := db.CreateColumn("Table", "D", "Text", nil); err != nil {
+		t.Fatal("DB.CreateColumn() failed:", err)
+	}
+	if _, err := db.CreateColumn("Table", "E", "Text", nil); err != nil {
+		t.Fatal("DB.CreateColumn() failed:", err)
+	}
+	var recs []Rec
+	recs = append(recs, Rec{false, 100, 1.23, "ABC", []byte("123")})
+	recs = append(recs, Rec{true, 200, 2.34, "BCD", []byte("456")})
+	recs = append(recs, Rec{false, 300, 3.45, "C\"DE", []byte("789")})
+	_, err := db.Load("Table", recs, nil)
+	if err != nil {
+		t.Fatalf("DB.Load() failed: %v", err)
+	}
+//	bytes, _ := db.Query("select Table")
+}
+
 func TestDB(t *testing.T) {
 	dirPath, dbPath, db := createTempDB(t)
 	defer os.RemoveAll(dirPath)

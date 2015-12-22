@@ -6,6 +6,7 @@ package grngo
 import "C"
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -682,6 +683,25 @@ func (db *DB) FindTable(name string) (*Table, error) {
 	return table, nil
 }
 
+type LoadOptions struct {
+	IfExists string
+}
+
+// NewLoadOptions returns a new LoadOptions with the default settings.
+func NewLoadOptions() *LoadOptions {
+	options := new(LoadOptions)
+	return options
+}
+
+// (Experimental) Load loads values.
+func (db *DB) Load(tableName string, values interface{}, options *LoadOptions) ([]byte, error) {
+	table, err := db.FindTable(tableName)
+	if err != nil {
+		return nil, err
+	}
+	return table.Load(values, options)
+}
+
 // InsertRow finds or inserts a row.
 func (db *DB) InsertRow(tableName string, key interface{}) (inserted bool, id uint32, err error) {
 	table, err := db.FindTable(tableName)
@@ -758,6 +778,185 @@ func newTable(db *DB, c *C.grngo_table, name string) *Table {
 	table.name = name
 	table.columns = make(map[string]*Column)
 	return &table
+}
+
+// genLoadHead generates the head line of a load command.
+func (table *Table) genLoadHead(options *LoadOptions) (string, error) {
+	line := fmt.Sprintf("load --table %s", table.name)
+	if options.IfExists != "" {
+		value := strings.Replace(options.IfExists, "\\", "\\\\", -1)
+		value = strings.Replace(value, "\"", "\\\"", -1)
+		line += fmt.Sprintf(" --ifexists '%s'", value)
+	}
+	return line, nil
+}
+
+// writeLoadColumns writes columns of a load command.
+func (table *Table) writeLoadColumns(buf *bytes.Buffer, valueType reflect.Type) error {
+	if err := buf.WriteByte('['); err != nil {
+		return err
+	}
+	needsDelimiter := false
+	for i := 0; i < valueType.NumField(); i++ {
+		field := valueType.Field(i)
+		columnName := field.Tag.Get("grngo")
+		if columnName == "" {
+			continue
+		}
+		if needsDelimiter {
+			if err := buf.WriteByte(','); err != nil {
+				return err
+			}
+		} else {
+			needsDelimiter = true
+		}
+		if _, err := fmt.Fprintf(buf, "\"%s\"", columnName); err != nil {
+			return err
+		}
+	}
+	if err := buf.WriteByte(']'); err != nil {
+		return err
+	}
+	return nil
+}
+
+// writeLoadValue writes a value of a load command.
+func (table *Table) writeLoadValue(buf *bytes.Buffer, value *reflect.Value) error {
+	if err := buf.WriteByte('['); err != nil {
+		return err
+	}
+	valueType := value.Type()
+	needsDelimiter := false
+	for i := 0; i < valueType.NumField(); i++ {
+		field := valueType.Field(i)
+		tag := field.Tag.Get("grngo")
+		if tag == "" {
+			continue
+		}
+		if needsDelimiter {
+			if err := buf.WriteByte(','); err != nil {
+				return err
+			}
+		} else {
+			needsDelimiter = true
+		}
+		fieldValue := value.Field(i)
+		switch fieldValue.Kind() {
+		case reflect.Bool:
+			if _, err := fmt.Fprint(buf, fieldValue.Bool()); err != nil {
+				return err
+			}
+		case reflect.Int64:
+			if _, err := fmt.Fprint(buf, fieldValue.Int()); err != nil {
+				return err
+			}
+		case reflect.Float64:
+			if _, err := fmt.Fprint(buf, fieldValue.Float()); err != nil {
+				return err
+			}
+		case reflect.String:
+			str := fieldValue.String()
+			str = strings.Replace(str, "\\", "\\\\", -1)
+			str = strings.Replace(str, "\"", "\\\"", -1)
+			if _, err := fmt.Fprintf(buf, "\"%s\"", str); err != nil {
+				return err
+			}
+		case reflect.Slice:
+			switch field.Type.Elem().Kind() {
+			case reflect.Uint8:
+				str := string(fieldValue.Bytes())
+				str = strings.Replace(str, "\\", "\\\\", -1)
+				str = strings.Replace(str, "\"", "\\\"", -1)
+				if _, err := fmt.Fprintf(buf, "\"%s\"", str); err != nil {
+					return err
+				}
+			default:
+				// TODO: Support other types!
+				return fmt.Errorf("unsupported data kind")
+			}
+		default:
+			// TODO: Support other types!
+			return fmt.Errorf("unsupported data kind")
+		}
+	}
+	if err := buf.WriteByte(']'); err != nil {
+		return err
+	}
+	return nil
+}
+
+// genLoadBody generates the body line of a load command.
+func (table *Table) genLoadBody(values interface{}) (string, error) {
+	buf := new(bytes.Buffer)
+	if err := buf.WriteByte('['); err != nil {
+		return "", err
+	}
+	value := reflect.ValueOf(values)
+	switch value.Kind() {
+	case reflect.Struct:
+	case reflect.Ptr:
+		value := value.Elem()
+		if value.Kind() != reflect.Struct {
+			return "", fmt.Errorf("invalid values")
+		}
+		if err := table.writeLoadColumns(buf, value.Type()); err != nil {
+			return "", err
+		}
+		if err := table.writeLoadValue(buf, &value); err != nil {
+			return "", err
+		}
+	case reflect.Slice:
+		if value.Len() == 0 {
+			return "", fmt.Errorf("invalid values")
+		}
+		valueType := value.Type().Elem()
+		if valueType.Kind() != reflect.Struct {
+			return "", fmt.Errorf("invalid values")
+		}
+		if err := table.writeLoadColumns(buf, valueType); err != nil {
+			return "", err
+		}
+		for i := 0; i < value.Len(); i++ {
+			if err := buf.WriteByte(','); err != nil {
+				return "", err
+			}
+			v := value.Index(i)
+			if err := table.writeLoadValue(buf, &v); err != nil {
+				return "", err
+			}
+		}
+	}
+	if err := buf.WriteByte(']'); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+// (Experimental) Load loads values.
+//
+// Implicit conversion for Time is not supported.
+// GeoPoint is not supported.
+// Vector types are not supported.
+func (table *Table) Load(values interface{}, options *LoadOptions) ([]byte, error) {
+	if options == nil {
+		options = NewLoadOptions()
+	}
+	headLine, err := table.genLoadHead(options)
+	if err != nil {
+		return nil, err
+	}
+	bodyLine, err := table.genLoadBody(values)
+	if err != nil {
+		return nil, err
+	}
+	lines := []string{ headLine, bodyLine }
+	for _, line := range lines {
+		if err := table.db.Send(line); err != nil {
+			result, _ := table.db.Recv()
+			return result, err
+		}
+	}
+	return table.db.Recv()
 }
 
 // InsertRow finds or inserts a row.
