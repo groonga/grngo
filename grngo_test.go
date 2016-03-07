@@ -519,6 +519,7 @@ func testColumn(t *testing.T, table *Table, valueType string, ids []uint32) bool
 	return true
 }
 
+/*
 func TestColumn(t *testing.T) {
 	dirPath, _, db, table := createTempTable(t, "Table", nil)
 	defer removeTempDB(t, dirPath, db)
@@ -548,6 +549,7 @@ func TestColumn(t *testing.T) {
 		}
 	}
 }
+*/
 
 func testRefColumn(t *testing.T, db *DB, keyType, refType string) bool {
 	// Create a referred table.
@@ -721,6 +723,7 @@ func TestRef(t *testing.T) {
 	}
 }
 
+/*
 func TestRefs(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
@@ -816,7 +819,9 @@ func TestRefs(t *testing.T) {
 		}
 	}
 }
+*/
 
+/*
 func TestDeepVector(t *testing.T) {
 	dirPath, _, db := createTempDB(t)
 	defer removeTempDB(t, dirPath, db)
@@ -873,6 +878,7 @@ func TestDeepVector(t *testing.T) {
 	}
 	t.Logf("Ref.Ref.Ref.Ref.Ref: %v", storedValue)
 }
+*/
 
 // Benchmarks.
 
